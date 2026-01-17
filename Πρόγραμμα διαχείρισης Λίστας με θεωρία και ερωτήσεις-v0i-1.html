@@ -1,0 +1,2485 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8">
+  <title>Δυναμικές Δομές Δεδομένων – Θεωρία & Εφαρμογή</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #222;
+      min-height: 100vh;
+    }
+
+    /* Enhanced header with gradient and shadow */
+    header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 32px 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      animation: headerPulse 8s ease-in-out infinite;
+    }
+
+    @keyframes headerPulse {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(-10%, -10%); }
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 28px;
+      position: relative;
+      z-index: 1;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    main {
+      padding: 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Enhanced tabs with modern design */
+    .tabs {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      background: rgba(255,255,255,0.95);
+      padding: 16px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      backdrop-filter: blur(10px);
+    }
+
+    .tab-button {
+      border: none;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+      color: #1565c0;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tab-button::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.5);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    .tab-button:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+
+    .tab-button.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .tab-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+    /* Enhanced panel design */
+    .panel {
+      display: none;
+      background: rgba(255,255,255,0.98);
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+      margin-bottom: 24px;
+      backdrop-filter: blur(10px);
+      animation: panelFadeIn 0.5s ease-out;
+    }
+
+    @keyframes panelFadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    .panel h2 {
+      margin-top: 0;
+      font-size: 26px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .panel h3 {
+        margin-top: 32px;
+        margin-bottom: 16px;
+        color: #667eea;
+        border-bottom: 3px solid #e3f2fd;
+        padding-bottom: 8px;
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    .panel h4 {
+        margin-top: 20px;
+        margin-bottom: 8px;
+        color: #764ba2;
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .panel small {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Enhanced theory section styling */
+    .theory-container {
+        font-size: 16px;
+        line-height: 1.8;
+        color: #333;
+    }
+    .theory-container p {
+        margin-bottom: 16px;
+    }
+    .theory-container ul {
+        margin-bottom: 20px;
+        padding-left: 20px;
+        background: linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%);
+        padding: 20px 20px 20px 40px;
+        border-radius: 12px;
+        border-left: 5px solid #667eea;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .theory-container li {
+        margin-bottom: 10px;
+    }
+    .theory-diagram {
+        display: flex;
+        justify-content: center;
+        margin: 32px 0;
+        background: #ffffff;
+        padding: 28px;
+        border: 2px solid #e0e0e0;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        overflow-x: auto;
+    }
+    .example-box {
+        background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+        border: 2px solid #ffb300;
+        padding: 20px;
+        border-radius: 16px;
+        margin-bottom: 24px;
+        box-shadow: 0 6px 20px rgba(255, 179, 0, 0.15);
+    }
+    .example-title {
+        font-weight: 700;
+        font-size: 18px;
+        color: #e65100;
+        margin-bottom: 10px;
+        display: block;
+    }
+    .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        font-size: 15px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .comparison-table th, .comparison-table td {
+        border: 1px solid #e0e0e0;
+        padding: 16px;
+        text-align: left;
+    }
+    .comparison-table th {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-weight: 700;
+        font-size: 16px;
+    }
+    .comparison-table tr:nth-child(even) {
+        background-color: #f8f9ff;
+    }
+    .comparison-table tr:hover {
+        background-color: #e3f2fd;
+        transition: background-color 0.3s ease;
+    }
+
+    /* Enhanced memory and structure sections */
+    .memory-section,
+    .control-section {
+      background: linear-gradient(135deg, #fafbfd 0%, #f0f4ff 100%);
+      border-radius: 16px;
+      padding: 20px;
+      border: 2px solid #e0e5f2;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+
+    .structure-visual {
+      background: linear-gradient(135deg, #fafbfd 0%, #f0f4ff 100%);
+      border-radius: 16px;
+      padding: 20px;
+      border: 2px solid #e0e5f2;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+
+    .section-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #37474f;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .memory-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    /* Enhanced memory cells */
+    .mem-cell {
+      border-radius: 10px;
+      padding: 8px;
+      border: 2px dashed #cfd8dc;
+      background: #ffffff;
+      font-size: 11px;
+      line-height: 1.4;
+      min-height: 70px;
+      box-sizing: border-box;
+      transition: all 0.3s ease;
+    }
+
+    .mem-cell.used {
+      border-style: solid;
+      border-color: #667eea;
+      background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+      transform: scale(1.02);
+    }
+
+    .mem-addr {
+      font-weight: 700;
+      color: #455a64;
+      font-size: 12px;
+    }
+
+    .mem-content {
+      margin-top: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #1976d2;
+    }
+
+    .mem-ptrs {
+      margin-top: 4px;
+      font-size: 10px;
+      color: #455a64;
+    }
+
+    .pointers {
+      font-size: 14px;
+      margin-bottom: 12px;
+      color: #37474f;
+      font-weight: 600;
+    }
+
+    .pointers span {
+      font-weight: 700;
+      color: #667eea;
+      background: rgba(102, 126, 234, 0.1);
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    /* Enhanced list visualization */
+    .list-visual {
+      display: flex;
+      align-items: center;
+      flex-wrap: nowrap;
+      gap: 16px;
+      min-height: 100px;
+      padding: 16px 12px;
+      border-radius: 12px;
+      background: #ffffff;
+      border: 2px solid #e0e5f2;
+      overflow-x: auto;
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    /* Enhanced node styling with better animations */
+    .node {
+      min-width: 140px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+      border: 3px solid #ffb300;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 12px rgba(255, 179, 0, 0.2);
+    }
+
+    .node-doubly {
+      min-width: 130px; 
+    }
+
+    .node:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(255, 179, 0, 0.3);
+    }
+
+    .node.selected {
+      border-color: #ff6f00;
+      box-shadow: 0 0 0 4px rgba(255, 111, 0, 0.3), 0 8px 24px rgba(255, 111, 0, 0.4);
+      background: linear-gradient(135deg, #ffe0b2 0%, #ffcc80 100%);
+      transform: scale(1.05);
+    }
+
+    .node-content {
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      font-size: 14px;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .node-singly .node-part,
+    .node-doubly .node-part {
+      flex: 1;
+    }
+
+    .node-part {
+      padding: 8px 10px;
+      box-sizing: border-box;
+    }
+
+    .node-part + .node-part {
+      border-left: 2px solid #ffb300;
+    }
+
+    .value-part {
+      font-weight: 800;
+      font-size: 18px;
+      color: #e65100;
+    }
+
+    .pointer-part {
+      font-size: 11px;
+      color: #455a64;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+    /* Added styling for two-line pointer display in doubly linked list */
+    .pointer-label {
+      font-size: 9px;
+      font-weight: 600;
+      color: #455a64;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .pointer-addr {
+      font-size: 11px;
+      font-weight: 700;
+      color: #e65100;
+      margin-top: 2px;
+    }
+
+    .addr-label {
+      margin-top: 4px;
+      font-size: 11px;
+      color: #546e7a;
+      font-weight: 600;
+    }
+
+    .arrow {
+      font-size: 24px;
+      color: #667eea;
+      font-weight: 700;
+    }
+
+    .double-arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 18px;
+      color: #667eea;
+      gap: 2px;
+      font-weight: 700;
+    }
+
+    /* Enhanced controls */
+    .controls {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .controls input[type="number"],
+    .controls select {
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 2px solid #e0e5f2;
+      font-size: 14px;
+      min-width: 80px;
+      transition: all 0.3s ease;
+      font-weight: 600;
+    }
+
+    .controls input[type="number"]:focus,
+    .controls select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    /* Enhanced buttons */
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    .btn:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+
+    .btn.secondary {
+      background: linear-gradient(135deg, #90a4ae 0%, #607d8b 100%);
+      box-shadow: 0 4px 12px rgba(144, 164, 174, 0.3);
+    }
+
+    .btn.small {
+      padding: 8px 14px;
+      font-size: 13px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn.secondary:hover {
+      box-shadow: 0 6px 20px rgba(144, 164, 174, 0.4);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
+      box-shadow: 0 4px 12px rgba(229, 57, 53, 0.3);
+    }
+    .btn-danger:hover {
+      box-shadow: 0 6px 20px rgba(229, 57, 53, 0.4);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #43a047 0%, #2e7d32 100%);
+      box-shadow: 0 4px 12px rgba(67, 160, 71, 0.3);
+    }
+    .btn-success:hover {
+      box-shadow: 0 6px 20px rgba(67, 160, 71, 0.4);
+    }
+
+    /* Enhanced log section */
+    .log {
+      margin-top: 12px;
+      padding: 16px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #f1f8e9 0%, #dcedc8 100%);
+      border: 2px solid #aed581;
+      font-size: 13px;
+      max-height: 240px;
+      overflow-y: auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      line-height: 1.6;
+    }
+
+    .log strong {
+      color: #33691e;
+      font-weight: 700;
+    }
+
+    .log ol {
+      margin: 8px 0 0 20px;
+      padding: 0;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: #78909c;
+      margin-top: 8px;
+      font-style: italic;
+    }
+
+    .head-box, .tail-box {
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%);
+      border: 2px solid #0288d1;
+      font-size: 12px;
+      text-align: center;
+      min-width: 90px;
+      box-shadow: 0 2px 8px rgba(2, 136, 209, 0.2);
+      font-weight: 700;
+    }
+
+    .marker-title {
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .marker-addr {
+      font-size: 11px;
+      color: #01579b;
+      font-weight: 600;
+    }
+
+    /* Quiz Styles */
+    .quiz-item {
+        margin-bottom: 16px;
+        padding: 16px;
+        background: linear-gradient(135deg, #fff 0%, #f8f9ff 100%);
+        border-radius: 12px;
+        border: 2px solid #e0e5f2;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    .quiz-item:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        transform: translateX(4px);
+    }
+    .quiz-question {
+        font-weight: 700;
+        margin-bottom: 10px;
+        font-size: 15px;
+        color: #37474f;
+    }
+    .quiz-options label {
+        margin-right: 20px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: color 0.3s ease;
+    }
+    .quiz-options label:hover {
+        color: #667eea;
+    }
+    .quiz-feedback {
+        margin-top: 8px;
+        font-weight: 700;
+        font-size: 14px;
+        padding: 8px;
+        border-radius: 8px;
+    }
+    .correct-text { 
+        color: #2e7d32; 
+        background: rgba(46, 125, 50, 0.1);
+    }
+    .wrong-text { 
+        color: #c62828;
+        background: rgba(198, 40, 40, 0.1);
+    }
+
+    /* Slower, smoother animations - at least 3 seconds as requested */
+    @keyframes slowInsert {
+      0%   { 
+        background: linear-gradient(135deg, #ffcdd2 0%, #ef9a9a 100%); 
+        transform: translateY(-30px) scale(0.8); 
+        opacity: 0;
+      }
+      30% {
+        opacity: 1;
+      }
+      100% { 
+        background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%); 
+        transform: translateY(0) scale(1); 
+        opacity: 1;
+      }
+    }
+    .flash-insert { animation: slowInsert 4s cubic-bezier(0.4, 0, 0.2, 1); }
+
+    @keyframes slowPointer {
+      0%   { background: #ffcdd2; color: #b71c1c; font-size: 140%; opacity: 1; }
+      15%  { opacity: 0.3; }
+      30%  { opacity: 1; }
+      45%  { opacity: 0.3; }
+      60%  { opacity: 1; }
+      75%  { opacity: 0.3; }
+      90%  { opacity: 1; }
+      100% { background: inherit; color: inherit; font-size: 100%; opacity: 1; }
+    }
+    .flash-pointer { animation: slowPointer 4s ease-in-out; }
+
+    @keyframes deleteMem {
+      0%   { background: linear-gradient(135deg, #ffcdd2 0%, #ef9a9a 100%); transform: scale(1.1); }
+      20%  { background: linear-gradient(135deg, #ffe082 0%, #ffd54f 100%); }
+      40%  { background: linear-gradient(135deg, #fff9c4 0%, #fff59d 100%); }
+      60%  { background: linear-gradient(135deg, #fffde7 0%, #fff9c4 100%); }
+      80%  { background: #ffffff; transform: scale(0.95); }
+      100% { background: #ffffff; transform: scale(1); }
+    }
+    .flash-delete-mem { animation: deleteMem 5s ease-in-out; }
+
+    /* Slower, more dramatic delete animations - at least 3 seconds */
+    .node.delete-mark {
+      position: relative;
+      opacity: 0;
+      transform: scale(0.7) rotate(5deg);
+      transition: all 3.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .node.delete-mark::before {
+      content: "✕";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 90px;
+      color: rgba(211, 47, 47, 0.7);
+      font-weight: bold;
+      pointer-events: none;
+      z-index: 10;
+      display: block;
+      animation: deleteMarkAppear 3.5s ease-out;
+    }
+
+    @keyframes deleteMarkAppear {
+      0% { 
+        font-size: 0px; 
+        opacity: 0; 
+        transform: translate(-50%, -50%) rotate(-180deg);
+      }
+      50% { 
+        font-size: 100px; 
+        opacity: 1;
+        transform: translate(-50%, -50%) rotate(0deg);
+      }
+      100% { 
+        font-size: 90px; 
+        opacity: 0.7;
+        transform: translate(-50%, -50%) rotate(5deg);
+      }
+    }
+
+    .node.node-collapse {
+      max-width: 0 !important;
+      min-width: 0 !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      border: 0 !important;
+      overflow: hidden;
+      opacity: 0;
+      transform: scaleX(0);
+      transition: all 3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Smooth scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>🎓 Δυναμικές Δομές Δεδομένων – Θεωρία & Εφαρμογή</h1>
+</header>
+
+<main>
+  <div class="tabs">
+    <button class="tab-button active" data-target="panel-theory">📚 Θεωρία Λιστών</button>
+    <button class="tab-button" data-target="panel-singly">🔗 Απλά συνδεδεμένη λίστα</button>
+    <button class="tab-button" data-target="panel-doubly">⇄ Διπλά συνδεδεμένη λίστα</button>
+    <button class="tab-button" data-target="panel-stack">📚 Στοίβα με λίστα</button>
+    <button class="tab-button" data-target="panel-queue">🎫 Ουρά με λίστα</button>
+    <button class="tab-button" data-target="panel-quiz">✅ Αυτοαξιολόγηση</button>
+  </div>
+
+
+  <section class="panel active" id="panel-theory">
+    <h2>Θεωρία: Συνδεδεμένες Λίστες</h2>
+    <div class="theory-container">
+      
+      <div class="example-box">
+        <span class="example-title">💡 Η Λίστα στην καθημερινή ζωή</span>
+        <p>Η έννοια της λίστας συναντάται πολύ συχνά στην καθημερινότητά μας. Σκεφτείτε πόσες φορές έχετε φτιάξει:</p>
+        <ul>
+            <li>Μια λίστα με τα αγαπημένα σας <strong>τραγούδια</strong> στο κινητό.</li>
+            <li>Μια λίστα με τις <strong>επαφές</strong> σας.</li>
+            <li>Μια λίστα με τα <strong>ψώνια</strong> του σούπερ μάρκετ.</li>
+            <li>Μια λίστα με <strong>επιθυμίες και όνειρα</strong> (bucket list).</li>
+        </ul>
+        <p>Η λίστα στην πληροφορική δεν είναι τίποτα άλλο παρά μια συλλογή από αντικείμενα (δεδομένα) του ίδιου τύπου, οργανωμένα σε μια σειρά.</p>
+      </div>
+
+      <h3>1. Τι είναι η Συνδεδεμένη Λίστα;</h3>
+      <p>
+        Η συνδεδεμένη λίστα είναι μια <strong>δυναμική δομή δεδομένων</strong>. Σε αντίθεση με τους πίνακες, όπου τα στοιχεία πρέπει να βρίσκονται σε συνεχόμενες θέσεις μνήμης (σαν σπίτια σε έναν δρόμο), στη λίστα τα στοιχεία (που ονομάζονται <strong>κόμβοι</strong>) μπορεί να είναι διασκορπισμένα οπουδήποτε στη μνήμη.
+      </p>
+      
+      <p>Κάθε <strong>κόμβος</strong> αποτελείται από δύο μέρη:</p>
+      <ul>
+        <li><strong>Δεδομένα:</strong> Η πληροφορία που θέλουμε να αποθηκεύσουμε (π.χ. αριθμός, όνομα).</li>
+        <li><strong>Δείκτης (Pointer):</strong> Η διεύθυνση του <em>επόμενου</em> κόμβου στη σειρά. Έτσι ξέρουμε πού να πάμε μετά.</li>
+      </ul>
+
+      <div class="theory-diagram">
+        <svg width="240" height="100" viewBox="0 0 240 100">
+            <rect x="20" y="20" width="160" height="60" rx="5" ry="5" fill="#fff9c4" stroke="#fbc02d" stroke-width="2"/>
+            <line x1="100" y1="20" x2="100" y2="80" stroke="#fbc02d" stroke-width="2"/>
+            <text x="60" y="55" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="#333">Δεδομένα</text>
+            <text x="140" y="45" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#333">Δείκτης</text>
+            <text x="140" y="65" text-anchor="middle" font-family="Arial" font-size="10" fill="#666">(προς επόμενο)</text>
+            <line x1="180" y1="50" x2="220" y2="50" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+            <defs>
+                <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+                  <path d="M0,0 L0,6 L9,3 z" fill="#333" />
+                </marker>
+            </defs>
+            <text x="100" y="95" text-anchor="middle" font-family="Arial" font-size="12" fill="#555">Δομή ενός Κόμβου</text>
+        </svg>
+      </div>
+
+      <p>
+        Η λίστα συνοδεύεται πάντα από έναν ειδικό δείκτη, την <strong>Κεφαλή (Head)</strong>, που μας λέει πού βρίσκεται ο πρώτος κόμβος. 
+        Ο τελευταίος κόμβος δείχνει στο <strong>NULL</strong> (κενό), που σημαίνει "τέλος της λίστας".
+      </p>
+
+      <h3>2. Κατηγορίες Λιστών</h3>
+      
+      <h4>Α. Απλά Συνδεδεμένη Λίστα</h4>
+      <p>Είναι η πιο απλή μορφή. Κάθε κόμβος συνδέεται μόνο με τον επόμενό του. Μπορούμε να τη διασχίσουμε μόνο προς μία κατεύθυνση (από την αρχή προς το τέλος), όπως σε έναν αγώνα σκυταλοδρομίας.</p>
+
+      <div class="theory-diagram">
+        <svg width="620" height="100" viewBox="0 0 620 100">
+            <rect x="10" y="35" width="50" height="30" fill="#e1f5fe" stroke="#0277bd"/>
+            <text x="35" y="55" text-anchor="middle" font-weight="bold" font-size="12">HEAD</text>
+            <line x1="60" y1="50" x2="80" y2="50" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+
+            <g transform="translate(80, 20)">
+                <rect x="0" y="0" width="40" height="60" fill="#c8e6c9" stroke="#2e7d32"/> <text x="20" y="35" text-anchor="middle" font-weight="bold">10</text>
+                <rect x="40" y="0" width="20" height="60" fill="#a5d6a7" stroke="#2e7d32"/> <circle cx="50" cy="30" r="3" fill="#333"/>
+            </g>
+            <line x1="140" y1="50" x2="190" y2="50" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+
+            <g transform="translate(190, 20)">
+                <rect x="0" y="0" width="40" height="60" fill="#c8e6c9" stroke="#2e7d32"/>
+                <text x="20" y="35" text-anchor="middle" font-weight="bold">20</text>
+                <rect x="40" y="0" width="20" height="60" fill="#a5d6a7" stroke="#2e7d32"/>
+                <circle cx="50" cy="30" r="3" fill="#333"/>
+            </g>
+            <line x1="250" y1="50" x2="300" y2="50" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+
+            <g transform="translate(300, 20)">
+                <rect x="0" y="0" width="40" height="60" fill="#c8e6c9" stroke="#2e7d32"/>
+                <text x="20" y="35" text-anchor="middle" font-weight="bold">30</text>
+                <rect x="40" y="0" width="20" height="60" fill="#a5d6a7" stroke="#2e7d32"/>
+                <circle cx="50" cy="30" r="3" fill="#333"/>
+            </g>
+            <line x1="360" y1="50" x2="410" y2="50" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+
+            <g transform="translate(410, 20)">
+                <rect x="0" y="0" width="40" height="60" fill="#c8e6c9" stroke="#2e7d32"/>
+                <text x="20" y="35" text-anchor="middle" font-weight="bold">40</text>
+                <rect x="40" y="0" width="20" height="60" fill="#a5d6a7" stroke="#2e7d32"/>
+                <circle cx="50" cy="30" r="3" fill="#333"/>
+            </g>
+            <line x1="470" y1="50" x2="520" y2="50" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+
+            <g transform="translate(520, 35)">
+                <rect x="0" y="0" width="50" height="30" rx="5" fill="#eeeeee" stroke="#999"/>
+                <text x="25" y="20" text-anchor="middle" fill="#666" font-weight="bold" font-size="12">NULL</text>
+            </g>
+        </svg>
+      </div>
+
+      <h4>Β. Διπλά Συνδεδεμένη Λίστα</h4>
+      <p>Εδώ, κάθε κόμβος έχει <strong>δύο δείκτες</strong>: έναν για τον επόμενο και έναν για τον προηγούμενο κόμβο. Αυτό μας επιτρέπει να κινούμαστε και προς τις δύο κατευθύνσεις.</p>
+      
+      <div class="theory-diagram">
+        <svg width="680" height="140" viewBox="0 0 680 140">
+            <rect x="10" y="20" width="50" height="30" fill="#e1f5fe" stroke="#0277bd"/>
+            <text x="35" y="40" text-anchor="middle" font-weight="bold" font-size="12">HEAD</text>
+            <path d="M60 35 L 80 35 L 80 50" stroke="#0277bd" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+
+            <g transform="translate(80, 50)">
+                <rect x="0" y="0" width="20" height="40" fill="#ffccbc" stroke="#d84315"/> <rect x="20" y="0" width="40" height="40" fill="#ffab91" stroke="#d84315"/> <text x="40" y="25" text-anchor="middle" font-weight="bold">100</text>
+                <rect x="60" y="0" width="20" height="40" fill="#ffccbc" stroke="#d84315"/> <text x="10" y="25" text-anchor="middle" font-size="8">NULL</text>
+            </g>
+
+            <line x1="160" y1="60" x2="200" y2="60" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/> <line x1="200" y1="80" x2="160" y2="80" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/> <g transform="translate(200, 50)">
+                <rect x="0" y="0" width="20" height="40" fill="#ffccbc" stroke="#d84315"/>
+                <rect x="20" y="0" width="40" height="40" fill="#ffab91" stroke="#d84315"/>
+                <text x="40" y="25" text-anchor="middle" font-weight="bold">200</text>
+                <rect x="60" y="0" width="20" height="40" fill="#ffccbc" stroke="#d84315"/>
+            </g>
+
+            <line x1="280" y1="60" x2="320" y2="60" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+            <line x1="320" y1="80" x2="280" y2="80" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+            <g transform="translate(320, 50)">
+                <rect x="0" y="0" width="20" height="40" fill="#ffccbc" stroke="#d84315"/>
+                <rect x="20" y="0" width="40" height="40" fill="#ffab91" stroke="#d84315"/>
+                <text x="40" y="25" text-anchor="middle" font-weight="bold">300</text>
+                <rect x="60" y="0" width="20" height="40" fill="#ffccbc" stroke="#d84315"/>
+            </g>
+
+            <line x1="400" y1="60" x2="440" y2="60" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+            <line x1="440" y1="80" x2="400" y2="80" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+            <g transform="translate(440, 50)">
+                <rect x="0" y="0" width="20" height="40" fill="#ffccbc" stroke="#d84315"/>
+                <rect x="20" y="0" width="40" height="40" fill="#ffab91" stroke="#d84315"/>
+                <text x="40" y="25" text-anchor="middle" font-weight="bold">400</text>
+                <rect x="60" y="0" width="20" height="40" fill="#ffccbc" stroke="#d84315"/>
+                <text x="70" y="25" text-anchor="middle" font-size="8">NULL</text>
+            </g>
+
+            <rect x="550" y="20" width="50" height="30" fill="#e1f5fe" stroke="#0277bd"/>
+            <text x="575" y="40" text-anchor="middle" font-weight="bold" font-size="12">TAIL</text>
+            <path d="M550 35 L 500 35 L 500 50" stroke="#0277bd" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+
+        </svg>
+      </div>
+
+      <h3>3. Βασικές Πράξεις Λιστών</h3>
+      <p>Σε μια λίστα μπορούμε να κάνουμε τις εξής βασικές λειτουργίες:</p>
+      <ol>
+          <li><strong>Εισαγωγή:</strong> Προσθήκη νέου κόμβου (στην αρχή, στο τέλος ή ενδιάμεσα).</li>
+          <li><strong>Διαγραφή:</strong> Αφαίρεση ενός κόμβου.</li>
+          <li><strong>Έλεγχος Κενού:</strong> Να δούμε αν η λίστα είναι άδεια (αν η Κεφαλή είναι NULL).</li>
+          <li><strong>Αναζήτηση:</strong> Να ψάξουμε αν υπάρχει ένα στοιχείο στη λίστα.</li>
+          <li><strong>Διάσχιση:</strong> Να περάσουμε από όλους τους κόμβους (π.χ. για να τους τυπώσουμε).</li>
+      </ol>
+
+      <h3>4. Πώς γίνεται η Εισαγωγή και η Διαγραφή;</h3>
+      
+      <h4>Η Λειτουργία της Εισαγωγής</h4>
+      <p>
+        Ας υποθέσουμε ότι σχεδιάζουμε ένα ταξίδι: <strong>Αθήνα &rarr; Λαμία &rarr; Λάρισα</strong>.
+        Ξαφνικά, αποφασίζουμε να επισκεφθούμε τον <strong>Βόλο</strong> μετά τη Λαμία και πριν τη Λάρισα.
+        Για να το κάνουμε αυτό στη λίστα, δεν χρειάζεται να μετακινήσουμε τίποτα. Απλώς αλλάζουμε τους δείκτες:
+      </p>
+      <ul>
+          <li>Ο δείκτης της <strong>Λαμίας</strong> (που έδειχνε Λάρισα) τώρα θα δείχνει τον <strong>Βόλο</strong>.</li>
+          <li>Ο δείκτης του <strong>Βόλου</strong> θα δείχνει τη <strong>Λάρισα</strong>.</li>
+      </ul>
+
+      <div class="theory-diagram">
+        <svg width="400" height="120" viewBox="0 0 400 120">
+            <rect x="10" y="40" width="70" height="30" fill="#c8e6c9" stroke="green"/>
+            <text x="45" y="60" text-anchor="middle" font-size="12">Λαμία</text>
+            
+            <rect x="300" y="40" width="70" height="30" fill="#c8e6c9" stroke="green"/>
+            <text x="335" y="60" text-anchor="middle" font-size="12">Λάρισα</text>
+            
+            <rect x="150" y="80" width="70" height="30" fill="#ffecb3" stroke="orange"/>
+            <text x="185" y="100" text-anchor="middle" font-size="12">Βόλος</text>
+            
+            <line x1="80" y1="55" x2="300" y2="55" stroke="red" stroke-width="1" stroke-dasharray="4"/>
+            <line x1="180" y1="45" x2="200" y2="65" stroke="red" stroke-width="2">
+                <title>Διακοπή παλιάς σύνδεσης</title>
+            </line>
+            <line x1="200" y1="45" x2="180" y2="65" stroke="red" stroke-width="2"/>
+
+            <path d="M80 55 Q 115 55, 150 95" stroke="green" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+            <path d="M220 95 Q 260 55, 300 55" stroke="green" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+        </svg>
+      </div>
+
+      <h4>Η Λειτουργία της Διαγραφής</h4>
+      <p>
+        Αν τελικά αποφασίσουμε να <strong>μην</strong> πάμε στη Λαμία (Αθήνα &rarr; Λαμία &rarr; Λάρισα), πρέπει να τη διαγράψουμε.
+        Τότε, αλλάζουμε τον δείκτη της <strong>Αθήνας</strong> (προηγούμενος κόμβος) ώστε να δείχνει κατευθείαν στη <strong>Λάρισα</strong>, παρακάμπτοντας τη Λαμία.
+        Η Λαμία αποσυνδέεται από τη λίστα.
+      </p>
+
+      <div class="theory-diagram">
+        <svg width="400" height="120" viewBox="0 0 400 120">
+            <rect x="10" y="40" width="70" height="30" fill="#e1f5fe" stroke="#0277bd"/>
+            <text x="45" y="60" text-anchor="middle" font-size="12">Αθήνα</text>
+            
+            <rect x="150" y="40" width="70" height="30" fill="#ffcdd2" stroke="#c62828" stroke-dasharray="2"/>
+            <text x="185" y="60" text-anchor="middle" font-size="12" fill="#c62828">Λαμία</text>
+            <line x1="150" y1="40" x2="220" y2="70" stroke="#c62828" stroke-width="2"/>
+            <line x1="220" y1="40" x2="150" y2="70" stroke="#c62828" stroke-width="2"/>
+            
+            <rect x="300" y="40" width="70" height="30" fill="#e1f5fe" stroke="#0277bd"/>
+            <text x="335" y="60" text-anchor="middle" font-size="12">Λάρισα</text>
+            
+            <path d="M80 55 Q 190 10, 300 55" stroke="green" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+            <text x="190" y="25" text-anchor="middle" font-size="11" fill="green" font-style="italic">Νέα σύνδεση</text>
+
+            <line x1="80" y1="55" x2="150" y2="55" stroke="#ccc" stroke-width="1" stroke-dasharray="4"/>
+            <line x1="220" y1="55" x2="300" y2="55" stroke="#ccc" stroke-width="1" stroke-dasharray="4"/>
+        </svg>
+      </div>
+
+      <h3>5. Σύγκριση: Πίνακες vs Λίστες</h3>
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Χαρακτηριστικό</th>
+            <th>Πίνακας (Στατική Δομή)</th>
+            <th>Λίστα (Δυναμική Δομή)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Μνήμη</strong></td>
+            <td>Συνεχόμενες θέσεις (σαν σπίτια στη σειρά)</td>
+            <td>Μη συνεχόμενες (διάσπαρτες)</td>
+          </tr>
+          <tr>
+            <td><strong>Μέγεθος</strong></td>
+            <td>Σταθερό (το δηλώνουμε στην αρχή)</td>
+            <td>Μεταβλητό (αυξομειώνεται δυναμικά)</td>
+          </tr>
+          <tr>
+            <td><strong>Προσπέλαση</strong></td>
+            <td>Τυχαία / Άμεση (μπορώ να πάω κατευθείαν στο 5ο στοιχείο)</td>
+            <td>Σειριακή (πρέπει να περάσω από όλα τα προηγούμενα)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>6. Πλεονεκτήματα & Μειονεκτήματα</h3>
+      <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 15px;">
+        <div style="flex: 1; min-width: 300px; background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); padding: 20px; border-radius: 16px; border: 2px solid #81c784; box-shadow: 0 4px 16px rgba(0,0,0,0.1);">
+          <strong style="color: #2e7d32; font-size: 18px; display:block; margin-bottom:12px;">✅ Πλεονεκτήματα Λιστών</strong>
+          <ul style="margin: 0; padding-left: 20px; color: #1b5e20;">
+            <li><strong>Δυναμικό μέγεθος:</strong> Δεν δεσμεύουμε περιττή μνήμη και δεν μας "τελειώνει" ο χώρος.</li>
+            <li><strong>Εύκολη εισαγωγή/διαγραφή:</strong> Αλλάζουμε απλώς τους δείκτες, χωρίς να χρειάζεται να μετακινήσουμε όλα τα άλλα στοιχεία (όπως θα κάναμε σε έναν πίνακα).</li>
+          </ul>
+        </div>
+        <div style="flex: 1; min-width: 300px; background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); padding: 20px; border-radius: 16px; border: 2px solid #e57373; box-shadow: 0 4px 16px rgba(0,0,0,0.1);">
+          <strong style="color: #c62828; font-size: 18px; display:block; margin-bottom:12px;">⚠️ Μειονεκτήματα Λιστών</strong>
+          <ul style="margin: 0; padding-left: 20px; color: #b71c1c;">
+            <li><strong>Αργή προσπέλαση:</strong> Δεν μπορούμε να πάμε κατευθείαν στο 100ο στοιχείο. Πρέπει να περάσουμε από τα 99 προηγούμενα.</li>
+            <li><strong>Δεν γίνεται Δυαδική Αναζήτηση:</strong> Λόγω της σειριακής προσπέλασης.</li>
+            <li><strong>Επιπλέον Μνήμη:</strong> Κάθε κόμβος απαιτεί έξτρα χώρο για να αποθηκεύει τον δείκτη.</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="panel" id="panel-singly">
+    <h2>Απλά συνδεδεμένη λίστα (μέχρι 10 κόμβους)</h2>
+    <small>Εισαγωγή &amp; διαγραφή κόμβου με αναπαράσταση της RAM.</small>
+
+    <div class="structure-visual">
+      <div class="section-title">Γραφική αναπαράσταση απλά συνδεδεμένης λίστας</div>
+      <div class="pointers">
+        Head: <span id="singly-head">NULL</span>
+      </div>
+      <div id="singly-visual" class="list-visual"></div>
+      <div class="hint" id="singly-selected-label">💡 Επιλεγμένος κόμβος: κανένας</div>
+    </div>
+
+    <div class="layout">
+      <div class="memory-section">
+        <div class="section-title">Μνήμη RAM (πλέγμα 5x6)</div>
+        <div id="singly-memory" class="memory-grid"></div>
+        <div class="hint">Τα γαλάζια κελιά είναι δεσμευμένα από κόμβους της λίστας.</div>
+      </div>
+
+      <div class="control-section">
+        <div class="section-title">Λειτουργίες λίστας</div>
+
+        <div class="controls">
+          Πλήθος κόμβων:
+          <input type="number" id="singly-count" value="5" min="1" max="10">
+          <button class="btn small" id="singly-init">Δημιούργησε λίστα</button>
+        </div>
+
+        <div class="controls">
+          Τιμή:
+          <input type="number" id="singly-value" value="99">
+          Θέση:
+          <select id="singly-position">
+            <option value="head">Στην αρχή της λίστας</option>
+            <option value="after">Μετά τον επιλεγμένο κόμβο</option>
+          </select>
+          <button class="btn small" id="singly-insert">Εισαγωγή κόμβου</button>
+        </div>
+
+        <div class="controls">
+          <button class="btn small btn-danger" id="singly-delete">Διαγραφή επιλεγμένου κόμβου</button>
+          <button class="btn small btn-success" id="singly-clear">Καθαρισμός μνήμης</button>
+        </div>
+
+        <div class="hint">Κάνε κλικ σε έναν κόμβο για να τον επιλέξεις. Ο τελευταίος κόμβος έχει next = NULL.</div>
+
+        <div id="singly-log" class="log">
+          <strong>Οδηγίες:</strong> Διάλεξε πόσους κόμβους θέλεις (1–10), δημιούργησε τη λίστα και μετά κάνε
+          εισαγωγές / διαγραφές επιλέγοντας κόμβους.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-doubly">
+    <h2>Διπλά συνδεδεμένη λίστα (μέχρι 10 κόμβους)</h2>
+    <small>Εισαγωγή &amp; διαγραφή κόμβου.</small>
+
+    <div class="structure-visual">
+      <div class="section-title">Γραφική αναπαράσταση διπλά συνδεδεμένης λίστας</div>
+      <div class="pointers">
+        Head: <span id="doubly-head">NULL</span> • Ουρά (Tail): <span id="doubly-tail">NULL</span>
+      </div>
+      <div id="doubly-visual" class="list-visual"></div>
+      <div class="hint" id="doubly-selected-label">💡 Επιλεγμένος κόμβος: κανένας</div>
+    </div>
+
+    <div class="layout">
+      <div class="memory-section">
+        <div class="section-title">Μνήμη RAM (πλέγμα 5x6)</div>
+        <div id="doubly-memory" class="memory-grid"></div>
+        <div class="hint">Κάθε κόμβος κρατάει prev (προηγούμενο) και next (επόμενο).</div>
+      </div>
+
+      <div class="control-section">
+        <div class="section-title">Λειτουργίες διπλά συνδεδεμένης λίστας</div>
+
+        <div class="controls">
+          Πλήθος κόμβων:
+          <input type="number" id="doubly-count" value="5" min="1" max="10">
+          <button class="btn small" id="doubly-init">Δημιούργησε λίστα</button>
+        </div>
+
+        <div class="controls">
+          Τιμή:
+          <input type="number" id="doubly-value" value="77">
+          Θέση:
+          <select id="doubly-position">
+            <option value="head">Στην αρχή της λίστας</option>
+            <option value="after">Μετά τον επιλεγμένο κόμβο</option>
+          </select>
+          <button class="btn small" id="doubly-insert">Εισαγωγή κόμβου</button>
+        </div>
+
+        <div class="controls">
+          <button class="btn small btn-danger" id="doubly-delete">Διαγραφή επιλεγμένου κόμβου</button>
+          <button class="btn small btn-success" id="doubly-clear">Καθαρισμός μνήμης</button>
+        </div>
+
+        <div class="hint">Κάνε κλικ σε κόμβο για επιλογή. Η λίστα διαβάζεται από Head προς Tail και αντίστροφα.</div>
+
+        <div id="doubly-log" class="log">
+          <strong>Οδηγίες:</strong> Διάλεξε πόσους κόμβους θέλεις (1–10), δημιούργησε τη λίστα και παρατήρησε
+          πώς αλλάζουν prev/next όταν εισάγεις ή διαγράφεις κόμβους.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-stack">
+    <h2>Άσκηση: Στοίβα με απλά συνδεδεμένη λίστα (4 στοιχεία)</h2>
+    <small>Ώθηση (push) και απώθηση (pop) σε δυναμική υλοποίηση στοίβας.</small>
+
+    <div class="structure-visual">
+      <div class="section-title">Γραφική αναπαράσταση στοίβας</div>
+      <div class="pointers">
+        Top: <span id="stack-top">NULL</span>
+      </div>
+      <div id="stack-visual" class="list-visual"></div>
+    </div>
+
+    <div class="layout">
+      <div class="memory-section">
+        <div class="section-title">Μνήμη RAM της στοίβας (πλέγμα 5x6)</div>
+        <div id="stack-memory" class="memory-grid"></div>
+        <div class="hint">Η στοίβα χρησιμοποιεί κόμβους διάσπαρτους στη μνήμη. Ο δείκτης Top κρατάει την κορυφή.</div>
+      </div>
+
+      <div class="control-section">
+        <div class="section-title">Λειτουργίες στοίβας (LIFO)</div>
+
+        <div class="controls">
+          <button class="btn small" id="stack-init">Δημιούργησε στοίβα 4 στοιχείων</button>
+        </div>
+
+        <div class="controls">
+          Νέα τιμή:
+          <input type="number" id="stack-value" value="999">
+          <button class="btn small" id="stack-push">Ώθηση (Push)</button>
+          <button class="btn small secondary" id="stack-pop">Απώθηση (Pop)</button>
+          <button class="btn small btn-success" id="stack-clear">Καθαρισμός μνήμης</button>
+        </div>
+
+        <div class="hint">Στη στοίβα προσθέτουμε και αφαιρούμε στοιχεία μόνο από την κορυφή (Top).</div>
+
+        <div id="stack-log" class="log">
+          <strong>Εξήγηση:</strong> Εφάρμοσε push και pop και διάβασε τα βήματα που εμφανίζονται εδώ για κάθε λειτουργία.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-queue">
+    <h2>Άσκηση: Ουρά με διπλά συνδεδεμένη λίστα</h2>
+    <small>Εισαγωγή (enqueue) στο πίσω άκρο και εξαγωγή (dequeue) από το μπροστινό άκρο.</small>
+
+    <div class="structure-visual">
+      <div class="section-title">Γραφική αναπαράσταση ουράς</div>
+      <div class="pointers">
+        Front (Head): <span id="queue-front">NULL</span> • Rear (Tail): <span id="queue-rear">NULL</span>
+      </div>
+      <div id="queue-visual" class="list-visual"></div>
+    </div>
+
+    <div class="layout">
+      <div class="memory-section">
+        <div class="section-title">Μνήμη RAM της ουράς (πλέγμα 5x6)</div>
+        <div id="queue-memory" class="memory-grid"></div>
+        <div class="hint">Χρησιμοποιούνται δύο δείκτες: Head/Front (μπροστινό άκρο) και Rear (ουρά).</div>
+      </div>
+
+      <div class="control-section">
+        <div class="section-title">Λειτουργίες ουράς (FIFO)</div>
+
+        <div class="controls">
+          <button class="btn small" id="queue-init">Δημιούργησε ουρά 4 στοιχείων</button>
+        </div>
+
+        <div class="controls">
+          Νέα τιμή:
+          <input type="number" id="queue-value" value="500">
+          <button class="btn small" id="queue-enqueue">Εισαγωγή (Enqueue)</button>
+          <button class="btn small secondary" id="queue-dequeue">Εξαγωγή (Dequeue)</button>
+          <button class="btn small btn-success" id="queue-clear">Καθαρισμός μνήμης</button>
+        </div>
+
+        <div class="hint">Στην ουρά μπαίνουμε από το πίσω άκρο (Rear) και βγαίνουμε από το μπροστινό (Head/Front).</div>
+
+        <div id="queue-log" class="log">
+          <strong>Εξήγηση:</strong> Κάνε εισαγωγή και εξαγωγή στοιχείων και παρατήρησε πώς αλλάζουν οι δείκτες
+          Head/Front – Rear και τα πεδία prev/next στη μνήμη.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-quiz">
+    <h2>Ερωτήσεις Αυτοαξιολόγησης (Σωστό/Λάθος)</h2>
+    <small>Επίλεξε τη σωστή απάντηση για κάθε ερώτηση.</small>
+    
+    <div class="control-section" style="margin-top: 15px;">
+        <div id="quiz-container">
+            </div>
+        
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+            <button class="btn btn-success" id="btn-check-quiz">Έλεγχος Απαντήσεων</button>
+            <button class="btn secondary" id="btn-reset-quiz">Επαναφορά</button>
+        </div>
+        
+        <div id="quiz-result" class="log" style="display:none; margin-top: 15px;"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+  const ANIM_STEP = 4000;      // 4 seconds for insert/pointer animations
+  const MEM_ANIM_STEP = 5000;  // 5 seconds for memory animations
+
+  // ====== Μνήμη 5x6 με τυχαία τριψήφια βάση ======
+  function randomBase() {
+    return Math.floor(Math.random() * 900) + 100; // 100..999
+  }
+
+  function randomValue() {
+    return Math.floor(Math.random() * 1999) - 999; // -999..999
+  }
+
+  function resetMemory(state) {
+    const base = randomBase();
+    const total = state.rows * state.cols;
+    state.memory = [];
+    for (let i = 0; i < total; i++) {
+      state.memory.push({
+        addr: base + i,
+        used: false,
+        value: null,
+        next: null,
+        prev: null
+      });
+    }
+  }
+
+  function allocateCell(state) {
+    const freeCells = state.memory.filter(c => !c.used);
+    if (freeCells.length === 0) return null;
+    const idx = Math.floor(Math.random() * freeCells.length);
+    const cell = freeCells[idx];
+    cell.used = true;
+    cell.next = null;
+    cell.prev = null;
+    return cell;
+  }
+
+  // πλήρης καθαρισμός (για reset/clear)
+  function freeCell(cell) {
+    cell.used = false;
+    cell.value = null;
+    cell.next = null;
+    cell.prev = null;
+  }
+
+  // αποδέσμευση για μελλοντική χρήση – η value ΜΕΝΕΙ
+  function releaseCell(cell) {
+    cell.used = false;
+    cell.next = null;
+    cell.prev = null;
+  }
+
+  function findCell(state, addr) {
+    if (addr === null || addr === undefined) return null;
+    return state.memory.find(c => c.addr === addr) || null;
+  }
+
+  function renderMemory(state, containerId, mode) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = "";
+    state.memory.forEach(cell => {
+      const div = document.createElement("div");
+      div.className = "mem-cell" + (cell.used ? " used" : "");
+      div.dataset.addr = cell.addr;
+
+      let ptrInfo = "";
+      if (cell.used) {
+        if (mode === "singly" || mode === "stack") {
+          ptrInfo = "next: " + (cell.next === null ? "NULL" : cell.next);
+        } else if (mode === "doubly" || mode === "queue") {
+          ptrInfo =
+            "prev: " + (cell.prev === null ? "NULL" : cell.prev) +
+            "<br>next: " + (cell.next === null ? "NULL" : cell.next);
+        }
+      }
+
+      const valueHtml = cell.value !== null
+        ? '<div class="mem-content">' + cell.value + "</div>"
+        : '<div class="mem-content">&nbsp;</div>';
+
+      div.innerHTML =
+        '<div class="mem-addr">' + cell.addr + "</div>" +
+        valueHtml +
+        '<div class="mem-ptrs">' + ptrInfo + "</div>";
+      container.appendChild(div);
+    });
+  }
+
+  // ========= Helpers animation =========
+  function highlightNodeByAddr(listId, addr, className) {
+    if (addr === null || addr === undefined) return;
+    const container = document.getElementById(listId);
+    const node = container.querySelector('.node[data-addr="' + addr + '"]');
+    if (node) {
+      node.classList.add(className);
+      setTimeout(() => node.classList.remove(className), ANIM_STEP);
+    }
+  }
+
+  function highlightPointerPart(listId, addr, roleSelector) {
+    if (addr === null || addr === undefined) return;
+    const container = document.getElementById(listId);
+    let selector = '.node[data-addr="' + addr + '"] .pointer-part';
+    if (roleSelector) selector += roleSelector;
+    const part = container.querySelector(selector);
+    if (part) {
+      part.classList.add("flash-pointer");
+      setTimeout(() => part.classList.remove("flash-pointer"), ANIM_STEP);
+    }
+  }
+
+  function highlightMemCell(memId, addr) {
+    const container = document.getElementById(memId);
+    const cell = container.querySelector('.mem-cell[data-addr="' + addr + '"]');
+    if (cell) {
+      cell.classList.add("flash-delete-mem");
+      setTimeout(() => cell.classList.remove("flash-delete-mem"), MEM_ANIM_STEP);
+    }
+  }
+
+  function markNodeDelete(listId, addr) {
+    if (addr === null || addr === undefined) return;
+    const container = document.getElementById(listId);
+    const node = container.querySelector('.node[data-addr="' + addr + '"]');
+    if (node) {
+      node.classList.add("delete-mark");
+      setTimeout(() => node.classList.remove("delete-mark"), ANIM_STEP);
+    }
+  }
+
+  // ========= Γενική renderList για όλες τις δομές =========
+  function renderList(state, options) {
+    const container = document.getElementById(options.visualId);
+    container.innerHTML = "";
+
+    const getStartAddr = () => {
+      if (options.mode === "singly") return state.head;
+      if (options.mode === "doubly") return state.head;
+      if (options.mode === "stack")  return state.top;
+      if (options.mode === "queue")  return state.front;
+      return null;
+    };
+
+    const startAddr = getStartAddr();
+    if (startAddr === null || startAddr === undefined) {
+      container.textContent = "Η δομή είναι κενή.";
+      return;
+    }
+
+    // Pointer κουτάκι στην αρχή
+    if (options.mode === "stack") {
+      const topAddr = state.top;
+      const topBox = document.createElement("div");
+      topBox.className = "head-box";
+      topBox.innerHTML =
+        '<div class="marker-title">Top</div>' +
+        '<div class="marker-addr">' + (topAddr === null ? "NULL" : topAddr) + "</div>";
+      container.appendChild(topBox);
+
+      if (topAddr !== null) {
+        const arrowTop = document.createElement("span");
+        arrowTop.className = "arrow";
+        arrowTop.textContent = "→";
+        container.appendChild(arrowTop);
+      }
+    } else if (options.mode === "singly" || options.mode === "doubly" || options.mode === "queue") {
+      let headAddr = null;
+      if (options.mode === "queue") {
+        headAddr = state.front;
+      } else {
+        headAddr = state.head;
+      }
+
+      const headBox = document.createElement("div");
+      headBox.className = "head-box";
+      headBox.innerHTML =
+        '<div class="marker-title">Head</div>' +
+        '<div class="marker-addr">' + (headAddr === null ? "NULL" : headAddr) + "</div>";
+      container.appendChild(headBox);
+
+      if (headAddr !== null) {
+        const arrowHead = document.createElement("span");
+        arrowHead.className = "arrow";
+        arrowHead.textContent = "→";
+        container.appendChild(arrowHead);
+      }
+    }
+
+    let addr = startAddr;
+    let first = true;
+    const isDoublyMode = (options.mode === "doubly" || options.mode === "queue");
+
+    while (addr !== null && addr !== undefined) {
+      const cell = findCell(state, addr);
+      if (!cell) break;
+
+      if (!first) {
+        if (isDoublyMode) {
+          const arrows = document.createElement("div");
+          arrows.className = "double-arrow";
+          arrows.innerHTML = "→<span>←</span>";
+          container.appendChild(arrows);
+        } else {
+          const arrow = document.createElement("span");
+          arrow.className = "arrow";
+          arrow.textContent = "→";
+          container.appendChild(arrow);
+        }
+      }
+
+      const nodeDiv = document.createElement("div");
+      nodeDiv.className = "node " +
+                          (state.selected === addr ? "selected " : "") +
+                          (isDoublyMode ? "node-doubly" : "node-singly");
+      nodeDiv.dataset.addr = addr;
+
+      let html = '<div class="node-content">';
+
+      if (!isDoublyMode) {
+        const nextText = cell.next === null ? "NULL" : cell.next;
+        html += '<div class="node-part value-part">' +
+                (cell.value !== null ? cell.value : "-") + '</div>';
+        html += '<div class="node-part pointer-part" data-role="next">next: ' + nextText + '</div>';
+      } else {
+        const prevText = cell.prev === null ? "NULL" : cell.prev;
+        const nextText = cell.next === null ? "NULL" : cell.next;
+        html += '<div class="node-part pointer-part" data-role="prev">' +
+                '<div class="pointer-label">prev</div>' +
+                '<div class="pointer-addr">' + prevText + '</div>' +
+                '</div>';
+        html += '<div class="node-part value-part">' +
+                (cell.value !== null ? cell.value : "-") + '</div>';
+        html += '<div class="node-part pointer-part" data-role="next">' +
+                '<div class="pointer-label">next</div>' +
+                '<div class="pointer-addr">' + nextText + '</div>' +
+                '</div>';
+      }
+
+      html += '</div>';
+      html += '<div class="addr-label">@' + addr + '</div>';
+      nodeDiv.innerHTML = html;
+
+      container.appendChild(nodeDiv);
+
+      first = false;
+      addr = cell.next;
+    }
+
+    if (options.mode === "doubly") {
+      const arrowTail = document.createElement("span");
+      arrowTail.className = "arrow";
+      arrowTail.textContent = "←";  // βέλος προς την ουρά
+      container.appendChild(arrowTail);
+
+      const tailBox = document.createElement("div");
+      tailBox.className = "tail-box";
+      tailBox.innerHTML =
+        '<div class="marker-title">Tail</div>' +
+        '<div class="marker-addr">' + (state.tail === null ? "NULL" : state.tail) + "</div>";
+      container.appendChild(tailBox);
+    }
+
+    if (options.mode === "queue") {
+      const arrowRear = document.createElement("span");
+      arrowRear.className = "arrow";
+      arrowRear.textContent = "←"; // προς τον τελευταίο κόμβο (Rear)
+      container.appendChild(arrowRear);
+
+      const rearBox = document.createElement("div");
+      rearBox.className = "tail-box";
+      rearBox.innerHTML =
+        '<div class="marker-title">Rear</div>' +
+        '<div class="marker-addr">' + (state.rear === null ? "NULL" : state.rear) + "</div>";
+      container.appendChild(rearBox);
+    }
+  }
+
+  function setText(id, text) {
+    document.getElementById(id).textContent = text;
+  }
+
+  function setLog(id, html) {
+    document.getElementById(id).innerHTML = html;
+  }
+
+  // ====== Καταστάσεις ======
+  const singlyState = {
+    rows: 5,
+    cols: 6,
+    memory: [],
+    head: null,
+    selected: null
+  };
+
+  const doublyState = {
+    rows: 5,
+    cols: 6,
+    memory: [],
+    head: null,
+    tail: null,
+    selected: null
+  };
+
+  const stackState = {
+    rows: 5,
+    cols: 6,
+    memory: [],
+    top: null,
+    selected: null
+  };
+
+  const queueState = {
+    rows: 5,
+    cols: 6,
+    memory: [],
+    front: null,
+    rear: null,
+    selected: null
+  };
+
+  // ====== Απλά συνδεδεμένη λίστα ======
+  function updateSinglySelectedLabel() {
+    const txt = singlyState.selected === null
+      ? "💡 Επιλεγμένος κόμβος: κανένας"
+      : "💡 Επιλεγμένος κόμβος: διεύθυνση " + singlyState.selected;
+    setText("singly-selected-label", txt);
+  }
+
+  function singlyRenderAll() {
+    renderMemory(singlyState, "singly-memory", "singly");
+    renderList(singlyState, { visualId: "singly-visual", mode: "singly" });
+    setText("singly-head", singlyState.head === null ? "NULL" : singlyState.head);
+    updateSinglySelectedLabel();
+  }
+
+  function singlyInitList() {
+    singlyState.memory.forEach(freeCell);
+    singlyState.head = null;
+    singlyState.selected = null;
+
+    const countInput = document.getElementById("singly-count");
+    let count = parseInt(countInput.value, 10);
+    if (isNaN(count) || count < 1) count = 1;
+    if (count > 10) count = 10;
+    countInput.value = count;
+
+    const values = [];
+    for (let i = 0; i < count; i++) values.push(randomValue());
+
+    let prevAddr = null;
+
+    values.forEach(v => {
+      const cell = allocateCell(singlyState);
+      if (!cell) return;
+      cell.value = v;
+      cell.next = null;
+
+      if (singlyState.head === null) {
+        singlyState.head = cell.addr;
+      } else {
+        const prevCell = findCell(singlyState, prevAddr);
+        if (prevCell) prevCell.next = cell.addr;
+      }
+      prevAddr = cell.addr;
+    });
+
+    setLog("singly-log",
+      "<strong>Περιγραφή:</strong> Δημιουργήθηκε λίστα με " + values.length +
+      " κόμβους με τυχαίες τιμές από -999 έως 999.");
+    singlyRenderAll();
+  }
+
+  // --- ΝΕΑ ΣΥΝΑΡΤΗΣΗ ΕΙΣΑΓΩΓΗΣ (ΑΠΛΗ ΛΙΣΤΑ) ---
+  function singlyInsertNode() {
+    const value = parseInt(document.getElementById("singly-value").value, 10);
+    const posMode = document.getElementById("singly-position").value;
+    const newCell = allocateCell(singlyState);
+
+    if (!newCell) {
+      setLog("singly-log", "<strong>Σφάλμα:</strong> Δεν υπάρχει ελεύθερο κελί στη μνήμη για νέο κόμβο.");
+      singlyRenderAll();
+      return;
+    }
+    newCell.value = value;
+    
+    let prevCell = null;
+    
+    // Ενημέρωση state πρώτα (Logic)
+    if (posMode === "head" || singlyState.head === null) {
+      newCell.next = singlyState.head;
+      singlyState.head = newCell.addr;
+      setLog("singly-log", "<strong>Εισαγωγή στην αρχή:</strong><ol><li>Δημιουργία χώρου (κίνηση).</li><li>Εμφάνιση νέου κόμβου.</li><li>Ενημέρωση δεικτών.</li></ol>");
+    } else {
+      if (singlyState.selected === null) {
+        setLog("singly-log", "<strong>Προσοχή:</strong> Επίλεξε πρώτα έναν κόμβο (κλικ) ώστε η εισαγωγή να γίνει μετά από αυτόν.");
+        releaseCell(newCell);
+        singlyRenderAll();
+        return;
+      }
+      const prev = findCell(singlyState, singlyState.selected);
+      if (!prev) {
+        setLog("singly-log", "<strong>Σφάλμα:</strong> Ο επιλεγμένος κόμβος δεν βρέθηκε.");
+        releaseCell(newCell);
+        singlyRenderAll();
+        return;
+      }
+      newCell.next = prev.next;
+      prev.next = newCell.addr;
+      prevCell = prev;
+      
+      setLog("singly-log", "<strong>Εισαγωγή μετά από κόμβο:</strong><ol><li>Δημιουργία χώρου (κίνηση).</li><li>Εμφάνιση νέου κόμβου.</li><li>Ενημέρωση δεικτών.</li></ol>");
+    }
+
+    // Render την τελική κατάσταση
+    singlyRenderAll();
+
+    // Τώρα κάνουμε "rewind" το DOM για το animation
+    const newNodeEl = document.querySelector(`.node[data-addr="${newCell.addr}"]`);
+    if (!newNodeEl) return;
+    
+    // Αποθηκεύουμε το κείμενο του νέου δείκτη και το κρύβουμε
+    const newPtrEl = newNodeEl.querySelector('[data-role="next"]');
+    const finalNewPtrText = newPtrEl.textContent;
+    newPtrEl.textContent = "next: ...";
+
+    let prevPtrEl = null;
+    let finalPrevPtrText = "";
+    
+    if (prevCell) {
+        const prevNodeEl = document.querySelector(`.node[data-addr="${prevCell.addr}"]`);
+        if (prevNodeEl) {
+            prevPtrEl = prevNodeEl.querySelector('[data-role="next"]');
+            finalPrevPtrText = prevPtrEl.textContent;
+            prevPtrEl.textContent = "next: ..."; // Κρύβουμε προσωρινά τον δείκτη του προηγούμενου
+        }
+    }
+
+    // Αρχική κατάσταση animation (συμπιεσμένος/αόρατος)
+    newNodeEl.style.maxWidth = "0px";
+    newNodeEl.style.padding = "0px";
+    newNodeEl.style.borderWidth = "0px";
+    newNodeEl.style.opacity = "0";
+    newNodeEl.style.overflow = "hidden";
+    newNodeEl.style.transition = "all 1.5s ease-out";
+
+    // Trigger reflow
+    void newNodeEl.offsetWidth;
+
+    // 1. Animation μετακίνησης (ανοίγει χώρο)
+    setTimeout(() => {
+        newNodeEl.style.maxWidth = "140px"; // Επαναφορά στο κανονικό
+        newNodeEl.style.padding = "10px 12px";
+        newNodeEl.style.borderWidth = "3px";
+    }, 100);
+
+    // 2. Εμφάνιση κόμβου (fade in) χωρίς δείκτες
+    setTimeout(() => {
+        newNodeEl.style.opacity = "1";
+    }, 1600); // Αφού ανοίξει ο χώρος
+
+    // 3. Ενημέρωση δείκτη προηγούμενου (αν υπάρχει)
+    setTimeout(() => {
+        if (prevCell && prevPtrEl) {
+            prevPtrEl.textContent = finalPrevPtrText;
+            prevPtrEl.classList.add("flash-pointer");
+            setTimeout(()=>prevPtrEl.classList.remove("flash-pointer"), 1000);
+        }
+    }, 3000);
+
+    // 4. Ενημέρωση δείκτη νέου κόμβου
+    setTimeout(() => {
+        newPtrEl.textContent = finalNewPtrText;
+        newPtrEl.classList.add("flash-pointer");
+        setTimeout(()=>newPtrEl.classList.remove("flash-pointer"), 1000);
+        
+        highlightMemCell("singly-memory", newCell.addr);
+    }, 4500);
+  }
+
+  // --- ΤΡΟΠΟΠΟΙΗΜΕΝΗ ΣΥΝΑΡΤΗΣΗ ΔΙΑΓΡΑΦΗΣ (ΑΠΛΗ ΛΙΣΤΑ) ---
+  function singlyDeleteNode() {
+    if (singlyState.head === null) {
+      setLog("singly-log", "<strong>Προσοχή:</strong> Η λίστα είναι κενή.");
+      return;
+    }
+    if (singlyState.selected === null) {
+      setLog("singly-log", "<strong>Προσοχή:</strong> Επίλεξε πρώτα τον κόμβο που θέλεις να διαγράψεις (κλικ).");
+      return;
+    }
+
+    const targetAddr = singlyState.selected;
+    const targetCell = findCell(singlyState, targetAddr);
+    if (!targetCell) {
+      setLog("singly-log", "<strong>Σφάλμα:</strong> Ο κόμβος δεν βρέθηκε στη μνήμη.");
+      return;
+    }
+
+    // Βρίσκουμε το DOM element για να κάνουμε τα animations
+    const container = document.getElementById("singly-visual");
+    const nodeEl = container.querySelector('.node[data-addr="' + targetAddr + '"]');
+
+    if (!nodeEl) return;
+
+    // 1. Βάζουμε το Χ και ξεκινάμε το σβήσιμο (Opacity -> 0)
+    nodeEl.classList.add("delete-mark");
+
+    setLog("singly-log", "<strong>Διαγραφή:</strong> Ο κόμβος μαρκάρεται και διαγράφεται λογικά...");
+
+    // 2. Μετά από 1.5 δευτερόλεπτα, ξεκινάμε την "ένωση" (slide)
+    setTimeout(() => {
+        nodeEl.classList.add("node-collapse");
+    }, 1500);
+
+    // 3. Αφού τελειώσει και η ένωση (σύνολο περίπου 4 δευτερόλεπτα), ενημερώνουμε τη μνήμη
+    setTimeout(() => {
+        // Λογική ενημέρωσης δεικτών (ίδια με πριν)
+        if (targetAddr === singlyState.head) {
+             singlyState.head = targetCell.next;
+             setLog("singly-log", "<strong>Ολοκλήρωση:</strong> Η Head μετακινήθηκε. Ο παλιός κόμβος ελευθερώθηκε.");
+        } else {
+             let prevAddr = singlyState.head;
+             let prevCell = findCell(singlyState, prevAddr);
+             while (prevCell && prevCell.next !== targetAddr) {
+                prevAddr = prevCell.next;
+                prevCell = findCell(singlyState, prevAddr);
+             }
+             if (prevCell) {
+                 prevCell.next = targetCell.next;
+                 // Highlight τον δείκτη του προηγούμενου που άλλαξε
+                 setTimeout(() => {
+                    highlightPointerPart("singly-visual", prevAddr, '[data-role="next"]');
+                 }, 500);
+                 setLog("singly-log", "<strong>Ολοκλήρωση:</strong> Οι γειτονικοί κόμβοι ενώθηκαν. Ο δείκτης ενημερώθηκε.");
+             }
+        }
+
+        // Καθαρισμός μνήμης και UI
+        releaseCell(targetCell);
+        singlyState.selected = null;
+        singlyRenderAll(); // Εδώ ξαναζωγραφίζεται η λίστα ενωμένη
+        
+        // Flash στη μνήμη RAM ότι ελευθερώθηκε
+        highlightMemCell("singly-memory", targetAddr);
+
+    }, 4000); // Περιμένουμε συνολικά 4s για τα animations
+  }
+
+  function singlyClear() {
+    resetMemory(singlyState);
+    singlyState.head = null;
+    singlyState.selected = null;
+    setLog("singly-log", "<strong>Καθαρισμός μνήμης:</strong> Η λίστα άδειασε και η RAM ξεκινά από νέο τυχαίο τριψήφιο.");
+    singlyRenderAll();
+  }
+
+  // ====== Διπλά συνδεδεμένη λίστα ======
+  function updateDoublySelectedLabel() {
+    const txt = doublyState.selected === null
+      ? "💡 Επιλεγμένος κόμβος: κανένας"
+      : "💡 Επιλεγμένος κόμβος: διεύθυνση " + doublyState.selected;
+    setText("doubly-selected-label", txt);
+  }
+
+  function doublyRenderAll() {
+    renderMemory(doublyState, "doubly-memory", "doubly");
+    renderList(doublyState, { visualId: "doubly-visual", mode: "doubly" });
+    setText("doubly-head", doublyState.head === null ? "NULL" : doublyState.head);
+    setText("doubly-tail", doublyState.tail === null ? "NULL" : doublyState.tail);
+    updateDoublySelectedLabel();
+  }
+
+  function doublyInitList() {
+    doublyState.memory.forEach(freeCell);
+    doublyState.head = null;
+    doublyState.tail = null;
+    doublyState.selected = null;
+
+    const countInput = document.getElementById("doubly-count");
+    let count = parseInt(countInput.value, 10);
+    if (isNaN(count) || count < 1) count = 1;
+    if (count > 10) count = 10;
+    countInput.value = count;
+
+    const values = [];
+    for (let i = 0; i < count; i++) values.push(randomValue());
+
+    let prevAddr = null;
+
+    values.forEach(v => {
+      const cell = allocateCell(doublyState);
+      if (!cell) return;
+      cell.value = v;
+      cell.next = null;
+      cell.prev = prevAddr;
+
+      if (doublyState.head === null) {
+        doublyState.head = cell.addr;
+      } else {
+        const prevCell = findCell(doublyState, prevAddr);
+        if (prevCell) prevCell.next = cell.addr;
+      }
+      prevAddr = cell.addr;
+    });
+
+    doublyState.tail = prevAddr;
+
+    setLog("doubly-log",
+      "<strong>Περιγραφή:</strong> Δημιουργήθηκε διπλά συνδεδεμένη λίστα " + values.length +
+      " κόμβων με τυχαίες τιμές από -999 έως 999.");
+    doublyRenderAll();
+  }
+
+  // --- ΝΕΑ ΣΥΝΑΡΤΗΣΗ ΕΙΣΑΓΩΓΗΣ (ΔΙΠΛΗ ΛΙΣΤΑ) ---
+  function doublyInsertNode() {
+    const value = parseInt(document.getElementById("doubly-value").value, 10);
+    const posMode = document.getElementById("doubly-position").value;
+    const newCell = allocateCell(doublyState);
+
+    if (!newCell) {
+      setLog("doubly-log", "<strong>Σφάλμα:</strong> Δεν υπάρχει ελεύθερο κελί στη μνήμη.");
+      doublyRenderAll();
+      return;
+    }
+    newCell.value = value;
+    newCell.next = null;
+    newCell.prev = null;
+
+    let prevCell = null;
+    let nextCell = null;
+
+    // Ενημέρωση Logic State
+    if (posMode === "head" || doublyState.head === null) {
+      newCell.next = doublyState.head;
+      newCell.prev = null;
+      if (doublyState.head !== null) {
+        const oldHead = findCell(doublyState, doublyState.head);
+        if (oldHead) {
+            oldHead.prev = newCell.addr;
+            nextCell = oldHead;
+        }
+      }
+      doublyState.head = newCell.addr;
+      if (doublyState.tail === null) {
+        doublyState.tail = newCell.addr;
+      }
+      setLog("doubly-log", "<strong>Εισαγωγή στην αρχή:</strong><ol><li>Δημιουργία χώρου.</li><li>Εμφάνιση νέου κόμβου.</li><li>Ενημέρωση δεικτών.</li></ol>");
+    } else {
+      if (doublyState.selected === null) {
+        setLog("doubly-log", "<strong>Προσοχή:</strong> Επίλεξε πρώτα κόμβο ώστε η εισαγωγή να γίνει μετά από αυτόν.");
+        releaseCell(newCell);
+        doublyRenderAll();
+        return;
+      }
+
+      const prev = findCell(doublyState, doublyState.selected);
+      if (!prev) {
+        setLog("doubly-log", "<strong>Σφάλμα:</strong> Ο επιλεγμένος κόμβος δεν βρέθηκε.");
+        releaseCell(newCell);
+        doublyRenderAll();
+        return;
+      }
+      prevCell = prev;
+      const nextAddr = prev.next;
+      
+      newCell.prev = prev.addr;
+      newCell.next = nextAddr;
+      prev.next = newCell.addr;
+
+      if (nextAddr !== null) {
+        const next = findCell(doublyState, nextAddr);
+        if (next) {
+            next.prev = newCell.addr;
+            nextCell = next;
+        }
+      } else {
+        doublyState.tail = newCell.addr;
+      }
+      
+      setLog("doubly-log", "<strong>Εισαγωγή μετά από κόμβο:</strong><ol><li>Δημιουργία χώρου.</li><li>Εμφάνιση νέου κόμβου.</li><li>Ενημέρωση δεικτών.</li></ol>");
+    }
+
+    // Render την τελική κατάσταση
+    doublyRenderAll();
+
+    // -- Animation Rewind --
+    const newNodeEl = document.querySelector(`.node[data-addr="${newCell.addr}"]`);
+    if (!newNodeEl) return;
+    
+    // Αποθήκευση/Κρύψιμο δεικτών νέου κόμβου
+    const newPrevPtr = newNodeEl.querySelector('[data-role="prev"]');
+    const newNextPtr = newNodeEl.querySelector('[data-role="next"]');
+    const finalNewPrev = newPrevPtr.innerHTML;
+    const finalNewNext = newNextPtr.innerHTML;
+    newPrevPtr.innerHTML = '<div class="pointer-label">prev</div><div class="pointer-addr">...</div>';
+    newNextPtr.innerHTML = '<div class="pointer-label">next</div><div class="pointer-addr">...</div>';
+
+    let prevNextPtr = null; // prevNode.next
+    let finalPrevNextText = "";
+    if (prevCell) {
+        const pEl = document.querySelector(`.node[data-addr="${prevCell.addr}"]`);
+        if (pEl) {
+            prevNextPtr = pEl.querySelector('[data-role="next"]');
+            finalPrevNextText = prevNextPtr.innerHTML;
+            prevNextPtr.innerHTML = '<div class="pointer-label">next</div><div class="pointer-addr">...</div>';
+        }
+    }
+
+    let nextPrevPtr = null; // nextNode.prev
+    let finalNextPrevText = "";
+    if (nextCell) {
+        const nEl = document.querySelector(`.node[data-addr="${nextCell.addr}"]`);
+        if (nEl) {
+            nextPrevPtr = nEl.querySelector('[data-role="prev"]');
+            finalNextPrevText = nextPrevPtr.innerHTML;
+            nextPrevPtr.innerHTML = '<div class="pointer-label">prev</div><div class="pointer-addr">...</div>';
+        }
+    }
+
+    // Αρχική κατάσταση animation (συμπιεσμένος/αόρατος)
+    newNodeEl.style.maxWidth = "0px";
+    newNodeEl.style.minWidth = "0px"; // Important override
+    newNodeEl.style.padding = "0px";
+    newNodeEl.style.borderWidth = "0px";
+    newNodeEl.style.opacity = "0";
+    newNodeEl.style.overflow = "hidden";
+    newNodeEl.style.transition = "all 1.5s ease-out";
+
+    void newNodeEl.offsetWidth; // Force Reflow
+
+    // 1. Μετακίνηση (Space creation)
+    setTimeout(() => {
+        newNodeEl.style.maxWidth = "100%"; // Allow full width
+        newNodeEl.style.minWidth = "130px"; // Restore min-width
+        newNodeEl.style.padding = "10px 12px";
+        newNodeEl.style.borderWidth = "3px";
+    }, 100);
+
+    // 2. Εμφάνιση κόμβου (Fade in)
+    setTimeout(() => {
+        newNodeEl.style.opacity = "1";
+    }, 1600);
+
+    // 3. Ενημέρωση δεικτών των Γειτόνων
+    setTimeout(() => {
+        if (prevNextPtr) {
+            prevNextPtr.innerHTML = finalPrevNextText;
+            prevNextPtr.classList.add("flash-pointer");
+            setTimeout(()=>prevNextPtr.classList.remove("flash-pointer"), 1000);
+        }
+        if (nextPrevPtr) {
+            nextPrevPtr.innerHTML = finalNextPrevText;
+            nextPrevPtr.classList.add("flash-pointer");
+            setTimeout(()=>nextPrevPtr.classList.remove("flash-pointer"), 1000);
+        }
+    }, 3000);
+
+    // 4. Ενημέρωση δεικτών του Νέου Κόμβου
+    setTimeout(() => {
+        newPrevPtr.innerHTML = finalNewPrev;
+        newNextPtr.innerHTML = finalNewNext;
+        
+        newPrevPtr.classList.add("flash-pointer");
+        newNextPtr.classList.add("flash-pointer");
+        setTimeout(()=>{
+            newPrevPtr.classList.remove("flash-pointer");
+            newNextPtr.classList.remove("flash-pointer");
+        }, 1000);
+
+        highlightMemCell("doubly-memory", newCell.addr);
+    }, 4500);
+  }
+
+  // --- ΤΡΟΠΟΠΟΙΗΜΕΝΗ ΣΥΝΑΡΤΗΣΗ ΔΙΑΓΡΑΦΗΣ (ΔΙΠΛΗ ΛΙΣΤΑ) ---
+  function doublyDeleteNode() {
+    if (doublyState.head === null) {
+      setLog("doubly-log", "<strong>Προσοχή:</strong> Η λίστα είναι κενή.");
+      return;
+    }
+    if (doublyState.selected === null) {
+      setLog("doubly-log", "<strong>Προσοχή:</strong> Επίλεξε πρώτα τον κόμβο που θέλεις να διαγράψεις.");
+      return;
+    }
+
+    const targetAddr = doublyState.selected;
+    const target = findCell(doublyState, targetAddr);
+    if (!target) {
+      setLog("doubly-log", "<strong>Σφάλμα:</strong> Ο κόμβος δεν βρέθηκε στη μνήμη.");
+      return;
+    }
+
+    // Βρίσκουμε το DOM element
+    const container = document.getElementById("doubly-visual");
+    const nodeEl = container.querySelector('.node[data-addr="' + targetAddr + '"]');
+    if (!nodeEl) return;
+
+    // 1. Μεγάλο Χ και σβήσιμο
+    nodeEl.classList.add("delete-mark");
+    setLog("doubly-log", "<strong>Διαγραφή:</strong> Ο κόμβος διαγράφεται. Οι δείκτες θα ενημερωθούν...");
+
+    // 2. Ένωση κόμβων (Slide)
+    setTimeout(() => {
+        nodeEl.classList.add("node-collapse");
+    }, 1500);
+
+    // 3. Ενημέρωση μνήμης και δεικτών
+    setTimeout(() => {
+      const prevAddr = target.prev;
+      const nextAddr = target.next;
+      const prev = findCell(doublyState, prevAddr);
+      const next = findCell(doublyState, nextAddr);
+
+      if (prev) prev.next = nextAddr;
+      if (next) next.prev = prevAddr;
+
+      if (targetAddr === doublyState.head) doublyState.head = nextAddr;
+      if (targetAddr === doublyState.tail) doublyState.tail = prevAddr;
+
+      releaseCell(target);
+      doublyState.selected = null;
+      if (doublyState.head === null) doublyState.tail = null;
+
+      doublyRenderAll(); // Ξαναζωγραφίζουμε τη λίστα
+      highlightMemCell("doubly-memory", targetAddr);
+
+      // Αναβόσβησμα δεικτών (flash) στους γείτονες
+      if (prevAddr !== null) {
+          highlightPointerPart("doubly-visual", prevAddr, '[data-role="next"]');
+      }
+      if (nextAddr !== null) {
+          // Μικρή καθυστέρηση για να φανεί η αλληλουχία αν θέλουμε, ή ταυτόχρονα
+          setTimeout(() => {
+            highlightPointerPart("doubly-visual", nextAddr, '[data-role="prev"]');
+          }, 200);
+      }
+      
+      setLog("doubly-log", "<strong>Ολοκλήρωση:</strong> Η διαγραφή τελείωσε. Οι δείκτες prev/next των γειτόνων ενημερώθηκαν.");
+
+    }, 4000); // 4 δευτερόλεπτα αναμονή
+  }
+
+  function doublyClear() {
+    resetMemory(doublyState);
+    doublyState.head = null;
+    doublyState.tail = null;
+    doublyState.selected = null;
+    setLog("doubly-log", "<strong>Καθαρισμός μνήμης:</strong> Η λίστα άδειασε και η RAM ξεκινά από νέο τυχαίο τριψήφιο.");
+    doublyRenderAll();
+  }
+
+  // ====== Στοίβα ======
+  function stackRenderAll() {
+    renderMemory(stackState, "stack-memory", "stack");
+    renderList(stackState, { visualId: "stack-visual", mode: "stack" });
+    setText("stack-top", stackState.top === null ? "NULL" : stackState.top);
+  }
+
+  function stackInit() {
+    stackState.memory.forEach(freeCell);
+    stackState.top = null;
+
+    const values = [randomValue(), randomValue(), randomValue(), randomValue()];
+    values.forEach(v => {
+      const cell = allocateCell(stackState);
+      if (!cell) return;
+      cell.value = v;
+      cell.next = stackState.top;
+      stackState.top = cell.addr;
+    });
+
+    setLog("stack-log",
+      "<strong>Αρχικοποίηση στοίβας:</strong> Δημιουργήθηκε στοίβα 4 στοιχείων με τυχαίες τιμές.");
+    stackRenderAll();
+  }
+
+  function stackPush() {
+    const value = parseInt(document.getElementById("stack-value").value, 10);
+    const cell = allocateCell(stackState);
+    if (!cell) {
+      setLog("stack-log", "<strong>Σφάλμα:</strong> Δεν υπάρχει ελεύθερη μνήμη για νέο στοιχείο.");
+      stackRenderAll();
+      return;
+    }
+    cell.value = value;
+    cell.next = stackState.top;
+    stackState.top = cell.addr;
+
+    setLog("stack-log",
+      "<strong>Ώθηση (push) " + value + ":</strong>" +
+      "<ol>" +
+      "<li>Δεσμεύω νέο κελί και αποθηκεύω την τιμή.</li>" +
+      "<li>Το next του νέου κόμβου δείχνει στην παλιά κορυφή.</li>" +
+      "<li>Ο δείκτης Top ενημερώνεται.</li>" +
+      "</ol>");
+
+    stackRenderAll();
+    highlightNodeByAddr("stack-visual", stackState.top, "flash-insert");
+
+    setTimeout(() => {
+      highlightMemCell("stack-memory", stackState.top);
+    }, ANIM_STEP * 2);
+  }
+
+  function stackPop() {
+    if (stackState.top === null) {
+      setLog("stack-log", "<strong>Προσοχή:</strong> Η στοίβα είναι κενή (Underflow).");
+      return;
+    }
+    const cell = findCell(stackState, stackState.top);
+    const oldAddr = stackState.top;
+    const val = cell.value;
+
+    setLog("stack-log",
+      "<strong>Απώθηση (pop) " + val + ":</strong>" +
+      "<ol>" +
+      "<li>Ο δείκτης Top θα μετακινηθεί στον επόμενο κόμβο.</li>" +
+      "<li>Ο παλιός κόμβος μένει ως «άχρηστο δεδομένο» στη μνήμη.</li>" +
+      "</ol>");
+
+    markNodeDelete("stack-visual", oldAddr);
+
+    setTimeout(() => {
+      stackState.top = cell.next;
+      releaseCell(cell);
+      stackRenderAll();
+      highlightMemCell("stack-memory", oldAddr);
+    }, ANIM_STEP);
+  }
+
+  function stackClear() {
+    resetMemory(stackState);
+    stackState.top = null;
+    setLog("stack-log", "<strong>Καθαρισμός μνήμης:</strong> Η στοίβα άδειασε και η RAM ξεκινά από νέο τριψήφιο.");
+    stackRenderAll();
+  }
+
+  // ====== Ουρά ======
+  function queueRenderAll() {
+    renderMemory(queueState, "queue-memory", "queue");
+    renderList(queueState, { visualId: "queue-visual", mode: "queue" });
+    setText("queue-front", queueState.front === null ? "NULL" : queueState.front);
+    setText("queue-rear", queueState.rear === null ? "NULL" : queueState.rear);
+  }
+
+  function queueEnqueueInternal(value, explain) {
+    const cell = allocateCell(queueState);
+    if (!cell) {
+      if (explain) {
+        setLog("queue-log", "<strong>Σφάλμα:</strong> Δεν υπάρχει ελεύθερη μνήμη για νέο στοιχείο ουράς.");
+        queueRenderAll();
+      }
+      return false;
+    }
+    cell.value = value;
+    cell.next = null;
+    cell.prev = queueState.rear;
+
+    if (queueState.rear !== null) {
+      const oldRear = findCell(queueState, queueState.rear);
+      if (oldRear) oldRear.next = cell.addr;
+    }
+    queueState.rear = cell.addr;
+    if (queueState.front === null) {
+      queueState.front = cell.addr;
+    }
+
+    if (explain) {
+      setLog("queue-log",
+        "<strong>Εισαγωγή (enqueue) " + value + ":</strong>" +
+        "<ol>" +
+        "<li>Δεσμεύω νέο κελί και αποθηκεύω την τιμή.</li>" +
+        "<li>Το prev του νέου κόμβου δείχνει στο παλιό Rear.</li>" +
+        "<li>Το next του παλιού Rear ενημερώνεται ώστε να δείχνει στον νέο κόμβο.</li>" +
+        "<li>Ο δείκτης Rear ενημερώνεται στον νέο κόμβο.</li>" +
+        "</ol>");
+    }
+    return true;
+  }
+
+  function queueInit() {
+    queueState.memory.forEach(freeCell);
+    queueState.front = null;
+    queueState.rear = null;
+
+    const values = [randomValue(), randomValue(), randomValue(), randomValue()];
+    values.forEach(v => queueEnqueueInternal(v, false));
+
+    setLog("queue-log",
+      "<strong>Αρχικοποίηση ουράς:</strong> Δημιουργήθηκε ουρά 4 στοιχείων με τυχαίες τιμές.");
+    queueRenderAll();
+  }
+
+  function queueEnqueue() {
+    const value = parseInt(document.getElementById("queue-value").value, 10);
+    if (queueEnqueueInternal(value, true)) {
+      queueRenderAll();
+      highlightNodeByAddr("queue-visual", queueState.rear, "flash-insert");
+
+      setTimeout(() => {
+        if (queueState.rear !== null) {
+          highlightPointerPart("queue-visual", queueState.rear, '[data-role="prev"]');
+        }
+      }, ANIM_STEP);
+
+      setTimeout(() => {
+        if (queueState.rear !== null) {
+          highlightMemCell("queue-memory", queueState.rear);
+        }
+      }, ANIM_STEP * 2);
+    }
+  }
+
+  function queueDequeue() {
+    if (queueState.front === null) {
+      setLog("queue-log", "<strong>Προσοχή:</strong> Η ουρά είναι κενή (Underflow).");
+      return;
+    }
+    const cell = findCell(queueState, queueState.front);
+    const oldFront = queueState.front;
+    const newFrontAddr = cell.next;
+    const val = cell.value;
+
+    setLog("queue-log",
+      "<strong>Εξαγωγή (dequeue) " + val + ":</strong>" +
+      "<ol>" +
+      "<li>Εμφανίζεται X στον πρώτο κόμβο.</li>" +
+      "<li>Ο δείκτης Head/Front θα μετακινηθεί στον επόμενο κόμβο.</li>" +
+      "<li>Ο παλιός πρώτος κόμβος μένει ως «άχρηστο δεδομένο» στη μνήμη.</li>" +
+      "</ol>");
+
+    markNodeDelete("queue-visual", oldFront);
+
+    setTimeout(() => {
+      queueState.front = newFrontAddr;
+      if (newFrontAddr !== null) {
+        const newFront = findCell(queueState, newFrontAddr);
+        if (newFront) newFront.prev = null;
+      } else {
+        queueState.rear = null;
+      }
+      releaseCell(cell);
+      queueRenderAll();
+      highlightMemCell("queue-memory", oldFront);
+    }, ANIM_STEP);
+  }
+
+  function queueClear() {
+    resetMemory(queueState);
+    queueState.front = null;
+    queueState.rear = null;
+    setLog("queue-log", "<strong>Καθαρισμός μνήμης:</strong> Η ουρά άδειασε και η RAM ξεκινά από νέο τριψήφιο.");
+    queueRenderAll();
+  }
+  
+  // ====== Quiz ======
+  const quizQuestions = [
+    { q: "Η συνδεδεμένη λίστα είναι μια δομή δεδομένων σταθερού μεγέθους.", a: false },
+    { q: "Αν ο δείκτης 'Κεφαλή' μιας συνδεδεμένης λίστας έχει την τιμή NULL, τότε η λίστα είναι κενή.", a: true },
+    { q: "Κατά τη διαγραφή ενός κόμβου από μία λίστα, τροποποιείται η διεύθυνση που δείχνει ο προηγούμενος από αυτόν κόμβος.", a: true },
+    { q: "Αν χαθεί η σύνδεση μεταξύ δύο κόμβων μιας συνδεδεμένης λίστας, τότε αυτή δεν μπορεί να προσπελαστεί (το υπόλοιπο τμήμα).", a: true },
+    { q: "Κάθε κόμβος μιας διπλά συνδεδεμένης λίστας αποτελείται από δύο πεδία: Δεδομένα και Δείκτη.", a: false },
+    { q: "Σε μια συνδεδεμένη λίστα, η εισαγωγή ενός νέου κόμβου μετά από έναν δεδομένο κόμβο απαιτεί την αλλαγή του δείκτη του δεδομένου κόμβου.", a: true },
+    { q: "Σε μια απλά συνδεδεμένη λίστα, η προσθήκη ενός νέου κόμβου απαιτεί την μετακίνηση όλων των υπαρχόντων κόμβων σε νέες θέσεις μνήμης.", a: false },
+    { q: "Οι κόμβοι μιας λίστας δεν έχουν ονόματα, γνωρίζουμε μόνο τις διευθύνσεις τους.", a: true },
+    { q: "Οι λίστες έχουν το πλεονέκτημα (έναντι των πινάκων) της ευκολίας εισαγωγής και διαγραφής στοιχείων.", a: true },
+    { q: "Δεν μπορούμε να πραγματοποιήσουμε με αποτελεσματικό τρόπο δυαδική αναζήτηση σε συνδεδεμένες λίστες.", a: true }
+  ];
+
+  function renderQuiz() {
+    const container = document.getElementById("quiz-container");
+    container.innerHTML = "";
+    
+    quizQuestions.forEach((item, index) => {
+        const div = document.createElement("div");
+        div.className = "quiz-item";
+        div.innerHTML = `
+            <div class="quiz-question">${index + 1}. ${item.q}</div>
+            <div class="quiz-options">
+                <label><input type="radio" name="q${index}" value="true"> Σωστό</label>
+                <label><input type="radio" name="q${index}" value="false"> Λάθος</label>
+            </div>
+            <div class="quiz-feedback" id="feedback-q${index}"></div>
+        `;
+        container.appendChild(div);
+    });
+  }
+
+  function checkQuiz() {
+    let score = 0;
+    let answered = 0;
+    
+    quizQuestions.forEach((item, index) => {
+        const selected = document.querySelector(`input[name="q${index}"]:checked`);
+        const feedback = document.getElementById(`feedback-q${index}`);
+        
+        if (selected) {
+            answered++;
+            const userAns = (selected.value === 'true');
+            if (userAns === item.a) {
+                score++;
+                feedback.innerHTML = '<span class="correct-text">✓ Σωστό!</span>';
+            } else {
+                feedback.innerHTML = '<span class="wrong-text">✗ Λάθος.</span>';
+            }
+        } else {
+            feedback.innerHTML = '<span class="wrong-text">Δεν απαντήθηκε.</span>';
+        }
+    });
+    
+    const resultDiv = document.getElementById("quiz-result");
+    resultDiv.style.display = "block";
+    resultDiv.innerHTML = `<strong>Αποτέλεσμα:</strong> ${score} / ${quizQuestions.length}`;
+    
+    if (score === quizQuestions.length) {
+        resultDiv.style.background = "linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)";
+        resultDiv.style.borderColor = "#81c784";
+    } else {
+        resultDiv.style.background = "linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)";
+        resultDiv.style.borderColor = "#ffb74d";
+    }
+  }
+
+  function resetQuiz() {
+    document.querySelectorAll('input[type="radio"]').forEach(rb => rb.checked = false);
+    document.querySelectorAll('.quiz-feedback').forEach(div => div.innerHTML = "");
+    document.getElementById("quiz-result").style.display = "none";
+  }
+
+  // ====== Tabs & αρχικοποίηση ======
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".tab-button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+        btn.classList.add("active");
+        const target = btn.getAttribute("data-target");
+        document.getElementById(target).classList.add("active");
+      });
+    });
+
+    // αρχική RAM για όλες τις δομές
+    resetMemory(singlyState);
+    resetMemory(doublyState);
+    resetMemory(stackState);
+    resetMemory(queueState);
+    
+    // Αρχικοποίηση Quiz
+    renderQuiz();
+    document.getElementById("btn-check-quiz").addEventListener("click", checkQuiz);
+    document.getElementById("btn-reset-quiz").addEventListener("click", resetQuiz);
+
+    // events λιστών
+    document.getElementById("singly-init").addEventListener("click", singlyInitList);
+    document.getElementById("singly-insert").addEventListener("click", singlyInsertNode);
+    document.getElementById("singly-delete").addEventListener("click", singlyDeleteNode);
+    document.getElementById("singly-clear").addEventListener("click", singlyClear);
+
+    document.getElementById("doubly-init").addEventListener("click", doublyInitList);
+    document.getElementById("doubly-insert").addEventListener("click", doublyInsertNode);
+    document.getElementById("doubly-delete").addEventListener("click", doublyDeleteNode);
+    document.getElementById("doubly-clear").addEventListener("click", doublyClear);
+
+    // στοίβα
+    document.getElementById("stack-init").addEventListener("click", stackInit);
+    document.getElementById("stack-push").addEventListener("click", stackPush);
+    document.getElementById("stack-pop").addEventListener("click", stackPop);
+    document.getElementById("stack-clear").addEventListener("click", stackClear);
+
+    // ουρά
+    document.getElementById("queue-init").addEventListener("click", queueInit);
+    document.getElementById("queue-enqueue").addEventListener("click", queueEnqueue);
+    document.getElementById("queue-dequeue").addEventListener("click", queueDequeue);
+    document.getElementById("queue-clear").addEventListener("click", queueClear);
+
+    // επιλογή κόμβων (click) για απλή & διπλή λίστα
+    document.getElementById("singly-visual").addEventListener("click", e => {
+      const node = e.target.closest(".node");
+      if (!node) return;
+      const addr = parseInt(node.dataset.addr, 10);
+      singlyState.selected = addr;
+      singlyRenderAll();
+    });
+
+    document.getElementById("doubly-visual").addEventListener("click", e => {
+      const node = e.target.closest(".node");
+      if (!node) return;
+      const addr = parseInt(node.dataset.addr, 10);
+      doublyState.selected = addr;
+      doublyRenderAll();
+    });
+
+    // αρχικό render
+    singlyRenderAll();
+    doublyRenderAll();
+    stackRenderAll();
+    queueRenderAll();
+  });
+</script>
+</body>
+</html>
