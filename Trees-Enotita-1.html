@@ -1,0 +1,2064 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <title>Διαδραστική Εφαρμογή Δέντρων</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: #f3f4f6;
+      color: #111827;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+    }
+
+    .app {
+      max-width: 1300px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    }
+
+    .app-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .app-header h1 {
+      font-size: 1.6rem;
+      color: #111827;
+    }
+
+    .mode-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .mode-btn {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.15s ease-in-out;
+      white-space: nowrap;
+    }
+
+    .mode-btn:hover {
+      background: #e5e7eb;
+    }
+
+    .mode-btn.active {
+      background: #2563eb;
+      color: white;
+      border-color: #1d4ed8;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2.2fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .canvas-panel {
+      background: #f9fafb;
+      border-radius: 16px;
+      padding: 12px;
+      border: 1px solid #e5e7eb;
+      min-height: 380px;
+    }
+
+    .canvas-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .canvas-header h2 {
+      font-size: 1.1rem;
+    }
+
+    .canvas-subtitle {
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+
+    svg {
+      width: 100%;
+      height: 430px;
+      border-radius: 12px;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+    }
+
+    .controls-panel {
+      background: #f9fafb;
+      border-radius: 16px;
+      padding: 12px;
+      border: 1px solid #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    #generalControls,
+    #binaryControls,
+    #bstControls,
+    #decisionControls {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .section-title {
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .primary-btn, .secondary-btn {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: none;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.15s ease-in-out;
+    }
+
+    .primary-btn {
+      background: #2563eb;
+      color: #ffffff;
+    }
+
+    .primary-btn:hover {
+      background: #1d4ed8;
+    }
+
+    .secondary-btn {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .secondary-btn:hover {
+      background: #d1d5db;
+    }
+
+    .info-box {
+      background: #eff6ff;
+      border-radius: 10px;
+      border: 1px solid #bfdbfe;
+      padding: 8px 10px;
+      font-size: 0.9rem;
+      color: #1e3a8a;
+    }
+
+    .question-box {
+      background: #ffffff;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      padding: 8px 10px;
+      font-size: 0.95rem;
+    }
+
+    .question-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .feedback {
+      font-size: 0.9rem;
+      padding: 6px 8px;
+      border-radius: 8px;
+      background: #f3f4f6;
+      min-height: 2.1em;
+    }
+
+    .feedback.ok {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .feedback.err {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .tree-node {
+      cursor: pointer;
+      transition: all 0.1s ease-in-out;
+    }
+
+    .tree-node rect {
+      fill: #ffffff;
+      stroke: #2563eb;
+      stroke-width: 2;
+      rx: 14;
+      ry: 14;
+    }
+
+    .tree-node text {
+      font-size: 11px;
+      pointer-events: none;
+    }
+
+    .tree-node.selected rect {
+      fill: #2563eb;
+      stroke: #1d4ed8;
+    }
+
+    .tree-node.selected text {
+      fill: #ffffff;
+      font-weight: 600;
+    }
+
+    .tree-node.current rect {
+      stroke: #f97316;
+      stroke-width: 3;
+      filter: drop-shadow(0 0 4px rgba(248, 113, 113, 0.8));
+    }
+
+    .tree-link {
+      stroke: #9ca3af;
+      stroke-width: 2;
+    }
+
+    .tree-link.highlight {
+      stroke: #f97316;
+      stroke-width: 3;
+    }
+
+    .edge-label {
+      font-size: 10px;
+      fill: #4b5563;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      background: #eef2ff;
+      color: #3730a3;
+      gap: 4px;
+    }
+
+    .step-box {
+      background: #ffffff;
+      border-radius: 10px;
+      border: 1px dashed #cbd5f5;
+      padding: 8px 10px;
+      font-size: 0.95rem;
+      min-height: 120px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .small-label {
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+
+    select {
+      width: 100%;
+      font-size: 0.9rem;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+    }
+
+    .app-credit {
+      text-align: right;
+      font-size: 0.8rem;
+      color: #9ca3af;
+      margin-top: 6px;
+    }
+
+    .radio-label {
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="app-header">
+    <h1>Διαδραστική Εφαρμογή Δυναμικής Δομής Δέντρων</h1>
+    <div class="mode-buttons">
+      <button class="mode-btn active" data-mode="general">1. Γενικό Δένδρο</button>
+      <button class="mode-btn" data-mode="binary">2. Δυαδικό Δένδρο</button>
+      <button class="mode-btn" data-mode="bst">3. Δυαδικό Δένδρο Αναζήτησης (ΔΔΑ)</button>
+      <button class="mode-btn" data-mode="decision">4. Δένδρο Απόφασης</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="canvas-panel">
+      <div class="canvas-header">
+        <h2 id="canvasTitle">Οπτικοποίηση Δένδρου</h2>
+        <span class="canvas-subtitle">Κάνε κλικ στους κόμβους όταν χρειάζεται.</span>
+      </div>
+      <svg id="treeSvg"></svg>
+    </div>
+
+    <div class="controls-panel">
+      <!-- 1. Γενικό Δένδρο -->
+      <div id="generalControls">
+        <div class="section-title">1. Τυχαίο γενικό δένδρο</div>
+        <div class="controls-row">
+          <button class="primary-btn" id="btnGenTree">Νέο τυχαίο δένδρο</button>
+        </div>
+
+        <div class="info-box">
+          <strong>Ορισμός δένδρου (tree):</strong><br>
+          Ένα δένδρο είναι μία δομή που αποτελείται από ένα σύνολο κόμβων και ένα σύνολο ακμών μεταξύ των κόμβων με βάση τους εξής κανόνες:
+          <br>• Υπάρχει ένας ξεχωριστός κόμβος που ονομάζεται ρίζα. Αυτός είναι ένας κόμβος χωρίς γονέα.
+          <br>• Για κάθε κόμβο c, εκτός από τη ρίζα, υπάρχει μόνο μια ακμή που καταλήγει στον κόμβο αυτόν ξεκινώντας από κάποιον άλλον κόμβο p. Ο κόμβος p ονομάζεται γονέας του c και ο κόμβος c παιδί του p.
+          <br>• Για κάθε κόμβο υπάρχει μία μοναδική διαδρομή, δηλαδή, μια ακολουθία διαδοχικών ακμών, που ξεκινάει από τη ρίζα και τερματίζει σε αυτόν τον κόμβο.
+          <br>Δένδρο θεωρούμε και το κενό δένδρο, δηλαδή το δένδρο που δεν έχει ούτε κόμβους, ούτε ακμές. Το κενό δένδρο είναι το μόνο δένδρο χωρίς ρίζα.
+        </div>
+
+        <div class="info-box">
+          <strong>Οδηγία:</strong> Για κάθε ερώτηση κάνε κλικ στους κατάλληλους κόμβους
+          και μετά πάτησε «Έλεγχος απάντησης».
+        </div>
+
+        <div class="question-box">
+          <div class="question-title">Ερώτηση για το δένδρο</div>
+          <div id="generalQuestionText">Πάτησε «Νέο τυχαίο δένδρο» για να ξεκινήσεις.</div>
+          <div class="controls-row" style="margin-top:6px;">
+            <button class="secondary-btn" id="btnNewQuestion">Νέα ερώτηση</button>
+            <button class="primary-btn" id="btnCheckAnswer">Έλεγχος απάντησης</button>
+          </div>
+        </div>
+
+        <div id="generalFeedback" class="feedback"></div>
+      </div>
+
+      <!-- 2. Δυαδικό Δένδρο -->
+      <div id="binaryControls" style="display:none;">
+        <div class="section-title">2. Εισαγωγή κόμβου σε δυαδικό δένδρο</div>
+        <div class="controls-row">
+          <button class="primary-btn" id="btnNewBinary">Νέο δυαδικό δένδρο</button>
+          <button class="secondary-btn" id="btnExplainBinary">
+            Νέος κόμβος &amp; περιγραφή εισαγωγής
+          </button>
+        </div>
+        <div class="info-box">
+          Στο δυαδικό δένδρο κάθε κόμβος έχει το πολύ δύο παιδιά (αριστερά – δεξιά).<br>
+          Εσύ διαλέγεις <strong>σε ποιο φύλλο</strong> θα συνδεθεί ο νέος κόμβος
+          και το πρόγραμμα δείχνει με animation <strong>όλο το μονοπάτι από τη ρίζα</strong>.
+        </div>
+        <div class="question-box">
+          <div class="question-title">
+            Βήματα εισαγωγής κόμβου
+            <span class="badge" id="binaryNewNodeBadge" style="display:none;">νέος κόμβος: ?</span>
+          </div>
+          <div class="step-box" id="binarySteps">
+            Πάτησε πρώτα «Νέο δυαδικό δένδρο» και στη συνέχεια
+            «Νέος κόμβος &amp; περιγραφή εισαγωγής».
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Δυαδικό Δένδρο Αναζήτησης (ΔΔΑ) -->
+      <div id="bstControls" style="display:none;">
+        <div class="section-title">3. Εισαγωγή στοιχείου σε δυαδικό δένδρο αναζήτησης (ΔΔΑ)</div>
+        <div class="controls-row">
+          <button class="primary-btn" id="btnNewBST">Νέο ΔΔΑ</button>
+          <button class="secondary-btn" id="btnNewBSTInsert">Νέο στοιχείο προς εισαγωγή</button>
+          <button class="secondary-btn" id="btnNextStepBST">Επόμενο βήμα</button>
+        </div>
+        <div class="info-box">
+          Σε δυαδικό δένδρο αναζήτησης (ΔΔΑ) ισχύει:
+          <br>– Αριστερό υποδένδρο: <strong>μικρότερες</strong> τιμές.
+          <br>– Δεξί υποδένδρο: <strong>μεγαλύτερες ή ίσες</strong> τιμές.
+          <br>Όταν ξεκινά η εισαγωγή, το μονοπάτι αναζήτησης εξηγείται βήμα–βήμα
+          με το κουμπί «Επόμενο βήμα», και στο τέλος φαίνεται η διαδρομή με φωτάκι.
+        </div>
+        <div class="question-box">
+          <div class="question-title">
+            Βηματική εισαγωγή στοιχείου
+            <span class="badge" id="bstInsertBadge" style="display:none;">νέο στοιχείο: ?</span>
+          </div>
+          <div class="step-box" id="bstSteps">
+            Πάτησε «Νέο ΔΔΑ» και μετά «Νέο στοιχείο προς εισαγωγή».
+            Στη συνέχεια πάτα «Επόμενο βήμα».
+          </div>
+        </div>
+
+        <!-- Ενιαία ενότητα ασκήσεων ΔΔΑ -->
+        <div class="question-box">
+          <div class="question-title">Ασκήσεις</div>
+          <div class="controls-row">
+            <label class="radio-label">
+              <input type="radio" name="bstExerciseMode" value="practice" checked>
+              Έτοιμες ασκήσεις ΔΔΑ
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="bstExerciseMode" value="recognition">
+              Ασκήσεις αναγνώρισης ΔΔΑ (είναι / δεν είναι)
+            </label>
+          </div>
+
+          <label class="small-label" for="bstUnifiedSelect">Επίλεξε άσκηση:</label>
+          <select id="bstUnifiedSelect"></select>
+
+          <div id="bstUnifiedText" style="margin-top:4px;"></div>
+
+          <!-- Κουμπιά για έτοιμες ασκήσεις ΔΔΑ -->
+          <div class="controls-row" id="bstPracticeButtons" style="margin-top:6px;">
+            <button class="secondary-btn" id="btnShowBSTExercise">Εμφάνιση δένδρου άσκησης</button>
+            <button class="secondary-btn" id="btnAnimateBSTExercise">Εισαγωγή με animation</button>
+          </div>
+
+          <!-- Κουμπιά για ασκήσεις αναγνώρισης ΔΔΑ -->
+          <div class="controls-row" id="bstRecognButtons" style="margin-top:6px; display:none;">
+            <button class="secondary-btn" id="btnRecognYes">Νομίζω ότι ΕΙΝΑΙ ΔΔΑ</button>
+            <button class="secondary-btn" id="btnRecognNo">Νομίζω ότι ΔΕΝ είναι ΔΔΑ</button>
+            <button class="primary-btn" id="btnRecognCheck">Έλεγχος</button>
+          </div>
+
+          <div id="bstUnifiedFeedback" class="feedback" style="margin-top:6px;"></div>
+        </div>
+      </div>
+
+      <!-- 4. Δένδρο Απόφασης -->
+      <div id="decisionControls" style="display:none;">
+        <div class="section-title">4. Δένδρο απόφασης από εκφώνηση</div>
+        <label class="small-label" for="decisionScenario">Επίλεξε εκφώνηση:</label>
+        <select id="decisionScenario">
+          <option value="house">Καθαριότητα σπιτιού</option>
+          <option value="exam">Αποτέλεσμα διαγωνίσματος</option>
+          <option value="destinations1">Προορισμοί: Ηράκλειο, Αθήνα, Παρίσι, Νέα Υόρκη</option>
+          <option value="destinations2">Πόλεις: Ρέθυμνο, Μυτιλήνη, Αθήνα, Θεσσαλονίκη</option>
+          <option value="animals">Ζώα: σκύλος, λιοντάρι, χελιδόνι, πρόβατο, άλογο</option>
+        </select>
+
+        <div class="question-box">
+          <div class="question-title">Εκφώνηση προβλήματος</div>
+          <div id="decisionText"></div>
+        </div>
+
+        <div class="question-box">
+          <div class="question-title">
+            Δένδρο &amp; εξήγηση απόφασης
+            <button class="secondary-btn" id="btnToggleDecisionTree">Εμφάνιση δέντρου &amp; λύσης</button>
+          </div>
+          <div id="decisionExplain"></div>
+        </div>
+
+        <div class="info-box">
+          Σε δένδρο απόφασης: εσωτερικοί κόμβοι = ερωτήσεις,
+          ακμές = αποφάσεις, φύλλα = αποτελέσματα.
+          Πάντα <strong>Αριστερά = Όχι, Δεξιά = Ναι</strong>.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-credit">
+    Ιδέα + Δημιουργία: Δημήτρης Γιακοβής, Έφη Δουφέκα
+  </div>
+</div>
+
+<script>
+  /* ===== Βασική δομή δέντρου & global state ===== */
+
+  function TreeNode(id, label) {
+    this.id = id;
+    this.label = label;
+    this.children = [];
+    this.parent = null;
+    this.x = 0;
+    this.y = 0;
+  }
+
+  var svg = document.getElementById('treeSvg');
+  var canvasTitle = document.getElementById('canvasTitle');
+
+  var currentMode = 'general';
+  var globalNodeId = 1;
+
+  var currentRoot = null;
+  var nodeMap = new Map();
+  var linkElements = [];
+  var decisionEdgeLabels = new Map();
+
+  var generalQuestion = null;
+  var selectedNodes = new Set();
+  var generalLabelType = 0;
+
+  var bstRoot = null;
+  var bstInsertValue = null;
+  var bstPath = [];
+  var bstStepIndex = 0;
+  var bstInsertedNodeId = null;
+
+  var binaryAwaitLeaf = false;
+  var binaryNewNodeValue = null;
+
+  var bstExerciseAnimKey = null;
+  var bstExerciseAnimIndex = 0;
+
+  var pathLight = null;
+
+  var decisionExplainVisible = false;
+  var decisionTreeVisible = false;
+  var decisionCurrentKey = 'house';
+
+  var bstRecognUserAnswer = null;
+  var bstExerciseMode = 'practice';
+
+  /* ===== Εναλλαγή καρτελών ===== */
+
+  var modeButtons = document.querySelectorAll('.mode-btn');
+  for (var i = 0; i < modeButtons.length; i++) {
+    modeButtons[i].addEventListener('click', function () {
+      for (var j = 0; j < modeButtons.length; j++) {
+        modeButtons[j].classList.remove('active');
+      }
+      this.classList.add('active');
+      currentMode = this.getAttribute('data-mode');
+      switchMode(currentMode);
+    });
+  }
+
+  function switchMode(mode) {
+    document.getElementById('generalControls').style.display = 'none';
+    document.getElementById('binaryControls').style.display = 'none';
+    document.getElementById('bstControls').style.display = 'none';
+    document.getElementById('decisionControls').style.display = 'none';
+    binaryAwaitLeaf = false;
+    clearHighlights();
+
+    if (mode === 'general') {
+      document.getElementById('generalControls').style.display = 'flex';
+      canvasTitle.textContent = 'Γενικό δένδρο (μέχρι 4 επίπεδα)';
+      generateRandomGeneralTree();
+    } else if (mode === 'binary') {
+      document.getElementById('binaryControls').style.display = 'flex';
+      canvasTitle.textContent = 'Δυαδικό δένδρο';
+      generateRandomBinaryTree();
+    } else if (mode === 'bst') {
+      document.getElementById('bstControls').style.display = 'flex';
+      canvasTitle.textContent = 'Δυαδικό δένδρο αναζήτησης (ΔΔΑ)';
+      generateRandomBST();
+      bstExerciseMode = 'practice';
+      var radios = document.querySelectorAll('input[name="bstExerciseMode"]');
+      radios.forEach(function (r) {
+        r.checked = (r.value === 'practice');
+      });
+      document.getElementById('bstPracticeButtons').style.display = 'flex';
+      document.getElementById('bstRecognButtons').style.display = 'none';
+      populateUnifiedSelect();
+    } else if (mode === 'decision') {
+      document.getElementById('decisionControls').style.display = 'flex';
+      canvasTitle.textContent = 'Δένδρο Απόφασης';
+      loadDecisionScenario(document.getElementById('decisionScenario').value);
+    }
+  }
+
+  /* ===== Βοηθητικά ===== */
+
+  function randomNumericLabel() {
+    return String(Math.floor(Math.random() * 90) + 10);
+  }
+
+  /* ===== 1. Γενικό Δένδρο ===== */
+
+  function generateRandomGeneralTree() {
+    var ok = false;
+
+    while (!ok) {
+      nodeMap.clear();
+      selectedNodes.clear();
+      generalQuestion = null;
+      setFeedback('', '');
+
+      generalLabelType = Math.floor(Math.random() * 3);
+      var depth = 2 + Math.floor(Math.random() * 3);
+
+      var usedLabels = new Set();
+      var wordPool = [
+        'Μήλο','Σπίτι','Ήλιος','Βουνό','Θάλασσα','Δέντρο','Βιβλίο','Σχολείο',
+        'Κήπος','Ποτάμι','Γέφυρα','Πόλη','Χωριό','Υπολογιστής','Οθόνη',
+        'Πληκτρολόγιο','Ποδήλατο','Αυτοκίνητο','Τρένο','Λεωφορείο'
+      ];
+
+      function uniqueLabel() {
+        if (generalLabelType === 0) {
+          while (true) {
+            var v = randomNumericLabel();
+            if (!usedLabels.has(v)) { usedLabels.add(v); return v; }
+          }
+        } else if (generalLabelType === 1) {
+          var letters = 'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ';
+          while (true) {
+            var ch = letters.charAt(Math.floor(Math.random() * letters.length));
+            if (!usedLabels.has(ch)) { usedLabels.add(ch); return ch; }
+          }
+        } else {
+          while (true) {
+            var w = wordPool[Math.floor(Math.random() * wordPool.length)];
+            if (!usedLabels.has(w)) { usedLabels.add(w); return w; }
+          }
+        }
+      }
+
+      function createSubtree(level) {
+        var node = new TreeNode(globalNodeId++, uniqueLabel());
+        nodeMap.set(node.id, node);
+        if (level < depth) {
+          var maxChildren = 1 + Math.floor(Math.random() * 3);
+          var childCount = 1 + Math.floor(Math.random() * maxChildren);
+          for (var c = 0; c < childCount; c++) {
+            var child = createSubtree(level + 1);
+            child.parent = node;
+            node.children.push(child);
+          }
+        }
+        return node;
+      }
+
+      currentRoot = createSubtree(1);
+      var size = nodeMap.size;
+      ok = (size >= 4 && depth >= 2);
+    }
+
+    layoutGeneralTree(currentRoot);
+    renderTree(currentRoot, true);
+    generateNewGeneralQuestion();
+  }
+
+  function generateNewGeneralQuestion() {
+    if (!currentRoot) return;
+    selectedNodes.clear();
+    var nodeEls = svg.querySelectorAll('.tree-node');
+    for (var i = 0; i < nodeEls.length; i++) nodeEls[i].classList.remove('selected');
+    setFeedback('', '');
+
+    var nodes = Array.from(nodeMap.values());
+    var leaves = nodes.filter(function (n) {
+      return n.children.filter(function (c) {return c;}).length === 0;
+    });
+    var nonLeaves = nodes.filter(function (n) {
+      return n.children.filter(function (c) {return c;}).length > 0 && n.parent;
+    });
+
+    var siblingCandidates = nodes.filter(function (n) {
+      if (!n.parent) return false;
+      var sibs = n.parent.children.filter(function (c) { return c; });
+      return sibs.length > 1;
+    });
+
+    var types = ['root'];
+    if (leaves.length > 0) types.push('leaves');
+    if (nonLeaves.length > 0) {
+      types.push('children');
+      types.push('subtree');
+    }
+    if (siblingCandidates.length > 0) types.push('siblings');
+
+    var type = types[Math.floor(Math.random() * types.length)];
+    var questionTextEl = document.getElementById('generalQuestionText');
+
+    if (type === 'root') {
+      generalQuestion = { type: 'root', correctSet: new Set([currentRoot.id]) };
+      questionTextEl.innerHTML = 'Ποια είναι η <strong>ρίζα</strong> του δένδρου; Κάνε κλικ στον κόμβο-ρίζα.';
+    } else if (type === 'leaves') {
+      generalQuestion = {
+        type: 'leaves',
+        correctSet: new Set(leaves.map(function (n) { return n.id; }))
+      };
+      questionTextEl.innerHTML = 'Επίλεξε <strong>όλα τα φύλλα</strong> του δένδρου (κόμβοι χωρίς παιδιά).';
+    } else if (type === 'children') {
+      var target = nonLeaves[Math.floor(Math.random() * nonLeaves.length)];
+      var childrenIds = target.children.filter(function (c) {return c;}).map(function (c) {return c.id;});
+      generalQuestion = {
+        type: 'children',
+        targetId: target.id,
+        correctSet: new Set(childrenIds)
+      };
+      questionTextEl.innerHTML = 'Επίλεξε όλα τα <strong>παιδιά</strong> του κόμβου «' + target.label + '».';
+    } else if (type === 'subtree') {
+      var target2 = nonLeaves[Math.floor(Math.random() * nonLeaves.length)];
+      var ids = [];
+      (function collect(node) {
+        ids.push(node.id);
+        node.children.forEach(function (c) { if (c) collect(c); });
+      })(target2);
+      generalQuestion = {
+        type: 'subtree',
+        targetId: target2.id,
+        correctSet: new Set(ids)
+      };
+      questionTextEl.innerHTML = 'Επίλεξε <strong>όλους τους κόμβους</strong> του υποδένδρου που έχει ρίζα τον κόμβο «' + target2.label + '».';
+    } else if (type === 'siblings') {
+      var target3 = siblingCandidates[Math.floor(Math.random() * siblingCandidates.length)];
+      var parent = target3.parent;
+      var sibsIds = parent.children.filter(function (c) {return c && c.id !== target3.id;}).map(function (c) {return c.id;});
+      generalQuestion = {
+        type: 'siblings',
+        targetId: target3.id,
+        correctSet: new Set(sibsIds)
+      };
+      questionTextEl.innerHTML = 'Επίλεξε όλα τα <strong>αδέλφια</strong> του κόμβου «' +
+        target3.label + '».';
+    }
+  }
+
+  function checkGeneralAnswer() {
+    if (!generalQuestion) return;
+    var sel = selectedNodes;
+    var correct = generalQuestion.correctSet;
+
+    var ok = (sel.size === correct.size);
+    if (ok) {
+      sel.forEach(function (id) {
+        if (!correct.has(id)) ok = false;
+      });
+    }
+
+    var explanation = '';
+    if (ok) {
+      if (generalQuestion.type === 'root') {
+        explanation = 'Σωστά! Η ρίζα είναι ο κόμβος «' + currentRoot.label + '», ο μόνος κόμβος χωρίς γονέα.';
+      } else if (generalQuestion.type === 'leaves') {
+        var labels = Array.from(correct).map(function (id) { return nodeMap.get(id).label; });
+        explanation = 'Σωστά! Τα φύλλα είναι: <strong>' + labels.join(', ') + '</strong>.';
+      } else if (generalQuestion.type === 'children') {
+        var parent = nodeMap.get(generalQuestion.targetId);
+        var labels2 = Array.from(correct).map(function (id) { return nodeMap.get(id).label; });
+        explanation = 'Σωστά! Τα παιδιά του κόμβου «' + parent.label + '» είναι: <strong>' + labels2.join(', ') + '</strong>.';
+      } else if (generalQuestion.type === 'subtree') {
+        var rootSub = nodeMap.get(generalQuestion.targetId);
+        var labels3 = Array.from(correct).map(function (id) { return nodeMap.get(id).label; });
+        explanation = 'Σωστά! Το υποδένδρο με ρίζα «' + rootSub.label + '» περιλαμβάνει τους κόμβους: <strong>' + labels3.join(', ') + '</strong>.';
+      } else if (generalQuestion.type === 'siblings') {
+        var target = nodeMap.get(generalQuestion.targetId);
+        var labels4 = Array.from(correct).map(function (id) { return nodeMap.get(id).label; });
+        explanation = 'Σωστά! Αδέλφια του κόμβου «' + target.label + '» είναι οι κόμβοι: <strong>' +
+          labels4.join(', ') + '</strong>.';
+      }
+      setFeedback(explanation, 'ok');
+    } else {
+      var correction = '';
+      var correctLabels = Array.from(correct).map(function (id) { return nodeMap.get(id).label; });
+      if (generalQuestion.type === 'root') {
+        correction = 'Λάθος. Η ρίζα είναι ο κόμβος «' + currentRoot.label + '».';
+      } else if (generalQuestion.type === 'leaves') {
+        correction = 'Λάθος. Τα σωστά φύλλα είναι: <strong>' + correctLabels.join(', ') + '</strong>.';
+      } else if (generalQuestion.type === 'children') {
+        var p = nodeMap.get(generalQuestion.targetId);
+        correction = 'Λάθος. Τα παιδιά του κόμβου «' + p.label + '» είναι: <strong>' + correctLabels.join(', ') + '</strong>.';
+      } else if (generalQuestion.type === 'subtree') {
+        var r2 = nodeMap.get(generalQuestion.targetId);
+        correction = 'Λάθος. Το υποδένδρο με ρίζα «' + r2.label + '» περιλαμβάνει τους κόμβους: <strong>' + correctLabels.join(', ') + '</strong>.';
+      } else if (generalQuestion.type === 'siblings') {
+        var t = nodeMap.get(generalQuestion.targetId);
+        correction = 'Λάθος. Τα σωστά αδέλφια του «' + t.label + '» είναι: <strong>' +
+          correctLabels.join(', ') + '</strong>.';
+      }
+      setFeedback(correction, 'err');
+    }
+  }
+
+  function setFeedback(html, type) {
+    var fb = document.getElementById('generalFeedback');
+    fb.innerHTML = html;
+    fb.classList.remove('ok');
+    fb.classList.remove('err');
+    if (type === 'ok') fb.classList.add('ok');
+    if (type === 'err') fb.classList.add('err');
+  }
+
+  /* ===== 2. Δυαδικό Δένδρο ===== */
+
+  function generateRandomBinaryTree() {
+    var ok = false;
+
+    while (!ok) {
+      nodeMap.clear();
+      selectedNodes.clear();
+      setBinarySteps('Δημιουργήθηκε νέο δυαδικό δένδρο. Πάτησε «Νέος κόμβος & περιγραφή εισαγωγής» για να διαλέξεις σε ποιο φύλλο θα μπει ο νέος κόμβος.');
+      document.getElementById('binaryNewNodeBadge').style.display = 'none';
+      binaryAwaitLeaf = false;
+      binaryNewNodeValue = null;
+
+      var usedVals = new Set();
+
+      function uniqueNum() {
+        while (true) {
+          var v = randomNumericLabel();
+          if (!usedVals.has(v)) { usedVals.add(v); return v; }
+        }
+      }
+
+      function createBinarySubtree(level, maxDepth) {
+        if (level > maxDepth) return null;
+        var node = new TreeNode(globalNodeId++, uniqueNum());
+        nodeMap.set(node.id, node);
+
+        if (level < maxDepth) {
+          if (Math.random() < 0.9) {
+            var left = createBinarySubtree(level + 1, maxDepth);
+            if (left) {
+              left.parent = node;
+              node.children[0] = left;
+            }
+          }
+          if (Math.random() < 0.9) {
+            var right = createBinarySubtree(level + 1, maxDepth);
+            if (right) {
+              right.parent = node;
+              node.children[1] = right;
+            }
+          }
+        }
+        return node;
+      }
+
+      var depth = 2 + Math.floor(Math.random() * 2);
+      currentRoot = createBinarySubtree(1, depth);
+
+      var size = nodeMap.size;
+      var actualDepth = computeDepthBinary(currentRoot);
+      ok = (size >= 4 && actualDepth >= 2);
+    }
+
+    layoutBinaryTree(currentRoot);
+    renderTree(currentRoot, false);
+  }
+
+  function startBinaryInsertionSelection() {
+    if (!currentRoot) return;
+
+    var used = new Set();
+    nodeMap.forEach(function (n) { used.add(n.label); });
+    var newVal = randomNumericLabel();
+    while (used.has(newVal)) newVal = randomNumericLabel();
+
+    binaryNewNodeValue = newVal;
+    binaryAwaitLeaf = true;
+
+    document.getElementById('binaryNewNodeBadge').style.display = 'inline-flex';
+    document.getElementById('binaryNewNodeBadge').textContent = 'νέος κόμβος: ' + newVal;
+
+    setBinarySteps(
+      '1. Επιλέγουμε τυχαία τιμή για τον νέο κόμβο: <strong>' + newVal + '</strong>.<br>' +
+      '2. Τώρα <strong>κάνε κλικ σε ένα φύλλο</strong> (κόμβο χωρίς παιδιά), μετά από το οποίο θέλεις να εισαχθεί ο νέος κόμβος.<br>' +
+      '3. Θα εμφανιστεί με φωτάκι το μονοπάτι από τη ρίζα μέχρι το φύλλο και ο νέος κόμβος θα συνδεθεί σε αυτό.'
+    );
+
+    layoutBinaryTree(currentRoot);
+    renderTree(currentRoot, false);
+  }
+
+  function handleBinaryLeafClick(nodeId) {
+    if (!binaryAwaitLeaf) return;
+    var node = nodeMap.get(nodeId);
+    if (!node) return;
+
+    var hasChildren = !!(node.children[0] || node.children[1]);
+    if (hasChildren) {
+      setBinarySteps('Ο κόμβος που επέλεξες <strong>δεν είναι φύλλο</strong>. Επίλεξε κόμβο χωρίς παιδιά (φύλλο).');
+      return;
+    }
+
+    binaryAwaitLeaf = false;
+
+    var newNode = new TreeNode(globalNodeId++, binaryNewNodeValue);
+    nodeMap.set(newNode.id, newNode);
+    newNode.parent = node;
+    if (!node.children[0]) node.children[0] = newNode;
+    else node.children[1] = newNode;
+
+    var fullPath = [];
+    var cur = newNode;
+    while (cur) { fullPath.push(cur); cur = cur.parent; }
+    fullPath.reverse();
+
+    layoutBinaryTree(currentRoot);
+    renderTree(currentRoot, false);
+
+    highlightPath(fullPath);
+    animatePath(fullPath);
+
+    var labelsPath = fullPath.map(function (n) { return n.label; });
+    var labelsWithoutNew = labelsPath.slice(0, labelsPath.length - 1);
+
+    var steps = [];
+    steps.push('1. Ο μαθητής επέλεξε ως σημείο εισαγωγής το φύλλο «' + node.label + '».');
+    steps.push('2. Το μονοπάτι από τη ρίζα μέχρι αυτό το φύλλο είναι: <strong>' +
+      labelsWithoutNew.join(' → ') + '</strong>.');
+    steps.push('3. Δημιουργούμε νέο κόμβο με τιμή «' + binaryNewNodeValue +
+      '» και τον συνδέουμε ως παιδί του «' + node.label + '».');
+    steps.push('4. Στο σχήμα εμφανίζεται με φωτάκι η διαδρομή από τη ρίζα μέχρι τον νέο κόμβο.');
+    setBinarySteps(steps.join('<br>'));
+  }
+
+  function setBinarySteps(html) {
+    document.getElementById('binarySteps').innerHTML = html;
+  }
+
+  /* ===== 3. ΔΔΑ – τυχαίο + βηματική εισαγωγή ===== */
+
+  function generateRandomBST() {
+    nodeMap.clear();
+    bstRoot = null;
+    bstInsertValue = null;
+    bstPath = [];
+    bstStepIndex = 0;
+    bstInsertedNodeId = null;
+    document.getElementById('bstInsertBadge').style.display = 'none';
+    setBSTSteps('Δημιουργήθηκε νέο ΔΔΑ. Πάτησε «Νέο στοιχείο προς εισαγωγή».');
+    clearHighlights();
+
+    var values = [];
+    var count = 7 + Math.floor(Math.random() * 3);
+    while (values.length < count) {
+      var v = Math.floor(Math.random() * 90) + 10;
+      if (values.indexOf(v) === -1) values.push(v);
+    }
+
+    function bstInsert(root, val) {
+      if (!root) {
+        var node = new TreeNode(globalNodeId++, String(val));
+        nodeMap.set(node.id, node);
+        return node;
+      }
+      var curVal = parseInt(root.label, 10);
+      if (val < curVal) {
+        var left = bstInsert(root.children[0] || null, val);
+        root.children[0] = left;
+        left.parent = root;
+      } else if (val > curVal) {
+        var right = bstInsert(root.children[1] || null, val);
+        root.children[1] = right;
+        right.parent = root;
+      } else {
+        var right2 = bstInsert(root.children[1] || null, val);
+        root.children[1] = right2;
+        right2.parent = root;
+      }
+      return root;
+    }
+
+    for (var i = 0; i < values.length; i++) {
+      bstRoot = bstInsert(bstRoot, values[i]);
+    }
+    currentRoot = bstRoot;
+    layoutBinaryTree(currentRoot);
+    renderTree(currentRoot, false);
+  }
+
+  function startNewBSTInsert() {
+    if (!bstRoot) return;
+
+    var used = new Set();
+    nodeMap.forEach(function (node) {
+      var v = parseInt(node.label, 10);
+      if (!isNaN(v)) used.add(v);
+    });
+
+    var v2;
+    do {
+      v2 = Math.floor(Math.random() * 90) + 10;
+    } while (used.has(v2));
+
+    bstInsertValue = v2;
+    document.getElementById('bstInsertBadge').style.display = 'inline-flex';
+    document.getElementById('bstInsertBadge').textContent = 'νέο στοιχείο: ' + bstInsertValue;
+
+    bstPath = [];
+    var current = bstRoot;
+    while (current) {
+      bstPath.push(current);
+      var curVal = parseInt(current.label, 10);
+      if (bstInsertValue < curVal) {
+        if (current.children[0]) current = current.children[0];
+        else break;
+      } else {
+        if (current.children[1]) current = current.children[1];
+        else break;
+      }
+    }
+    bstStepIndex = 0;
+    bstInsertedNodeId = null;
+    clearHighlights();
+
+    setBSTSteps('Πάτησε «Επόμενο βήμα» για να περιγράψουμε αναλυτικά την εισαγωγή του ' + bstInsertValue + ' στο ΔΔΑ.');
+  }
+
+  function bstNextStep() {
+    if (!bstRoot || bstInsertValue === null || bstPath.length === 0) return;
+
+    clearHighlights();
+
+    if (bstStepIndex < bstPath.length) {
+      var node = bstPath[bstStepIndex];
+      highlightNode(node.id);
+      var valNode = parseInt(node.label, 10);
+      var v = bstInsertValue;
+      var text = '';
+
+      if (bstStepIndex === 0) text += 'Ξεκινάμε από τη ρίζα (' + valNode + ').<br>';
+      else text += 'Επόμενος κόμβος στη διαδρομή: ' + valNode + '.<br>';
+
+      if (v < valNode) {
+        text += 'Επειδή ' + v + ' < ' + valNode + ', πάμε στο αριστερό υποδένδρο.';
+        if (!node.children[0]) text += '<br><strong>Εδώ θα μπει ο νέος κόμβος (αριστερό παιδί).</strong>';
+      } else if (v > valNode) {
+        text += 'Επειδή ' + v + ' > ' + valNode + ', πάμε στο δεξί υποδένδρο.';
+        if (!node.children[1]) text += '<br><strong>Εδώ θα μπει ο νέος κόμβος (δεξί παιδί).</strong>';
+      } else {
+        text += 'Η τιμή είναι ίση, οπότε ακολουθούμε το δεξί υποδένδρο.';
+        if (!node.children[1]) text += '<br><strong>Εδώ θα μπει ο νέος κόμβος (δεξί παιδί).</strong>';
+      }
+
+      appendBSTStep(text);
+      bstStepIndex++;
+      return;
+    }
+
+    if (bstInsertedNodeId === null) {
+      var parent = bstPath[bstPath.length - 1];
+      var parentVal = parseInt(parent.label, 10);
+      var goLeft = (bstInsertValue < parentVal);
+      var newNode = new TreeNode(globalNodeId++, String(bstInsertValue));
+      nodeMap.set(newNode.id, newNode);
+      newNode.parent = parent;
+      if (goLeft) parent.children[0] = newNode; else parent.children[1] = newNode;
+
+      bstInsertedNodeId = newNode.id;
+      currentRoot = bstRoot;
+      layoutBinaryTree(currentRoot);
+      renderTree(currentRoot, false);
+
+      var path = [];
+      var cur = newNode;
+      while (cur) { path.push(cur); cur = cur.parent; }
+      path.reverse();
+      highlightPath(path);
+      animatePath(path);
+
+      appendBSTStep('<strong>Τελικό βήμα:</strong> Ο νέος κόμβος με τιμή ' + bstInsertValue +
+        ' εισάγεται ως ' + (goLeft ? 'αριστερό' : 'δεξί') + ' παιδί του ' + parentVal + ' στο ΔΔΑ.');
+      bstStepIndex++;
+    } else {
+      appendBSTStep('Η εισαγωγή στο ΔΔΑ ολοκληρώθηκε.');
+    }
+  }
+
+  function setBSTSteps(html) {
+    document.getElementById('bstSteps').innerHTML = html;
+  }
+
+  function appendBSTStep(html) {
+    var box = document.getElementById('bstSteps');
+    box.innerHTML += '<br><br>' + html;
+    box.scrollTop = box.scrollHeight;
+  }
+
+  /* ===== 3β. Έτοιμες ασκήσεις ΔΔΑ ===== */
+
+  var bstExercises = {
+    ex1: {
+      description:
+        '49. Να σχεδιάσετε το δυαδικό δέντρο αναζήτησης (ΔΔΑ) που θα προκύψει μετά την ' +
+        'εισαγωγή των παρακάτω στοιχείων: 45, 23, 40, 78, 56, 100, 4, 9, 80, 30.',
+      sequence: [45, 23, 40, 78, 56, 100, 4, 9, 80, 30],
+      type: 'number'
+    },
+    ex2: {
+      description:
+        '50. Δίνονται οι παρακάτω αριθμοί: 6, 18, 14, 9, 15, 21, 11, 5, 3, 31. ' +
+        'Να σχεδιάσετε το δυαδικό δέντρο αναζήτησης (ΔΔΑ) που θα προκύψει αν τοποθετηθούν ' +
+        'αυτοί οι κόμβοι με αυτή τη σειρά.',
+      sequence: [6, 18, 14, 9, 15, 21, 11, 5, 3, 31],
+      type: 'number'
+    },
+    ex3: {
+      description:
+        '60. Δίνεται η ακολουθία αριθμών 55, 144, 21, 34, 89, 5, 233, 13, ' +
+        'οι οποίοι εισάγονται σε δυαδικό δένδρο αναζήτησης (ΔΔΑ) με τη σειρά. ' +
+        'Να σχεδιάσετε το τελικό δένδρο μετά την τοποθέτηση των αριθμών.',
+      sequence: [55, 144, 21, 34, 89, 5, 233, 13],
+      type: 'number'
+    },
+    ex4: {
+      description:
+        '44. Από τον χρήστη δίνονται με την σειρά οι παρακάτω χαρακτήρες: ' +
+        'Σ, Υ, Ν, Ν, Ε, Φ, Ι, Α που θα αποτελέσουν τις τιμές των κόμβων στις δομές δεδομένων που περιγράφονται παρακάτω.<br>' +
+        'Α. Ι) Να σχεδιάσετε το δυαδικό δένδρο αναζήτησης (ΔΔΑ) που θα προκύψει αν τοποθετηθούν ' +
+        'αυτοί οι κόμβοι με αυτή τη σειρά (αν εμφανιστεί ίδια τιμή, την εισάγουμε στο δεξί υποδένδρο του κόμβου).<br>' +
+        'ΙΙ) Πόσους κόμβους θα επισκεφτούμε στο δέντρο αυτό μέχρι να εντοπίσουμε πως υπάρχει στο δέντρο κόμβος με περιεχόμενο Ι.<br>' +
+        'ΙΙΙ) Ποια είναι τα φύλλα του δέντρου αυτού.',
+      sequence: ['Σ','Υ','Ν','Ν','Ε','Φ','Ι','Α'],
+      type: 'char'
+    }
+  };
+
+  function bstInsertNumber(root, value) {
+    if (!root) {
+      var node = new TreeNode(globalNodeId++, String(value));
+      nodeMap.set(node.id, node);
+      return node;
+    }
+    var curVal = parseInt(root.label, 10);
+    if (value < curVal) {
+      var left = bstInsertNumber(root.children[0] || null, value);
+      root.children[0] = left; left.parent = root;
+    } else if (value > curVal) {
+      var right = bstInsertNumber(root.children[1] || null, value);
+      root.children[1] = right; right.parent = root;
+    } else {
+      var right2 = bstInsertNumber(root.children[1] || null, value);
+      root.children[1] = right2; right2.parent = root;
+    }
+    return root;
+  }
+
+  function bstInsertChar(root, ch, dupRight) {
+    if (!root) {
+      var node = new TreeNode(globalNodeId++, ch);
+      nodeMap.set(node.id, node);
+      return node;
+    }
+    var curVal = root.label;
+    if (ch < curVal) {
+      var left = bstInsertChar(root.children[0] || null, ch, dupRight);
+      root.children[0] = left; left.parent = root;
+    } else if (ch > curVal || (dupRight && ch === curVal)) {
+      var right = bstInsertChar(root.children[1] || null, ch, dupRight);
+      root.children[1] = right; right.parent = root;
+    }
+    return root;
+  }
+
+  function showBSTExercise() {
+    if (bstExerciseMode !== 'practice') return;
+    var select = document.getElementById('bstUnifiedSelect');
+    var ex = bstExercises[select.value];
+    if (!ex) return;
+
+    nodeMap.clear();
+    bstRoot = null;
+    bstInsertValue = null;
+    bstPath = [];
+    bstStepIndex = 0;
+    bstInsertedNodeId = null;
+    document.getElementById('bstInsertBadge').style.display = 'none';
+    bstExerciseAnimKey = null;
+    bstExerciseAnimIndex = 0;
+    clearHighlights();
+
+    var root = null;
+    if (ex.type === 'number') {
+      for (var i = 0; i < ex.sequence.length; i++) {
+        root = bstInsertNumber(root, ex.sequence[i]);
+      }
+    } else {
+      var dupRight = (select.value === 'ex4');
+      for (var j = 0; j < ex.sequence.length; j++) {
+        root = bstInsertChar(root, ex.sequence[j], dupRight);
+      }
+    }
+
+    bstRoot = root;
+    currentRoot = root;
+    layoutBinaryTree(currentRoot);
+    renderTree(currentRoot, false);
+
+    if (select.value === 'ex3') {
+      setBSTSteps(ex.description +
+        '<br><br><strong>Ενδεικτική απάντηση:</strong><br>Ρίζα: 55. Φύλλα: 13, 34, 89, 233. Γονείς φύλλων: 5, 21, 144.');
+    } else if (select.value === 'ex4') {
+      var info = analyzeBSTForChar(root, 'Ι');
+      setBSTSteps(ex.description +
+        '<br><br><strong>Ενδεικτικές απαντήσεις:</strong><br>' +
+        'ΙΙ) Για να εντοπίσουμε το Ι, επισκεπτόμαστε ' + info.comparisons +
+        ' κόμβους στη διαδρομή αναζήτησης.<br>' +
+        'ΙΙΙ) Φύλλα του δέντρου: ' + info.leavesLabels.join(', ') + '.');
+    } else {
+      setBSTSteps(ex.description + '<br><br>Το δένδρο της άσκησης έχει σχεδιαστεί στο αριστερό μέρος.');
+    }
+  }
+
+  function analyzeBSTForChar(root, target) {
+    var comparisons = 0;
+    var cur = root;
+    while (cur) {
+      comparisons++;
+      if (target === cur.label) break;
+      if (target < cur.label) cur = cur.children[0] || null;
+      else cur = cur.children[1] || null;
+    }
+    var leaves = [];
+    (function collect(node) {
+      if (!node) return;
+      var left = node.children[0] || null;
+      var right = node.children[1] || null;
+      if (!left && !right) leaves.push(node);
+      else { collect(left); collect(right); }
+    })(root);
+    var labels = leaves.map(function (n) { return n.label; });
+    return { comparisons: comparisons, leavesLabels: labels };
+  }
+
+  function animateBSTExerciseStep() {
+    if (bstExerciseMode !== 'practice') return;
+    var select = document.getElementById('bstUnifiedSelect');
+    var ex = bstExercises[select.value];
+    if (!ex) return;
+
+    if (bstExerciseAnimKey !== select.value) {
+      bstExerciseAnimKey = select.value;
+      bstExerciseAnimIndex = 0;
+      nodeMap.clear();
+      bstRoot = null;
+      currentRoot = null;
+      document.getElementById('bstInsertBadge').style.display = 'none';
+      clearHighlights();
+      setBSTSteps(ex.description +
+        '<br><br><em>Οι κόμβοι θα εισαχθούν ένας-ένας. Κάθε πάτημα στο "Εισαγωγή με animation" εισάγει τον επόμενο κόμβο με φωτάκι στη διαδρομή.</em>');
+    }
+
+    if (bstExerciseAnimIndex >= ex.sequence.length) {
+      appendBSTStep('Όλοι οι κόμβοι της άσκησης έχουν ήδη εισαχθεί. ' +
+        'Πατώντας ξανά το κουμπί, η εισαγωγή ξεκινά από την αρχή.');
+      bstExerciseAnimIndex = 0;
+      bstExerciseAnimKey = null;
+      return;
+    }
+
+    var value = ex.sequence[bstExerciseAnimIndex];
+    var dupRight = (select.value === 'ex4');
+
+    if (ex.type === 'number') {
+      bstRoot = bstInsertNumber(bstRoot, value);
+    } else {
+      bstRoot = bstInsertChar(bstRoot, value, dupRight);
+    }
+    currentRoot = bstRoot;
+    layoutBinaryTree(currentRoot);
+    renderTree(currentRoot, false);
+
+    var lastNode = null;
+    nodeMap.forEach(function (node) {
+      if (node.label == String(value)) {
+        if (!lastNode || node.id > lastNode.id) lastNode = node;
+      }
+    });
+
+    if (lastNode) {
+      var path = [];
+      var cur = lastNode;
+      while (cur) { path.push(cur); cur = cur.parent; }
+      path.reverse();
+      highlightPath(path);
+      animatePath(path);
+    }
+
+    bstExerciseAnimIndex++;
+    appendBSTStep('Εισάγουμε το στοιχείο <strong>' + value +
+      '</strong> στο δυαδικό δένδρο αναζήτησης (ΔΔΑ) της άσκησης.');
+  }
+
+  /* ===== 3γ. Ασκήσεις αναγνώρισης ΔΔΑ ===== */
+
+  var bstRecognExercises = {
+    r1: {
+      isBST: true,
+      description: 'Άσκηση 1: Δένδρο με ρίζα 42 και κόμβους 32, 12 (παρόμοιο με Ε.11-α). Είναι ΔΔΑ;',
+      nodes: [
+        {id:'A', label:'42', left:'B', right:null},
+        {id:'B', label:'32', left:'C', right:null},
+        {id:'C', label:'12', left:null, right:null}
+      ],
+      rootId: 'A'
+    },
+    r2: {
+      isBST: false,
+      description: 'Άσκηση 2: Δένδρο με ρίζα 42, αριστερό παιδί 12 και δεξί 32 (παρόμοιο με Ε.11-β). Είναι ΔΔΑ;',
+      nodes: [
+        {id:'A', label:'42', left:'B', right:'C'},
+        {id:'B', label:'12', left:null, right:null},
+        {id:'C', label:'32', left:null, right:null}
+      ],
+      rootId: 'A'
+    },
+    r3: {
+      isBST: true,
+      description: 'Άσκηση 3: Δένδρο με ρίζα 42, αριστερό υποδένδρο 12–32–(30,38) και δεξί παιδί 65 (παρόμοιο με Ε.11-γ). Είναι ΔΔΑ;',
+      nodes: [
+        {id:'A', label:'42', left:'B', right:'F'},
+        {id:'B', label:'12', left:null, right:'C'},
+        {id:'C', label:'32', left:'D', right:'E'},
+        {id:'D', label:'30', left:null, right:null},
+        {id:'E', label:'38', left:null, right:null},
+        {id:'F', label:'65', left:null, right:null}
+      ],
+      rootId: 'A'
+    },
+    r4: {
+      isBST: true,
+      description: 'Άσκηση 4: Δένδρο με ρίζα 42, αριστερό υποδένδρο (32–12) και δεξί υποδένδρο (56–45) (παρόμοιο με Ε.11-δ). Είναι ΔΔΑ;',
+      nodes: [
+        {id:'A', label:'42', left:'B', right:'C'},
+        {id:'B', label:'32', left:'D', right:null},
+        {id:'D', label:'12', left:null, right:null},
+        {id:'C', label:'56', left:'E', right:null},
+        {id:'E', label:'45', left:null, right:null}
+      ],
+      rootId: 'A'
+    },
+    r5: {
+      isBST: false,
+      description: 'Άσκηση 5: Ρίζα 4, αριστερό υποδένδρο 7–(5,8) και δεξί 2–(1,3). Δεν είναι ΔΔΑ, γιατί στο αριστερό υποδένδρο υπάρχουν τιμές μεγαλύτερες από 4.',
+      nodes: [
+        {id:'A', label:'4', left:'B', right:'C'},
+        {id:'B', label:'7', left:'D', right:'E'},
+        {id:'D', label:'5', left:null, right:null},
+        {id:'E', label:'8', left:null, right:null},
+        {id:'C', label:'2', left:'F', right:'G'},
+        {id:'F', label:'1', left:null, right:null},
+        {id:'G', label:'3', left:null, right:null}
+      ],
+      rootId: 'A'
+    },
+    r6: {
+      isBST: false,
+      description: 'Άσκηση 6: Δένδρο με ρίζα 4, όπου ο κόμβος 3 βρίσκεται στο αριστερό υποδένδρο του 2 αλλά είναι μεγαλύτερος από 2 (όπως στο παράδειγμα με τον λάθος κόμβο 3). Δεν είναι ΔΔΑ.',
+      nodes: [
+        {id:'A', label:'4', left:'B', right:'C'},
+        {id:'B', label:'2', left:'D', right:null},
+        {id:'D', label:'1', left:null, right:'E'},
+        {id:'E', label:'3', left:null, right:null},
+        {id:'C', label:'8', left:'F', right:'G'},
+        {id:'F', label:'6', left:'H', right:'I'},
+        {id:'H', label:'5', left:null, right:null},
+        {id:'I', label:'7', left:null, right:null},
+        {id:'G', label:'9', left:null, right:null}
+      ],
+      rootId: 'A'
+    }
+  };
+
+  function buildTreeFromDescriptor(desc) {
+    nodeMap.clear();
+    clearHighlights();
+    bstRoot = null;
+    currentRoot = null;
+
+    var temp = {};
+    desc.nodes.forEach(function (d) {
+      temp[d.id] = new TreeNode(globalNodeId++, d.label);
+    });
+    desc.nodes.forEach(function (d) {
+      var node = temp[d.id];
+      if (d.left) {
+        var left = temp[d.left];
+        node.children[0] = left;
+        left.parent = node;
+      }
+      if (d.right) {
+        var right = temp[d.right];
+        node.children[1] = right;
+        right.parent = node;
+      }
+      nodeMap.set(node.id, node);
+    });
+
+    bstRoot = temp[desc.rootId];
+    currentRoot = bstRoot;
+    layoutBinaryTree(currentRoot);
+    renderTree(currentRoot, false);
+  }
+
+  /* ===== Ενιαίο combo για ασκήσεις ΔΔΑ ===== */
+
+  function populateUnifiedSelect() {
+    var select = document.getElementById('bstUnifiedSelect');
+    var textBox = document.getElementById('bstUnifiedText');
+    var fb = document.getElementById('bstUnifiedFeedback');
+    select.innerHTML = '';
+    textBox.innerHTML = '';
+    fb.innerHTML = '';
+    fb.classList.remove('ok','err');
+    bstRecognUserAnswer = null;
+
+    if (bstExerciseMode === 'practice') {
+      var opts = [
+        {value:'ex1', text:'Άσκηση 1 – 45, 23, 40, 78, 56, 100, 4, 9, 80, 30'},
+        {value:'ex2', text:'Άσκηση 2 – 6, 18, 14, 9, 15, 21, 11, 5, 3, 31'},
+        {value:'ex3', text:'Άσκηση 3 – 55, 144, 21, 34, 89, 5, 233, 13'},
+        {value:'ex4', text:'Άσκηση 4 – Σ, Υ, Ν, Ν, Ε, Φ, Ι, Α'}
+      ];
+      opts.forEach(function (o) {
+        var op = document.createElement('option');
+        op.value = o.value;
+        op.textContent = o.text;
+        select.appendChild(op);
+      });
+    } else {
+      var opts2 = [
+        {value:'r1', text:'Άσκηση 1 – 42, 32, 12'},
+        {value:'r2', text:'Άσκηση 2 – 42, 12, 32'},
+        {value:'r3', text:'Άσκηση 3 – 42, 12, 32, 30, 38, 65'},
+        {value:'r4', text:'Άσκηση 4 – 42, 32, 12, 56, 45'},
+        {value:'r5', text:'Άσκηση 5 – 4 με 7,5,8 και 2,1,3'},
+        {value:'r6', text:'Άσκηση 6 – 4, 2, 1, 3, 8, 6, 5, 7, 9'}
+      ];
+      opts2.forEach(function (o) {
+        var op = document.createElement('option');
+        op.value = o.value;
+        op.textContent = o.text;
+        select.appendChild(op);
+      });
+    }
+    handleUnifiedSelectChange();
+  }
+
+  function handleUnifiedSelectChange() {
+    var select = document.getElementById('bstUnifiedSelect');
+    var key = select.value;
+    var textBox = document.getElementById('bstUnifiedText');
+    var fb = document.getElementById('bstUnifiedFeedback');
+    fb.innerHTML = '';
+    fb.classList.remove('ok','err');
+    bstRecognUserAnswer = null;
+
+    if (bstExerciseMode === 'practice') {
+      var ex = bstExercises[key];
+      if (!ex) {
+        textBox.innerHTML = '';
+        return;
+      }
+      textBox.innerHTML = ex.description;
+      bstExerciseAnimKey = null;
+      bstExerciseAnimIndex = 0;
+    } else {
+      var ex2 = bstRecognExercises[key];
+      if (!ex2) {
+        textBox.innerHTML = '';
+        return;
+      }
+      textBox.innerHTML = ex2.description +
+        '<br><br><em>Είναι το παρακάτω δένδρο δυαδικό δένδρο αναζήτησης (ΔΔΑ); Διάλεξε ΝΑΙ ή ΟΧΙ και μετά πάτα «Έλεγχος».</em>';
+      buildTreeFromDescriptor(ex2);
+    }
+  }
+
+  function setRecognAnswer(val) {
+    bstRecognUserAnswer = val;
+    var yesBtn = document.getElementById('btnRecognYes');
+    var noBtn = document.getElementById('btnRecognNo');
+    yesBtn.style.background = (val === true) ? '#2563eb' : '#e5e7eb';
+    yesBtn.style.color = (val === true) ? '#ffffff' : '#111827';
+    noBtn.style.background = (val === false) ? '#2563eb' : '#e5e7eb';
+    noBtn.style.color = (val === false) ? '#ffffff' : '#111827';
+  }
+
+  function checkRecognAnswer() {
+    if (bstExerciseMode !== 'recognition') {
+      var fb0 = document.getElementById('bstUnifiedFeedback');
+      fb0.classList.remove('ok','err');
+      fb0.innerHTML = 'Επίλεξε πρώτα «Ασκήσεις αναγνώρισης ΔΔΑ».';
+      return;
+    }
+    var fb = document.getElementById('bstUnifiedFeedback');
+    fb.classList.remove('ok');
+    fb.classList.remove('err');
+    if (bstRecognUserAnswer === null) {
+      fb.innerHTML = 'Επίλεξε πρώτα αν νομίζεις ότι είναι ή δεν είναι ΔΔΑ (ΝΑΙ/ΟΧΙ).';
+      return;
+    }
+    var select = document.getElementById('bstUnifiedSelect');
+    var ex = bstRecognExercises[select.value];
+    if (!ex) return;
+    if (bstRecognUserAnswer === ex.isBST) {
+      fb.classList.add('ok');
+      fb.innerHTML = 'Σωστά! ' + (ex.isBST ?
+        'Το δένδρο ικανοποιεί τις ιδιότητες του δυαδικού δέντρου αναζήτησης (ΔΔΑ).' :
+        'Το δένδρο <strong>δεν</strong> είναι ΔΔΑ, γιατί παραβιάζεται η ιδιότητα για τις τιμές αριστερού/δεξιού υποδένδρου (δες την εκφώνηση).');
+    } else {
+      fb.classList.add('err');
+      fb.innerHTML = 'Λάθος. ' + (ex.isBST ?
+        'Το δένδρο <strong>είναι</strong> ΔΔΑ, γιατί σε κάθε κόμβο όλες οι τιμές αριστερά είναι μικρότερες και δεξιά μεγαλύτερες ή ίσες.' :
+        'Το δένδρο <strong>δεν</strong> είναι ΔΔΑ, όπως εξηγείται στην εκφώνηση (π.χ. κάποιος κόμβος βρίσκεται σε λάθος υποδένδρο).');
+    }
+  }
+
+  /* ===== 4. Δένδρα Απόφασης ===== */
+
+  var decisionScenarios = {
+    house: {
+      text:
+        'Θέλουμε να αποφασίσουμε τι δουλειά καθαριότητας θα κάνουμε στο σπίτι.<br>' +
+        'Εξετάζουμε διαδοχικά τις εξής ερωτήσεις:<br>' +
+        '1) Είναι το σπίτι γενικά καθαρό;<br>' +
+        '2) Αν όχι: Είναι το πάτωμα καθαρό;<br>' +
+        '3) Ανάλογα με τις απαντήσεις αποφασίζουμε αν θα πλύνουμε τα παράθυρα, αν θα σφουγγαρίσουμε ή αν θα χαλαρώσουμε.',
+      explain:
+        'Ρίζα: «Είναι το σπίτι καθαρό;». Αν Ναι ⇒ «Χαλαρώνω!!!». Αν Όχι ⇒ «Είναι το πάτωμα καθαρό;». ' +
+        'Από εκεί, αν Ναι ⇒ «Πλένω τα παράθυρα», αν Όχι ⇒ «Σφουγγαρίζω το πάτωμα».',
+      build: function () {
+        nodeMap.clear();
+        decisionEdgeLabels = new Map();
+        function n(label) { var node = new TreeNode(globalNodeId++, label); nodeMap.set(node.id, node); return node; }
+
+        var root = n('Είναι το σπίτι καθαρό;');
+        var nYes = n('Χαλαρώνω!!!');
+        var nNo = n('Είναι το πάτωμα καθαρό;');
+        var nFloorYes = n('Πλένω τα παράθυρα');
+        var nFloorNo = n('Σφουγγαρίζω το πάτωμα');
+
+        root.children = [nNo, nYes];
+        nNo.parent = root; nYes.parent = root;
+        nNo.children = [nFloorNo, nFloorYes];
+        nFloorNo.parent = nNo; nFloorYes.parent = nNo;
+
+        decisionEdgeLabels.set(root.id + '-' + nNo.id, 'Όχι');
+        decisionEdgeLabels.set(root.id + '-' + nYes.id, 'Ναι');
+        decisionEdgeLabels.set(nNo.id + '-' + nFloorNo.id, 'Όχι');
+        decisionEdgeLabels.set(nNo.id + '-' + nFloorYes.id, 'Ναι');
+
+        currentRoot = root;
+        layoutGeneralTree(currentRoot);
+        renderTree(currentRoot, false);
+      }
+    },
+    exam: {
+      text:
+        'Ένας μαθητής θέλει να αποφασίσει αν θα βγει βόλτα μετά το διαγώνισμα.<br>' +
+        '1) Πρώτα ελέγχει αν ο βαθμός του είναι ≥ 15.<br>' +
+        '2) Αν ο βαθμός είναι μικρότερος, ελέγχει αν έχει σύντομα άλλο διαγώνισμα.<br>' +
+        '3) Ανάλογα με τις απαντήσεις, αποφασίζει αν θα βγει βόλτα, αν θα διαβάσει ή αν θα ξεκουραστεί.',
+      explain:
+        'Ρίζα: «Βαθμός ≥ 15;». Αν Ναι ⇒ «Βγαίνω βόλτα με φίλους». Αν Όχι ⇒ «Έχω σύντομα άλλο διαγώνισμα;». ' +
+        'Αν εκεί Ναι ⇒ «Κάθομαι και διαβάζω», αν Όχι ⇒ «Ξεκουράζομαι στο σπίτι».',
+      build: function () {
+        nodeMap.clear();
+        decisionEdgeLabels = new Map();
+        function n(label) { var node = new TreeNode(globalNodeId++, label); nodeMap.set(node.id, node); return node; }
+
+        var root = n('Βαθμός ≥ 15;');
+        var yes = n('Βγαίνω βόλτα με φίλους');
+        var no = n('Έχω σύντομα άλλο διαγώνισμα;');
+        var study = n('Κάθομαι και διαβάζω');
+        var rest = n('Ξεκουράζομαι στο σπίτι');
+
+        root.children = [no, yes];
+        no.parent = root; yes.parent = root;
+        no.children = [rest, study];
+        rest.parent = no; study.parent = no;
+
+        decisionEdgeLabels.set(root.id + '-' + no.id, 'Όχι');
+        decisionEdgeLabels.set(root.id + '-' + yes.id, 'Ναι');
+        decisionEdgeLabels.set(no.id + '-' + rest.id, 'Όχι');
+        decisionEdgeLabels.set(no.id + '-' + study.id, 'Ναι');
+
+        currentRoot = root;
+        layoutGeneralTree(currentRoot);
+        renderTree(currentRoot, false);
+      }
+    },
+    destinations1: {
+      text:
+        'Να δημιουργήσουμε ένα δένδρο απόφασης, που θα κατηγοριοποιεί τους προορισμούς: ' +
+        '<strong>Ηράκλειο, Αθήνα, Παρίσι, Νέα Υόρκη</strong> σύμφωνα με τα χαρακτηριστικά:<br>' +
+        '1) αν είναι προορισμός εσωτερικού ή εξωτερικού<br>' +
+        '2) στην περίπτωση του εσωτερικού αν βρίσκεται σε νησί ή όχι<br>' +
+        '3) στην περίπτωση του εξωτερικού αν είναι Ευρώπη ή όχι.',
+      explain:
+        'Ρίζα: «Εσωτερικό;». Αν Ναι ⇒ «Νησί;» → Ηράκλειο (Ναι), Αθήνα (Όχι). ' +
+        'Αν Όχι ⇒ «Ευρώπη;» → Παρίσι (Ναι), Νέα Υόρκη (Όχι).',
+      build: function () {
+        nodeMap.clear();
+        decisionEdgeLabels = new Map();
+        function n(label) { var node = new TreeNode(globalNodeId++, label); nodeMap.set(node.id, node); return node; }
+
+        var root = n('Εσωτερικό;');
+        var internal = n('Νησί;');
+        var external = n('Ευρώπη;');
+        var her = n('Ηράκλειο');
+        var ath = n('Αθήνα');
+        var par = n('Παρίσι');
+        var ny = n('Νέα Υόρκη');
+
+        root.children = [external, internal];
+        external.parent = root; internal.parent = root;
+        internal.children = [ath, her];
+        ath.parent = internal; her.parent = internal;
+        external.children = [ny, par];
+        ny.parent = external; par.parent = external;
+
+        decisionEdgeLabels.set(root.id + '-' + external.id, 'Όχι');
+        decisionEdgeLabels.set(root.id + '-' + internal.id, 'Ναι');
+        decisionEdgeLabels.set(internal.id + '-' + ath.id, 'Όχι');
+        decisionEdgeLabels.set(internal.id + '-' + her.id, 'Ναι');
+        decisionEdgeLabels.set(external.id + '-' + ny.id, 'Όχι');
+        decisionEdgeLabels.set(external.id + '-' + par.id, 'Ναι');
+
+        currentRoot = root;
+        layoutGeneralTree(currentRoot);
+        renderTree(currentRoot, false);
+      }
+    },
+    destinations2: {
+      text:
+        'Να δημιουργήσουμε ένα δένδρο απόφασης, που θα κατηγοριοποιεί τις πόλεις: ' +
+        '<strong>Ρέθυμνο, Μυτιλήνη, Αθήνα, Θεσσαλονίκη</strong> σύμφωνα με τα χαρακτηριστικά:<br>' +
+        '1) αν βρίσκεται σε νησί ή όχι<br>' +
+        '2) στην περίπτωση που βρίσκεται σε νησί, αν βρίσκεται στην Κρήτη ή όχι<br>' +
+        '3) στην περίπτωση που δεν βρίσκεται σε νησί, αν βρίσκεται στη Μακεδονία ή όχι.',
+      explain:
+        'Ρίζα: «Νησί;». Αν Ναι ⇒ «Κρήτη;» → Ρέθυμνο (Ναι), Μυτιλήνη (Όχι). ' +
+        'Αν Όχι ⇒ «Μακεδονία;» → Θεσσαλονίκη (Ναι), Αθήνα (Όχι).',
+      build: function () {
+        nodeMap.clear();
+        decisionEdgeLabels = new Map();
+        function n(label) { var node = new TreeNode(globalNodeId++, label); nodeMap.set(node.id, node); return node; }
+
+        var root = n('Νησί;');
+        var island = n('Κρήτη;');
+        var mainland = n('Μακεδονία;');
+        var reth = n('Ρέθυμνο');
+        var myt = n('Μυτιλήνη');
+        var ath = n('Αθήνα');
+        var thess = n('Θεσσαλονίκη');
+
+        root.children = [mainland, island];
+        mainland.parent = root; island.parent = root;
+        island.children = [myt, reth];
+        myt.parent = island; reth.parent = island;
+        mainland.children = [ath, thess];
+        ath.parent = mainland; thess.parent = mainland;
+
+        decisionEdgeLabels.set(root.id + '-' + mainland.id, 'Όχι');
+        decisionEdgeLabels.set(root.id + '-' + island.id, 'Ναι');
+        decisionEdgeLabels.set(island.id + '-' + myt.id, 'Όχι');
+        decisionEdgeLabels.set(island.id + '-' + reth.id, 'Ναι');
+        decisionEdgeLabels.set(mainland.id + '-' + ath.id, 'Όχι');
+        decisionEdgeLabels.set(mainland.id + '-' + thess.id, 'Ναι');
+
+        currentRoot = root;
+        layoutGeneralTree(currentRoot);
+        renderTree(currentRoot, false);
+      }
+    },
+    animals: {
+      text:
+        'Να δημιουργήσουμε ένα δένδρο απόφασης, που θα κατηγοριοποιεί τα ζώα: ' +
+        '<strong>σκύλος, λιοντάρι, χελιδόνι, πρόβατο, άλογο</strong> με βάση τα ακόλουθα χαρακτηριστικά:<br>' +
+        '1) αν έχει 4 πόδια ή όχι<br>' +
+        '2) στην περίπτωση που έχει 4 πόδια, αν είναι σαρκοφάγο ή όχι<br>' +
+        '3) στην περίπτωση που είναι σαρκοφάγο, αν είναι κατοικίδιο ή όχι<br>' +
+        '4) στην περίπτωση που δεν είναι σαρκοφάγο, αν το ιππεύει ο άνθρωπος ή όχι.',
+      explain:
+        'Ρίζα: «Έχει 4 πόδια;». Αν Όχι ⇒ Χελιδόνι. Αν Ναι ⇒ «Σαρκοφάγο;». ' +
+        'Αν είναι σαρκοφάγο και κατοικίδιο ⇒ Σκύλος, αλλιώς ⇒ Λιοντάρι. ' +
+        'Αν δεν είναι σαρκοφάγο ⇒ «Το ιππεύει ο άνθρωπος;» → Άλογο (Ναι), Πρόβατο (Όχι).',
+      build: function () {
+        nodeMap.clear();
+        decisionEdgeLabels = new Map();
+        function n(label) { var node = new TreeNode(globalNodeId++, label); nodeMap.set(node.id, node); return node; }
+
+        var root = n('Έχει 4 πόδια;');
+        var fourLegs = n('Σαρκοφάγο;');
+        var notFour = n('Χελιδόνι');
+        var carnPet = n('Κατοικίδιο;');
+        var nonCarn = n('Το ιππεύει ο άνθρωπος;');
+        var dog = n('Σκύλος');
+        var lion = n('Λιοντάρι');
+        var horse = n('Άλογο');
+        var sheep = n('Πρόβατο');
+
+        root.children = [notFour, fourLegs];
+        notFour.parent = root; fourLegs.parent = root;
+        fourLegs.children = [nonCarn, carnPet];
+        nonCarn.parent = fourLegs; carnPet.parent = fourLegs;
+        carnPet.children = [lion, dog];
+        lion.parent = carnPet; dog.parent = carnPet;
+        nonCarn.children = [sheep, horse];
+        sheep.parent = nonCarn; horse.parent = nonCarn;
+
+        decisionEdgeLabels.set(root.id + '-' + notFour.id, 'Όχι');
+        decisionEdgeLabels.set(root.id + '-' + fourLegs.id, 'Ναι');
+        decisionEdgeLabels.set(fourLegs.id + '-' + nonCarn.id, 'Όχι');
+        decisionEdgeLabels.set(fourLegs.id + '-' + carnPet.id, 'Ναι');
+        decisionEdgeLabels.set(carnPet.id + '-' + lion.id, 'Όχι');
+        decisionEdgeLabels.set(carnPet.id + '-' + dog.id, 'Ναι');
+        decisionEdgeLabels.set(nonCarn.id + '-' + sheep.id, 'Όχι');
+        decisionEdgeLabels.set(nonCarn.id + '-' + horse.id, 'Ναι');
+
+        currentRoot = root;
+        layoutGeneralTree(currentRoot);
+        renderTree(currentRoot, false);
+      }
+    }
+  };
+
+  function loadDecisionScenario(key) {
+    decisionCurrentKey = key;
+    var sc = decisionScenarios[key];
+    if (!sc) return;
+    document.getElementById('decisionText').innerHTML = sc.text;
+    var explainDiv = document.getElementById('decisionExplain');
+    explainDiv.innerHTML = sc.explain;
+    explainDiv.style.display = 'none';
+    decisionExplainVisible = false;
+    decisionTreeVisible = false;
+    var btn = document.getElementById('btnToggleDecisionTree');
+    if (btn) btn.textContent = 'Εμφάνιση δέντρου & λύσης';
+    svg.innerHTML = '';
+  }
+
+  /* ===== Layout & SVG ===== */
+
+  function layoutGeneralTree(root) {
+    if (!root) return;
+    var depthMap = new Map();
+    function dfs(node, depth) {
+      if (!depthMap.has(depth)) depthMap.set(depth, []);
+      depthMap.get(depth).push(node);
+      node.children.forEach(function (c) { if (c) dfs(c, depth + 1); });
+    }
+    dfs(root, 0);
+    var levels = Array.from(depthMap.keys()).sort(function (a,b) { return a-b; });
+    var width = svg.clientWidth || 600;
+    var height = svg.clientHeight || 430;
+    var levelHeight = height / (levels.length + 1);
+    for (var i = 0; i < levels.length; i++) {
+      var depth = levels[i];
+      var arr = depthMap.get(depth);
+      var count = arr.length;
+      for (var j = 0; j < arr.length; j++) {
+        var node = arr[j];
+        var spacing = width / (count + 1);
+        node.x = spacing * (j + 1);
+        node.y = levelHeight * (depth + 1);
+      }
+    }
+  }
+
+  function computeDepthBinary(node) {
+    if (!node) return 0;
+    var left = computeDepthBinary(node.children[0] || null);
+    var right = computeDepthBinary(node.children[1] || null);
+    return 1 + Math.max(left, right);
+  }
+
+  function layoutBinaryTree(root) {
+    if (!root) return;
+    var width = svg.clientWidth || 600;
+    var height = svg.clientHeight || 430;
+    var maxDepth = computeDepthBinary(root);
+    var levelHeight = height / (maxDepth + 1);
+    var nodeCount = nodeMap.size || 1;
+    var inIndex = 0;
+
+    function inorder(node, depth) {
+      if (!node) return;
+      inorder(node.children[0] || null, depth + 1);
+      inIndex++;
+      node.x = (width / (nodeCount + 1)) * inIndex;
+      node.y = levelHeight * depth;
+      inorder(node.children[1] || null, depth + 1);
+    }
+    inorder(root, 1);
+  }
+
+  function renderTree(root, clickableForGeneral) {
+    svg.innerHTML = '';
+    linkElements = [];
+    if (!root) return;
+
+    function drawLinks(node) {
+      node.children.forEach(function (child) {
+        if (child) {
+          var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', node.x);
+          line.setAttribute('y1', node.y);
+          line.setAttribute('x2', child.x);
+          line.setAttribute('y2', child.y);
+          line.setAttribute('class', 'tree-link');
+          svg.appendChild(line);
+          linkElements.push({ line: line, parentId: node.id, childId: child.id });
+
+          var key = node.id + '-' + child.id;
+          if (decisionEdgeLabels.has(key)) {
+            var labelText = decisionEdgeLabels.get(key);
+            var tx = (node.x + child.x) / 2;
+            var ty = (node.y + child.y) / 2 - 6;
+            var t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            t.setAttribute('x', tx);
+            t.setAttribute('y', ty);
+            t.setAttribute('text-anchor', 'middle');
+            t.setAttribute('class', 'edge-label');
+            t.textContent = labelText;
+            svg.appendChild(t);
+          }
+          drawLinks(child);
+        }
+      });
+    }
+    drawLinks(root);
+
+    function drawNodes(node) {
+      var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      group.setAttribute('class', 'tree-node');
+      group.setAttribute('data-id', node.id);
+
+      var label = node.label;
+      var rectHeight = 30;
+      var rectWidth = Math.max(70, 8 * label.length + 30);
+
+      var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', node.x - rectWidth / 2);
+      rect.setAttribute('y', node.y - rectHeight / 2);
+      rect.setAttribute('width', rectWidth);
+      rect.setAttribute('height', rectHeight);
+
+      var text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', node.x);
+      text.setAttribute('y', node.y + 4);
+      text.setAttribute('text-anchor', 'middle');
+      text.textContent = label;
+
+      group.appendChild(rect);
+      group.appendChild(text);
+      svg.appendChild(group);
+
+      if (currentMode === 'general' && clickableForGeneral) {
+        group.addEventListener('click', function () {
+          toggleSelectNode(node.id, group);
+        });
+      } else if (currentMode === 'binary' && binaryAwaitLeaf) {
+        group.addEventListener('click', function () {
+          handleBinaryLeafClick(node.id);
+        });
+      }
+
+      node.children.forEach(function (child) {
+        if (child) drawNodes(child);
+      });
+    }
+
+    drawNodes(root);
+  }
+
+  function toggleSelectNode(id, groupEl) {
+    if (selectedNodes.has(id)) {
+      selectedNodes.delete(id);
+      groupEl.classList.remove('selected');
+    } else {
+      selectedNodes.add(id);
+      groupEl.classList.add('selected');
+    }
+  }
+
+  function clearHighlights() {
+    var nodes = svg.querySelectorAll('.tree-node');
+    for (var i = 0; i < nodes.length; i++) nodes[i].classList.remove('current');
+    var lines = svg.querySelectorAll('.tree-link');
+    for (var j = 0; j < lines.length; j++) lines[j].classList.remove('highlight');
+    if (pathLight) {
+      try { svg.removeChild(pathLight); } catch(e) {}
+      pathLight = null;
+    }
+  }
+
+  function highlightNode(id) {
+    var nodes = svg.querySelectorAll('.tree-node');
+    for (var i = 0; i < nodes.length; i++) {
+      if (parseInt(nodes[i].getAttribute('data-id'), 10) === id) {
+        nodes[i].classList.add('current');
+      }
+    }
+    for (var k = 0; k < linkElements.length; k++) {
+      if (linkElements[k].childId === id) {
+        linkElements[k].line.classList.add('highlight');
+      }
+    }
+  }
+
+  function highlightPath(pathNodes) {
+    clearHighlights();
+    if (!pathNodes || !pathNodes.length) return;
+    var ids = pathNodes.map(function (n) { return n.id; });
+
+    var nodeEls = svg.querySelectorAll('.tree-node');
+    for (var i = 0; i < nodeEls.length; i++) {
+      var id = parseInt(nodeEls[i].getAttribute('data-id'), 10);
+      if (ids.indexOf(id) !== -1) nodeEls[i].classList.add('current');
+    }
+
+    for (var j = 0; j < linkElements.length; j++) {
+      var link = linkElements[j];
+      var parentIdx = ids.indexOf(link.parentId);
+      var childIdx = ids.indexOf(link.childId);
+      if (parentIdx !== -1 && childIdx === parentIdx + 1) {
+        link.line.classList.add('highlight');
+      }
+    }
+  }
+
+  function animatePath(pathNodes) {
+    if (!pathNodes || pathNodes.length === 0) return;
+
+    if (pathLight) {
+      try { svg.removeChild(pathLight); } catch(e) {}
+      pathLight = null;
+    }
+
+    var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('r', 6);
+    circle.setAttribute('cx', pathNodes[0].x);
+    circle.setAttribute('cy', pathNodes[0].y);
+    circle.setAttribute('fill', '#f97316');
+    circle.setAttribute('opacity', '0.45');
+    svg.appendChild(circle);
+    pathLight = circle;
+
+    if (pathNodes.length === 1) return;
+
+    var segmentIndex = 0;
+    var duration = 900;
+
+    function animateSegment(startTime, fromNode, toNode) {
+      function frame(timestamp) {
+        if (!startTime) startTime = timestamp;
+        var t = (timestamp - startTime) / duration;
+        if (t > 1) t = 1;
+        var x = fromNode.x + (toNode.x - fromNode.x) * t;
+        var y = fromNode.y + (toNode.y - fromNode.y) * t;
+        circle.setAttribute('cx', x);
+        circle.setAttribute('cy', y);
+        if (t < 1) {
+          requestAnimationFrame(frame);
+        } else {
+          segmentIndex++;
+          if (segmentIndex < pathNodes.length - 1) {
+            requestAnimationFrame(function (ts) {
+              animateSegment(ts, pathNodes[segmentIndex], pathNodes[segmentIndex + 1]);
+            });
+          }
+        }
+      }
+      requestAnimationFrame(frame);
+    }
+
+    animateSegment(null, pathNodes[0], pathNodes[1]);
+  }
+
+  /* ===== Listeners ===== */
+
+  document.getElementById('btnGenTree').addEventListener('click', generateRandomGeneralTree);
+  document.getElementById('btnNewQuestion').addEventListener('click', generateNewGeneralQuestion);
+  document.getElementById('btnCheckAnswer').addEventListener('click', checkGeneralAnswer);
+
+  document.getElementById('btnNewBinary').addEventListener('click', generateRandomBinaryTree);
+  document.getElementById('btnExplainBinary').addEventListener('click', startBinaryInsertionSelection);
+
+  document.getElementById('btnNewBST').addEventListener('click', generateRandomBST);
+  document.getElementById('btnNewBSTInsert').addEventListener('click', startNewBSTInsert);
+  document.getElementById('btnNextStepBST').addEventListener('click', bstNextStep);
+
+  var bstModeRadios = document.querySelectorAll('input[name="bstExerciseMode"]');
+  bstModeRadios.forEach(function (r) {
+    r.addEventListener('change', function () {
+      bstExerciseMode = this.value;
+      document.getElementById('bstUnifiedFeedback').innerHTML = '';
+      document.getElementById('bstUnifiedFeedback').classList.remove('ok','err');
+      bstRecognUserAnswer = null;
+      if (bstExerciseMode === 'practice') {
+        document.getElementById('bstPracticeButtons').style.display = 'flex';
+        document.getElementById('bstRecognButtons').style.display = 'none';
+      } else {
+        document.getElementById('bstPracticeButtons').style.display = 'none';
+        document.getElementById('bstRecognButtons').style.display = 'flex';
+      }
+      populateUnifiedSelect();
+    });
+  });
+
+  document.getElementById('bstUnifiedSelect').addEventListener('change', handleUnifiedSelectChange);
+  document.getElementById('btnShowBSTExercise').addEventListener('click', showBSTExercise);
+  document.getElementById('btnAnimateBSTExercise').addEventListener('click', animateBSTExerciseStep);
+
+  document.getElementById('btnRecognYes').addEventListener('click', function () { setRecognAnswer(true); });
+  document.getElementById('btnRecognNo').addEventListener('click', function () { setRecognAnswer(false); });
+  document.getElementById('btnRecognCheck').addEventListener('click', checkRecognAnswer);
+
+  document.getElementById('decisionScenario').addEventListener('change', function () {
+    loadDecisionScenario(this.value);
+  });
+
+  document.getElementById('btnToggleDecisionTree').addEventListener('click', function () {
+    var btn = this;
+    var explainDiv = document.getElementById('decisionExplain');
+    if (!decisionTreeVisible) {
+      var sc = decisionScenarios[decisionCurrentKey];
+      if (sc) sc.build();
+      explainDiv.style.display = 'block';
+      decisionTreeVisible = true;
+      decisionExplainVisible = true;
+      btn.textContent = 'Απόκρυψη δέντρου & λύσης';
+    } else {
+      svg.innerHTML = '';
+      explainDiv.style.display = 'none';
+      decisionTreeVisible = false;
+      decisionExplainVisible = false;
+      btn.textContent = 'Εμφάνιση δέντρου & λύσης';
+    }
+  });
+
+  /* αρχική εκκίνηση */
+  switchMode('general');
+</script>
+</body>
+</html>
