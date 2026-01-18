@@ -3,9 +3,6 @@
 
 Όλες οι παρακάτω εφαρμογές εκτελούνται μέσω GitHub Pages.
 
-Βάση URL:  
-https://giakovisd.github.io/pliroforiki/
-
 ---
 
 ## Γενικές Εφαρμογές
