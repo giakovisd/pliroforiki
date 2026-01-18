@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Δομές Δεδομένων: Τελική Έκδοση (Fixed)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Fira+Code:wght@500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --light: #f8f9fa;
+            --text: #2c3e50;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #ecf0f1;
+            margin: 0;
+            padding: 20px;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Tabs Navigation */
+        .tabs {
+            display: flex;
+            background: white;
+            padding: 5px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .tab-btn {
+            border: none;
+            background: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #7f8c8d;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background-color: #dfe6e9;
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+            width: 100%;
+            max-width: 950px;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            animation: fadeIn 0.4s ease;
+        }
+
+        .content-section.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        h2 { border-bottom: 2px solid var(--accent); padding-bottom: 10px; color: var(--primary); margin-top: 0; }
+        .problem-statement { background: #e8f4f8; padding: 15px; border-radius: 5px; border-left: 5px solid var(--accent); margin-bottom: 20px; font-size: 1.05rem; }
+
+        /* Inputs & Buttons */
+        input[type="text"], input[type="number"], select {
+            padding: 8px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 1rem;
+            margin: 5px;
+        }
+        
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .btn:hover { background-color: #34495e; }
+        .btn-check { background-color: var(--success); }
+        .btn-reset { background-color: #95a5a6; }
+        .btn-solve { background-color: #e67e22; }
+
+        /* --- EXERCISE 1 Visuals --- */
+        .ex1-container { display: flex; gap: 40px; margin-top: 20px; flex-wrap: wrap; }
+        
+        .stack-stage {
+            position: relative;
+            width: 120px;
+            height: 300px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column-reverse;
+            justify-content: flex-start;
+            padding-left: 30px;
+        }
+
+        .stack-box-border {
+            position: absolute;
+            top: 0; left: 30px; right: 0; bottom: 0;
+            border-left: 4px solid #333;
+            border-right: 4px solid #333;
+            border-bottom: 4px solid #333;
+            border-radius: 0 0 8px 8px;
+            background: #fafafa;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .stack-slot {
+            height: 40px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 2px;
+        }
+
+        .stack-num-label {
+            position: absolute;
+            left: -35px;
+            width: 25px;
+            text-align: right;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            font-weight: bold;
+            line-height: 40px;
+        }
+
+        .stack-item-anim {
+            width: 80%;
+            height: 36px;
+            background: var(--accent);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+
+        .top-pointer-wrapper {
+            position: absolute;
+            right: -80px; 
+            height: 40px;
+            display: flex;
+            align-items: center;
+            transition: bottom 0.5s ease-in-out;
+            z-index: 10;
+        }
+        .top-arrow-text {
+            color: var(--danger);
+            font-weight: bold;
+            font-size: 1.1rem;
+            white-space: nowrap;
+        }
+
+        /* --- EXERCISE 2 Visuals --- */
+        .ex2-layout { display: flex; gap: 50px; justify-content: center; flex-wrap: wrap; }
+        
+        .stack-replica {
+            position: relative;
+            width: 140px; 
+            padding-left: 30px; 
+        }
+        .stack-col {
+            border: 2px solid black;
+            width: 60px;
+            display: flex;
+            flex-direction: column-reverse;
+        }
+        .s-cell {
+            height: 40px;
+            border-top: 1px solid black; 
+            border-bottom: 1px solid black;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            position: relative;
+            background: white;
+            transition: background 0.5s, color 0.5s;
+        }
+        .s-cell:first-child { border-bottom: none; } 
+        
+        .s-num {
+            position: absolute; left: -30px; 
+            font-size: 1rem; color: black; font-weight: normal;
+            height: 100%; display: flex; align-items: center;
+        }
+        
+        .queue-replica { position: relative; margin-top: 20px; }
+        .q-row { display: flex; }
+        .q-cell-rep {
+            width: 50px; height: 50px;
+            border: 2px solid black;
+            border-right: none;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 1.2rem;
+            position: relative;
+            background: white;
+            transition: background 0.5s, color 0.5s;
+        }
+        .q-cell-rep:last-child { border-right: 2px solid black; }
+        .q-idx { position: absolute; top: -30px; font-weight: bold; }
+        .q-ptr-lbl {
+            position: absolute; bottom: -40px; font-weight: bold;
+            text-align: center; width: 50px;
+            transition: left 0.5s;
+        }
+        
+        #ex2-s-ptr { position: absolute; right: -70px; color: var(--danger); font-weight: bold; transition: bottom 0.5s; }
+        #ex2-q-ptr-f { position: absolute; bottom: -40px; font-weight: bold; text-align: center; width: 50px; transition: left 0.5s; color: var(--danger); }
+
+        /* --- EXERCISE 3 (Compact Timeline) --- */
+        .timeline-row {
+            display: flex; align-items: center; 
+            margin-bottom: 5px; 
+            background: #f9f9f9; 
+            padding: 5px 10px;  
+            border-radius: 5px;
+        }
+        .time-label { width: 100px; font-weight: bold; font-size: 0.95rem; }
+        .user-answer { flex: 1; padding: 6px; }
+        .feedback-icon { width: 30px; font-size: 1.2rem; text-align: center; }
+        
+        .simulation-area {
+            margin-top: 20px; border-top: 2px dashed #ccc; padding-top: 15px; display: none;
+        }
+        .person {
+            width: 35px; height: 35px; background: var(--accent); color: white;
+            border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+            font-weight: bold; margin-right: 5px;
+        }
+        .serving { background: var(--success); border: 2px solid #2c3e50; }
+
+        /* Code Block */
+        .code-box {
+            background: #282c34; color: #abb2bf; padding: 20px;
+            border-radius: 5px; font-family: 'Fira Code', monospace;
+            line-height: 1.6;
+        }
+        .code-input {
+            background: #3e4451; border: 1px solid #5c6370; color: white;
+            width: 120px; text-align: center; border-radius: 3px; font-weight: bold;
+        }
+        .code-input.correct { border-color: var(--success); background-color: rgba(39, 174, 96, 0.3); }
+        .code-input.wrong { border-color: var(--danger); background-color: rgba(231, 76, 60, 0.3); }
+
+    </style>
+</head>
+<body>
+
+<div class="tabs">
+    <button class="tab-btn active" onclick="openTab('tab1')">Άσκηση 1: Πράξεις Στοίβας</button>
+    <button class="tab-btn" onclick="openTab('tab2')">Άσκηση 2: Άδειασμα</button>
+    <button class="tab-btn" onclick="openTab('tab3')">Άσκηση 3: Τράπεζα</button>
+    <button class="tab-btn" onclick="openTab('tab4')">Άσκηση 4: Κώδικας (Εξαγωγή)</button>
+    <button class="tab-btn" onclick="openTab('tab5')">Άσκηση 5: Κώδικας (Εισαγωγή)</button>
+</div>
+
+<div id="tab1" class="content-section active">
+    <h2>1. Σειρά Πράξεων σε Στοίβα</h2>
+    <div class="problem-statement">
+        Σε μια κενή στοίβα πρόκειται να εισαχθούν τα στοιχεία <strong>Χ, Κ, Ε, Τ</strong>, με αυτή τη σειρά.<br>
+        Δίνονται οι ακόλουθες σειρές διαδοχικών πράξεων (ω=ώθηση, α=απώθηση):<br>
+        1. ω, ω, ω, ω, α, α, α<br>
+        2. ω, α, ω, ω, α, α<br>
+        3. ω, ω, ω, α, α, α, ω, α<br>
+        4. ω, α, ω, α, ω, α, ω, α<br>
+        5. ω, ω, α, ω, α, α, ω, α<br>
+        <br>
+        <strong>Ζητούμενο:</strong> Ποια από τις παραπάνω σειρές πρέπει να επιλέξουμε ώστε να πάρουμε ως έξοδο (απώθηση) συγκεκριμένα στοιχεία;
+    </div>
+
+    <div style="background: #f0f0f0; padding: 15px; border-radius: 8px;">
+        <label><strong>1. Επιλέξτε το σενάριο:</strong></label>
+        <select id="ex1-choice">
+            <option value="1">Σενάριο 1</option>
+            <option value="2">Σενάριο 2</option>
+            <option value="3">Σενάριο 3</option>
+            <option value="4">Σενάριο 4</option>
+            <option value="5">Σενάριο 5</option>
+        </select>
+        <br><br>
+        <label><strong>2. Ποια στοιχεία θα βγουν; (π.χ. Τ Ε Κ):</strong></label>
+        <input type="text" id="ex1-user-out" placeholder="π.χ. Τ Ε Κ">
+        <br><br>
+        <button class="btn btn-check" onclick="runEx1()">Έλεγχος & Προσομοίωση</button>
+        <button class="btn btn-reset" onclick="resetEx1Visuals()">Καθαρισμός</button>
+    </div>
+
+    <div id="ex1-feedback" style="margin-top: 10px; font-weight: bold;"></div>
+
+    <div class="ex1-container">
+        <div style="flex: 1; text-align: center;">
+            <h4>Προσομοίωση Στοίβας</h4>
+            <div class="stack-stage" id="stack-stage">
+                <div class="stack-box-border"></div>
+                <div class="stack-slot" id="slot-1"><span class="stack-num-label">1</span></div>
+                <div class="stack-slot" id="slot-2"><span class="stack-num-label">2</span></div>
+                <div class="stack-slot" id="slot-3"><span class="stack-num-label">3</span></div>
+                <div class="stack-slot" id="slot-4"><span class="stack-num-label">4</span></div>
+                <div class="stack-slot" id="slot-5"><span class="stack-num-label">5</span></div>
+                <div class="stack-slot" id="slot-6"><span class="stack-num-label">6</span></div>
+
+                <div id="ex1-ptr" class="top-pointer-wrapper" style="bottom: 0px; display:none;">
+                    <span style="font-size: 24px; color: var(--danger);">←</span> 
+                    <span class="top-arrow-text">TOP</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="flex: 1; background: #333; color: #0f0; padding: 15px; font-family: monospace; border-radius: 5px; height: 300px; overflow-y: auto;" id="ex1-console">
+            > Αναμονή εκκίνησης...
+        </div>
+    </div>
+</div>
+
+<div id="tab2" class="content-section">
+    <h2>2. Αρίθμηση Πράξεων για Άδειασμα</h2>
+    <div class="problem-statement">
+        Παρατηρήστε προσεκτικά τις παρακάτω εικόνες. Απαντήστε πόσες πράξεις απαιτούνται για να αδειάσουν οι δομές.
+    </div>
+
+    <div class="ex2-layout">
+        <div style="text-align: center;">
+            <h3>α) Στοίβα</h3>
+            <div class="stack-replica">
+                <div class="stack-col">
+                    <div class="s-cell" id="ex2s-1"><span class="s-num">1</span>2</div>
+                    <div class="s-cell" id="ex2s-2"><span class="s-num">2</span>5</div>
+                    <div class="s-cell" id="ex2s-3" style="background:#e3f2fd">
+                        <span class="s-num">3</span>7
+                    </div>
+                    <div id="ex2-s-ptr" style="position:absolute; right:-80px; bottom:88px; font-size:1.1rem;">← top</div>
+
+                    <div class="s-cell" id="ex2s-4" style="color:#aaa;"><span class="s-num">4</span>3</div>
+                    <div class="s-cell" id="ex2s-5" style="color:#aaa;"><span class="s-num">5</span>8</div>
+                    <div class="s-cell" id="ex2s-6"><span class="s-num">6</span></div>
+                </div>
+            </div>
+            <div style="margin-top: 15px;">
+                <label>Πόσες απωθήσεις;</label><br>
+                <input type="number" id="ex2-stack-ans" style="width: 50px;">
+                <button class="btn btn-check" onclick="checkEx2Stack()">OK</button>
+                <button class="btn btn-reset" onclick="resetEx2Stack()">Reset</button>
+                <div id="ex2-stack-fb"></div>
+            </div>
+        </div>
+
+        <div style="text-align: center;">
+            <h3>β) Ουρά</h3>
+            <div class="queue-replica">
+                <div class="q-row">
+                    <div class="q-cell-rep" id="ex2q-1" style="color:#aaa;"><span class="q-idx">1</span>2</div>
+                    <div class="q-cell-rep" id="ex2q-2" style="color:#aaa;"><span class="q-idx">2</span>5</div>
+                    <div class="q-cell-rep" id="ex2q-3" style="background:#e3f2fd"><span class="q-idx">3</span>1</div>
+                    <div class="q-cell-rep" id="ex2q-4" style="background:#e3f2fd"><span class="q-idx">4</span>3</div>
+                    <div class="q-cell-rep" id="ex2q-5"><span class="q-idx">5</span></div>
+                    <div class="q-cell-rep" id="ex2q-6"><span class="q-idx">6</span></div>
+                </div>
+                <div id="ex2-q-ptr-f" style="left: 100px;">↑<br>front</div> 
+                <div class="q-ptr-lbl" style="left: 150px; position:absolute;">↑<br>rear</div>
+            </div>
+            <div style="margin-top: 50px;">
+                <label>Πόσες εξαγωγές;</label><br>
+                <input type="number" id="ex2-queue-ans" style="width: 50px;">
+                <button class="btn btn-check" onclick="checkEx2Queue()">OK</button>
+                <button class="btn btn-reset" onclick="resetEx2Queue()">Reset</button>
+                <div id="ex2-queue-fb"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="tab3" class="content-section">
+    <h2>3. Ουρά Τράπεζας</h2>
+    <div class="problem-statement">
+        <strong>Δεδομένα:</strong> Χρόνος 0: Ο πελάτης 1 στην ουρά. Κάθε 2 λεπτά νέος πελάτης. Εξυπηρέτηση 3 λεπτά.<br>
+        <strong>Ζητούμενο:</strong> Ποιοι πελάτες βρίσκονται στην ουρά στο τέλος κάθε λεπτού;
+    </div>
+
+    <div style="background: white; padding: 15px; border-radius: 8px;">
+        <div class="timeline-row">
+            <span class="time-label">1ο λεπτό:</span>
+            <input type="text" class="user-answer" id="t1-in" placeholder="...">
+            <span class="feedback-icon" id="t1-fb"></span>
+        </div>
+        <div class="timeline-row">
+            <span class="time-label">2ο λεπτό:</span>
+            <input type="text" class="user-answer" id="t2-in" placeholder="...">
+            <span class="feedback-icon" id="t2-fb"></span>
+        </div>
+        <div class="timeline-row">
+            <span class="time-label">3ο λεπτό:</span>
+            <input type="text" class="user-answer" id="t3-in" placeholder="...">
+            <span class="feedback-icon" id="t3-fb"></span>
+        </div>
+        <div class="timeline-row">
+            <span class="time-label">4ο λεπτό:</span>
+            <input type="text" class="user-answer" id="t4-in" placeholder="...">
+            <span class="feedback-icon" id="t4-fb"></span>
+        </div>
+        <div class="timeline-row">
+            <span class="time-label">5ο λεπτό:</span>
+            <input type="text" class="user-answer" id="t5-in" placeholder="...">
+            <span class="feedback-icon" id="t5-fb"></span>
+        </div>
+        <div class="timeline-row">
+            <span class="time-label">6ο λεπτό:</span>
+            <input type="text" class="user-answer" id="t6-in" placeholder="...">
+            <span class="feedback-icon" id="t6-fb"></span>
+        </div>
+
+        <div style="text-align: center; margin-top: 15px;">
+            <button class="btn btn-check" onclick="checkEx3()">Έλεγχος Απαντήσεων</button>
+            <button class="btn btn-solve" onclick="showEx3Solution()">Προβολή Σωστής Λύσης</button>
+            <button class="btn btn-reset" onclick="resetEx3()">Καθαρισμός</button>
+        </div>
+    </div>
+
+    <div id="ex3-sim" class="simulation-area">
+        <h3>Οπτικοποίηση</h3>
+        <input type="range" min="0" max="6" value="0" style="width: 100%; cursor: pointer;" oninput="renderBankSim(this.value)">
+        <p><strong>Χρόνος: <span id="sim-time">0</span> λεπτά</strong></p>
+        
+        <div style="display:flex; align-items:center; gap: 20px; background: #eee; padding: 20px; border-radius: 8px;">
+            <div style="text-align: center;">
+                <div style="font-weight:bold;">ΤΑΜΕΙΟ</div>
+                <div id="sim-teller" style="width: 60px; height: 60px; border: 3px solid #333; display: flex; align-items: center; justify-content: center; background: white; margin: 0 auto;">-</div>
+            </div>
+            <div style="flex:1;">
+                <div style="font-weight:bold; margin-bottom: 5px;">ΟΥΡΑ ΑΝΑΜΟΝΗΣ</div>
+                <div id="sim-queue" style="display: flex; gap: 5px; min-height: 40px; border-bottom: 2px solid #ccc;"></div>
+            </div>
+        </div>
+        <div id="sim-desc" style="margin-top: 10px; font-style: italic; color: #555;"></div>
+    </div>
+</div>
+
+<div id="tab4" class="content-section">
+    <h2>4. Κώδικας: Εξαγωγή από Ουρά</h2>
+    <div class="problem-statement">
+        Συμπληρώστε τα κενά στον αλγόριθμο εξαγωγής στοιχείου από ουρά (Πίνακας Α, δείκτες front, rear).
+    </div>
+    <div class="code-box">
+        ΑΝ <input class="code-input" id="ex4-1" placeholder="..."> ΚΑΙ <input class="code-input" id="ex4-2" placeholder="..."> ΤΟΤΕ<br>
+        &nbsp;&nbsp;ΓΡΑΨΕ ‘Άδεια ουρά’<br>
+        ΑΛΛΙΩΣ_ΑΝ <input class="code-input" id="ex4-3" placeholder="..."> ΤΟΤΕ<br>
+        &nbsp;&nbsp;ΓΡΑΨΕ ‘Εξάγεται το στοιχείο:’, Α[front]<br>
+        &nbsp;&nbsp;front ← 0<br>
+        &nbsp;&nbsp;rear ← 0<br>
+        ΑΛΛΙΩΣ<br>
+        &nbsp;&nbsp;ΓΡΑΨΕ ‘Εξάγεται το στοιχείο:’, Α[front]<br>
+        &nbsp;&nbsp;<input class="code-input" id="ex4-4" placeholder="..."> ← <input class="code-input" id="ex4-5" placeholder="..."> + 1<br>
+        TEΛΟΣ_ΑΝ
+    </div>
+    <div style="margin-top: 20px;">
+        <button class="btn btn-check" onclick="checkEx4()">Έλεγχος</button>
+        <button class="btn btn-solve" onclick="showEx4Solution()">Προβολή Σωστής Λύσης</button>
+        <button class="btn btn-reset" onclick="clearInputs('tab4')">Καθαρισμός</button>
+        <span id="ex4-msg" style="margin-left: 10px; font-weight: bold;"></span>
+    </div>
+</div>
+
+<div id="tab5" class="content-section">
+    <h2>5. Κώδικας: Εισαγωγή σε Ουρά</h2>
+    <div class="problem-statement">
+        Συμπληρώστε τα κενά για την εισαγωγή στοιχείου σε ουρά (Πίνακας Α, 10 θέσεων).
+    </div>
+    <div class="code-box">
+        ΔΙΑΒΑΣΕ <input class="code-input" id="ex5-1" placeholder="..."> <br>
+        ΑΝ <input class="code-input" id="ex5-2" placeholder="..."> = <input class="code-input" id="ex5-3" placeholder="..."> ΤΟΤΕ<br>
+        &nbsp;&nbsp;ΓΡΑΨΕ ‘ΓΕΜΑΤΗ ΟΥΡΑ’<br>
+        ΑΛΛΙΩΣ_ΑΝ (<input class="code-input" id="ex5-4" placeholder="..."> ΚΑΙ <input class="code-input" id="ex5-5" placeholder="..."> ) ΤΟΤΕ<br>
+        &nbsp;&nbsp;front ← <input class="code-input" id="ex5-6" placeholder="..." style="width: 50px;"><br>
+        &nbsp;&nbsp;rear ← <input class="code-input" id="ex5-7" placeholder="..." style="width: 50px;"><br>
+        &nbsp;&nbsp;A[rear] ← <input class="code-input" id="ex5-8" placeholder="..."> <br>
+        ΑΛΛΙΩΣ<br>
+        &nbsp;&nbsp;rear ← <input class="code-input" id="ex5-9" placeholder="..."> + 1<br>
+        &nbsp;&nbsp;A[<input class="code-input" id="ex5-10" placeholder="...">] ← στοιχείο<br>
+        TEΛΟΣ_ΑΝ
+    </div>
+    <div style="margin-top: 20px;">
+        <button class="btn btn-check" onclick="checkEx5()">Έλεγχος</button>
+        <button class="btn btn-solve" onclick="showEx5Solution()">Προβολή Σωστής Λύσης</button>
+        <button class="btn btn-reset" onclick="clearInputs('tab5')">Καθαρισμός</button>
+        <span id="ex5-msg" style="margin-left: 10px; font-weight: bold;"></span>
+    </div>
+</div>
+
+<script>
+    // --- GENERAL ---
+    function openTab(id) {
+        document.querySelectorAll('.content-section').forEach(d => d.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        const btns = document.querySelectorAll('.tab-btn');
+        if(id === 'tab1') btns[0].classList.add('active');
+        if(id === 'tab2') btns[1].classList.add('active');
+        if(id === 'tab3') btns[2].classList.add('active');
+        if(id === 'tab4') btns[3].classList.add('active');
+        if(id === 'tab5') btns[4].classList.add('active');
+    }
+
+    function clearInputs(tabId) {
+        const section = document.getElementById(tabId);
+        section.querySelectorAll('input').forEach(i => {
+            i.value = '';
+            i.className = 'code-input';
+        });
+        const msg = document.getElementById(tabId.replace('tab', 'ex') + '-msg');
+        if(msg) msg.innerText = '';
+    }
+
+    // --- EXERCISE 1 LOGIC ---
+    const ex1Scenarios = {
+        1: { acts: ['w','w','w','w','a','a','a'], correctOut: "T E K" },
+        2: { acts: ['w','a','w','w','a','a'], correctOut: "X E K" },
+        3: { acts: ['w','w','w','a','a','a','w','a'], correctOut: "E K X T" },
+        4: { acts: ['w','a','w','a','w','a','w','a'], correctOut: "X K E T" },
+        5: { acts: ['w','w','a','w','a','a','w','a'], correctOut: "K E X T" }
+    };
+    const inputItems = ['X', 'Κ', 'Ε', 'Τ'];
+
+    async function runEx1() {
+        const choice = document.getElementById('ex1-choice').value;
+        const userOut = document.getElementById('ex1-user-out').value.trim().toUpperCase().replace(/,/g, ' ').replace(/\s+/g, ' ');
+        const feedback = document.getElementById('ex1-feedback');
+        const consoleLog = document.getElementById('ex1-console');
+        const ptr = document.getElementById('ex1-ptr');
+
+        for(let i=1; i<=6; i++) {
+            document.getElementById(`slot-${i}`).innerHTML = `<span class="stack-num-label">${i}</span>`;
+        }
+        consoleLog.innerHTML = "> Έναρξη προσομοίωσης...";
+        ptr.style.display = 'flex';
+        ptr.style.bottom = "0px"; 
+        
+        const scenario = ex1Scenarios[choice];
+        
+        if(scenario.correctOut !== userOut) {
+            feedback.innerHTML = `<span style="color:red">Λάθος πρόβλεψη εξόδου.</span> (Εσείς είπατε: ${userOut}, Περιμένουμε: ${scenario.correctOut})`;
+        } else {
+            feedback.innerHTML = `<span style="color:green">Σωστή πρόβλεψη!</span> Ας δούμε την εκτέλεση...`;
+        }
+
+        let stackArr = [];
+        let pushCounter = 0;
+        let actualOutput = [];
+
+        for (let op of scenario.acts) {
+            await new Promise(r => setTimeout(r, 800));
+
+            if (op === 'w') {
+                if(pushCounter < inputItems.length) {
+                    let val = inputItems[pushCounter];
+                    stackArr.push(val);
+                    pushCounter++;
+                    
+                    const slotId = stackArr.length;
+                    const slot = document.getElementById(`slot-${slotId}`);
+                    
+                    let div = document.createElement('div');
+                    div.className = 'stack-item-anim';
+                    div.innerText = val;
+                    slot.appendChild(div);
+                    
+                    moveTopPtr(stackArr.length);
+                    consoleLog.innerHTML += `<br>> ΩΘΗΣΗ (${val}). Top = ${stackArr.length}`;
+                }
+            } else if (op === 'a') {
+                if(stackArr.length > 0) {
+                    let val = stackArr.pop();
+                    actualOutput.push(val);
+                    
+                    const slotId = stackArr.length + 1;
+                    const slot = document.getElementById(`slot-${slotId}`);
+                    const div = slot.querySelector('.stack-item-anim');
+                    if(div) {
+                        div.style.transform = "translateX(150px)";
+                        div.style.opacity = "0";
+                        setTimeout(() => div.remove(), 300);
+                    }
+                    moveTopPtr(stackArr.length);
+                    consoleLog.innerHTML += `<br>> ΑΠΩΘΗΣΗ (${val}). Top = ${stackArr.length}`;
+                }
+            }
+            consoleLog.scrollTop = consoleLog.scrollHeight;
+        }
+        consoleLog.innerHTML += `<br>> ΤΕΛΟΣ. Έξοδος: ${actualOutput.join(' ')}`;
+    }
+
+    function moveTopPtr(idx) {
+        const ptr = document.getElementById('ex1-ptr');
+        let bottomPx = (idx * 42) - 42; 
+        if (idx === 0) bottomPx = -45; 
+        ptr.style.bottom = bottomPx + 'px';
+    }
+
+    function resetEx1Visuals() {
+        for(let i=1; i<=6; i++) {
+            document.getElementById(`slot-${i}`).innerHTML = `<span class="stack-num-label">${i}</span>`;
+        }
+        document.getElementById('ex1-ptr').style.display = 'none';
+        document.getElementById('ex1-console').innerHTML = '> Αναμονή...';
+        document.getElementById('ex1-feedback').innerText = '';
+    }
+
+    // --- EXERCISE 2 LOGIC ---
+    let isAnimatingEx2S = false;
+    let isAnimatingEx2Q = false;
+
+    function resetEx2Stack() {
+        if(isAnimatingEx2S) return;
+        document.getElementById('ex2s-3').innerHTML = '<span class="s-num">3</span>7';
+        document.getElementById('ex2s-3').style.background = '#e3f2fd';
+        document.getElementById('ex2s-3').style.color = 'black';
+        document.getElementById('ex2s-2').innerHTML = '<span class="s-num">2</span>5';
+        document.getElementById('ex2s-2').style.background = 'white';
+        document.getElementById('ex2s-2').style.color = 'black';
+        document.getElementById('ex2s-1').innerHTML = '<span class="s-num">1</span>2';
+        document.getElementById('ex2s-1').style.background = 'white';
+        document.getElementById('ex2s-1').style.color = 'black';
+        document.getElementById('ex2-s-ptr').style.bottom = '88px'; 
+        document.getElementById('ex2-stack-fb').innerHTML = '';
+    }
+
+    function resetEx2Queue() {
+        if(isAnimatingEx2Q) return;
+        document.getElementById('ex2q-3').innerHTML = '<span class="q-idx">3</span>1';
+        document.getElementById('ex2q-3').style.background = '#e3f2fd';
+        document.getElementById('ex2q-3').style.color = 'black';
+        document.getElementById('ex2q-4').innerHTML = '<span class="q-idx">4</span>3';
+        document.getElementById('ex2q-4').style.background = '#e3f2fd';
+        document.getElementById('ex2q-4').style.color = 'black';
+        document.getElementById('ex2-q-ptr-f').style.left = '100px'; 
+        document.getElementById('ex2-queue-fb').innerHTML = '';
+    }
+
+    async function checkEx2Stack() {
+        const val = document.getElementById('ex2-stack-ans').value;
+        const fb = document.getElementById('ex2-stack-fb');
+        if (val == 3) {
+            fb.innerHTML = "<span style='color:green'>Σωστά!</span> Δείτε πώς αδειάζει...";
+            if(!isAnimatingEx2S) await animateEx2Stack();
+        } else {
+            fb.innerHTML = "<span style='color:red'>Λάθος.</span> Ο δείκτης top είναι στο 3.";
+        }
+    }
+
+    async function animateEx2Stack() {
+        isAnimatingEx2S = true;
+        const ptr = document.getElementById('ex2-s-ptr');
+        let cell = document.getElementById('ex2s-3');
+        cell.style.background = '#e74c3c'; 
+        await new Promise(r => setTimeout(r, 600));
+        cell.innerHTML = '<span class="s-num">3</span>'; 
+        cell.style.background = 'white';
+        ptr.style.bottom = '44px'; 
+
+        await new Promise(r => setTimeout(r, 600));
+        cell = document.getElementById('ex2s-2');
+        cell.style.background = '#e74c3c';
+        await new Promise(r => setTimeout(r, 600));
+        cell.innerHTML = '<span class="s-num">2</span>';
+        cell.style.background = 'white';
+        ptr.style.bottom = '0px'; 
+
+        await new Promise(r => setTimeout(r, 600));
+        cell = document.getElementById('ex2s-1');
+        cell.style.background = '#e74c3c';
+        await new Promise(r => setTimeout(r, 600));
+        cell.innerHTML = '<span class="s-num">1</span>';
+        cell.style.background = 'white';
+        ptr.style.bottom = '-40px'; 
+        isAnimatingEx2S = false;
+    }
+
+    async function checkEx2Queue() {
+        const val = document.getElementById('ex2-queue-ans').value;
+        const fb = document.getElementById('ex2-queue-fb');
+        if (val == 2) {
+            fb.innerHTML = "<span style='color:green'>Σωστά!</span> Δείτε πώς αδειάζει...";
+            if(!isAnimatingEx2Q) await animateEx2Queue();
+        } else {
+            fb.innerHTML = "<span style='color:red'>Λάθος.</span> Είναι από το Front(3) ως το Rear(4).";
+        }
+    }
+
+    async function animateEx2Queue() {
+        isAnimatingEx2Q = true;
+        const ptrF = document.getElementById('ex2-q-ptr-f');
+        let cell = document.getElementById('ex2q-3');
+        cell.style.background = '#e74c3c';
+        await new Promise(r => setTimeout(r, 600));
+        cell.innerHTML = '<span class="q-idx">3</span>'; 
+        cell.style.background = 'white';
+        ptrF.style.left = '150px'; 
+
+        await new Promise(r => setTimeout(r, 600));
+        cell = document.getElementById('ex2q-4');
+        cell.style.background = '#e74c3c';
+        await new Promise(r => setTimeout(r, 600));
+        cell.innerHTML = '<span class="q-idx">4</span>';
+        cell.style.background = 'white';
+        ptrF.style.left = '200px'; 
+        isAnimatingEx2Q = false;
+    }
+
+    // --- EXERCISE 3 LOGIC (BANK) ---
+    const ex3Solutions = { 1: "1", 2: "1 2", 3: "2", 4: "2 3", 5: "2 3", 6: "3 4" };
+
+    function normalize(str) { return str.trim().replace(/,/g, ' ').replace(/\s+/g, ' '); }
+
+    function checkEx3() {
+        let allCorrect = true;
+        for(let i=1; i<=6; i++) {
+            let user = normalize(document.getElementById(`t${i}-in`).value);
+            let correct = ex3Solutions[i];
+            let fb = document.getElementById(`t${i}-fb`);
+            if(user === correct) { fb.innerHTML = "✅"; fb.style.color = "green"; } 
+            else { fb.innerHTML = "❌"; fb.style.color = "red"; allCorrect = false; }
+        }
+        if(allCorrect) {
+            document.getElementById('ex3-sim').style.display = "block";
+            renderBankSim(0);
+        } else {
+            alert("Υπάρχουν λάθη. Διορθώστε τα ή πατήστε 'Προβολή Σωστής Λύσης'.");
+        }
+    }
+
+    function showEx3Solution() {
+        for(let i=1; i<=6; i++) {
+            document.getElementById(`t${i}-in`).value = ex3Solutions[i];
+            document.getElementById(`t${i}-fb`).innerHTML = "✅";
+            document.getElementById(`t${i}-fb`).style.color = "green";
+        }
+        document.getElementById('ex3-sim').style.display = "block";
+        renderBankSim(0);
+    }
+
+    function resetEx3() {
+        for(let i=1; i<=6; i++) {
+            document.getElementById(`t${i}-in`).value = "";
+            document.getElementById(`t${i}-fb`).innerHTML = "";
+        }
+        document.getElementById('ex3-sim').style.display = "none";
+    }
+
+    function renderBankSim(time) {
+        document.getElementById('sim-time').innerText = time;
+        const qDiv = document.getElementById('sim-queue');
+        const tDiv = document.getElementById('sim-teller');
+        const desc = document.getElementById('sim-desc');
+        qDiv.innerHTML = ""; tDiv.innerHTML = "-";
+        
+        let serving = null;
+        let queue = [];
+        let txt = "";
+
+        if (time == 0) { queue = [1]; txt = "Αρχή: Ο 1 στην ουρά."; } 
+        else if (time == 1) { serving = 1; txt = "Ο 1 εξυπηρετείται."; } 
+        else if (time == 2) { serving = 1; queue = [2]; txt = "Ήρθε ο 2. Ο 1 εξυπηρετείται."; } 
+        else if (time == 3) { serving = 2; txt = "Ο 1 έφυγε. Ο 2 ξεκινάει."; } 
+        else if (time == 4) { serving = 2; queue = [3]; txt = "Ήρθε ο 3. Ο 2 εξυπηρετείται."; } 
+        else if (time == 5) { serving = 2; queue = [3]; txt = "Ο 2 εξυπηρετείται."; } 
+        else if (time == 6) { serving = 3; queue = [4]; txt = "Ο 2 έφυγε. Ο 3 ξεκινάει. Ήρθε ο 4."; }
+
+        if(serving) tDiv.innerHTML = `<div class="person serving">${serving}</div>`;
+        queue.forEach(p => qDiv.innerHTML += `<div class="person">${p}</div>`);
+        desc.innerText = txt;
+    }
+
+    // --- EXERCISE 4 & 5 (CODE VALIDATION) ---
+    function validateInput(id, allowed) {
+        const el = document.getElementById(id);
+        const val = el.value.trim().toLowerCase(); 
+        const normVal = val.replace(/\s/g, ''); // Remove all spaces to handle "front=0" vs "front = 0"
+        let isCorrect = false;
+        allowed.forEach(ans => {
+            if (normVal === ans.replace(/\s/g, '').toLowerCase()) isCorrect = true;
+        });
+        if (isCorrect) el.className = "code-input correct";
+        else el.className = "code-input wrong";
+        return isCorrect;
+    }
+
+    function checkEx4() {
+        // Front=0 OR Rear=0 (order often interchangeable in logic but specific slot might imply order)
+        // Usually: AN front=0 KAI rear=0
+        let c1 = validateInput('ex4-1', ['front=0', 'front', '0', 'rear=0', 'rear']); 
+        let c2 = validateInput('ex4-2', ['rear=0', 'rear', '0', 'front=0', 'front']); 
+        let c3 = validateInput('ex4-3', ['front=rear', 'front==rear']);
+        let c4 = validateInput('ex4-4', ['front']);
+        let c5 = validateInput('ex4-5', ['front']);
+        if(c1 && c2 && c3 && c4 && c5) document.getElementById('ex4-msg').innerText = "Σωστά!";
+        else document.getElementById('ex4-msg').innerText = "Υπάρχουν λάθη.";
+    }
+
+    function showEx4Solution() {
+        document.getElementById('ex4-1').value = "front = 0";
+        document.getElementById('ex4-2').value = "rear = 0";
+        document.getElementById('ex4-3').value = "front = rear";
+        document.getElementById('ex4-4').value = "front";
+        document.getElementById('ex4-5').value = "front";
+        checkEx4(); // Re-validate to show green
+    }
+
+    function checkEx5() {
+        validateInput('ex5-1', ['στοιχείο', 'item']);
+        validateInput('ex5-2', ['rear']);
+        validateInput('ex5-3', ['10', 'n']);
+        validateInput('ex5-4', ['front=0', 'rear=0', 'front']); 
+        validateInput('ex5-5', ['rear=0', 'front=0', 'rear']);
+        validateInput('ex5-6', ['1']);
+        validateInput('ex5-7', ['1']);
+        validateInput('ex5-8', ['στοιχείο']);
+        validateInput('ex5-9', ['rear']);
+        validateInput('ex5-10', ['rear']);
+        const wrongs = document.querySelectorAll('#tab5 .wrong');
+        if(wrongs.length === 0) document.getElementById('ex5-msg').innerText = "Όλα σωστά!";
+        else document.getElementById('ex5-msg').innerText = "Υπάρχουν λάθη.";
+    }
+
+    function showEx5Solution() {
+        document.getElementById('ex5-1').value = "στοιχείο";
+        document.getElementById('ex5-2').value = "rear";
+        document.getElementById('ex5-3').value = "10";
+        document.getElementById('ex5-4').value = "front = 0";
+        document.getElementById('ex5-5').value = "rear = 0";
+        document.getElementById('ex5-6').value = "1";
+        document.getElementById('ex5-7').value = "1";
+        document.getElementById('ex5-8').value = "στοιχείο";
+        document.getElementById('ex5-9').value = "rear";
+        document.getElementById('ex5-10').value = "rear";
+        checkEx5();
+    }
+
+</script>
+
+</body>
+</html>
