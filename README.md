@@ -4,11 +4,17 @@
 Όλες οι εφαρμογές εκτελούνται μέσω **GitHub Pages**.
 
 ---
-
-## Κεντρικές Εφαρμογές
+## Δυναμικές Δομές Δεδομένων - Λίστες
 
 - Δυναμικές Δομές Δεδομένων (λίστες). Παράγραφος 1.3.1. Συμπληρωματικό Υλικό  
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/)
+  
+- Ασκηση στη Διαχείριση λιστών 
+  [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Dynamic%20Data%20Structures%20List%20Management%20Exercises.html)
+
+---
+
+## Μεταγλωττιστές - Διερμηνευτές 
 
 - Οι μεταφραστές: Κεφάλαιο 6, παράγραφος 6.7, Ανάπτυξη εφαρμογών σε Προγραμματιστικό Περιβάλλον  
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Kef6.html)
@@ -83,13 +89,6 @@
 
 - Τετραγωνικοί πίνακες  
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Square%20tables.html)
-
----
-
-## Ασήσεις στις Δυναμικές Δομές Δεδομένων
-
-- Διαχείριση λιστών 
-  [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Dynamic%20Data%20Structures%20List%20Management%20Exercises.html)
 
 ---
 
