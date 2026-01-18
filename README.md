@@ -17,20 +17,23 @@
 
 ## Παιχνίδια – Quiz – Συμπλήρωσης Κενών
 
-- 2-player question game on True/False questions  
-  [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/2-player%20question%20game%20on%20TrueFalse%20questions.html)
+## Παιχνίδια – Quiz – Συμπλήρωσης Κενών
 
-- 2-player question game on True/False questions (from National Exams)  
+- 2-player question game on True/False questions (όπως είναι ακριβώς στο repo)
+  [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/2-player%20question%20game%20on%20TrueFalse%20question%20game%20on%20TrueFalse%20question.html)
+
+- 2-player question game on True/False questions (from National Exams)
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/2-player%20question%20game%20on%20TrueFalse%20questions%20from%20National%20Exams.html)
 
-- Fill in the blank with RAM  
-  [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Fill%20in%20the%20blank%20with%20RAM.html)
+- Fill in thw blank with RAM
+  [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Fill%20in%20thw%20blank%20with%20RAM.html)
 
-- For statement – filling in the blanks  
-  [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/For%20statement-filling%20in%20the%20blanks.html)
+- For statement – filling in the blanks
+  [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/For%20statement-filling%20in%20the%20blanks%20.html)
 
-- Repetition structure – filling in the blanks  
+- Repetition structure – filling in the blanks
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/repetition%20structure-filling%20in%20the%20blanks.html)
+
 
 ---
 
