@@ -91,7 +91,11 @@
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Square%20tables.html)
 
 ---
+## Στοίβες - Ουρές
 
+[Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Stack-Queue.html)
+
+---
 ## Δένδρα
 
 - Δένδρα (Παράγραφος 3.1.2 - Συμπληρωματικό υλικό)  
