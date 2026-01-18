@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <title>Άσκηση 229 – Διαδραστική Συμπλήρωση</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #e5e7eb;
+      font-size: 17px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 26px 36px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      color: #111827;
+    }
+
+    .subtitle {
+      font-size: 17px;
+      color: #4b5563;
+      margin-bottom: 20px;
+    }
+
+    .panel {
+      background: #f9fafb;
+      border-radius: 16px;
+      border: 1px solid #e5e7eb;
+      padding: 16px 18px 18px;
+      margin-bottom: 18px;
+    }
+
+    .panel h2 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      color: #111827;
+    }
+
+    .subq {
+      margin-top: 12px;
+      margin-bottom: 14px;
+      padding: 10px 12px 12px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+    }
+
+    .subq-title {
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #111827;
+    }
+
+    .subq-text {
+      font-size: 15px;
+      color: #4b5563;
+      margin-bottom: 6px;
+    }
+
+    .code-block {
+      font-family: "Fira Code", ui-monospace, Menlo, Monaco, Consolas, "Courier New", monospace;
+      font-size: 16px;
+      background: #f9fafb;
+      color: #111827;
+      border-radius: 10px;
+      padding: 8px 10px;
+      border: 1px solid #d1d5db;
+      white-space: pre;
+      line-height: 1.8;
+    }
+
+    .code-input {
+      min-width: 32px;
+      max-width: 70px;
+      text-align: center;
+      padding: 1px 2px;
+      font-size: 13px;
+      border-radius: 4px;
+      border: 1px solid #9ca3af;
+      margin: 0 2px;
+    }
+
+    .code-input.correct {
+      border-color: #16a34a;
+      background: #dcfce7;
+    }
+
+    .code-input.wrong {
+      border-color: #dc2626;
+      background: #fee2e2;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: none;
+      padding: 6px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-right: 6px;
+      margin-top: 6px;
+      transition: transform 0.06s ease, box-shadow 0.06s ease, background 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+      box-shadow: none;
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 3px 8px rgba(37, 99, 235, 0.35);
+    }
+
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .feedback {
+      margin-top: 4px;
+      font-size: 14px;
+      color: #111827;
+    }
+
+    .feedback span.ok {
+      color: #15803d;
+      font-weight: 600;
+    }
+
+    .feedback span.bad {
+      color: #b91c1c;
+      font-weight: 600;
+    }
+
+    .output {
+      margin-top: 6px;
+      font-size: 15px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      min-height: 22px;
+    }
+
+    .credit-signature {
+      position: fixed;
+      right: 10px;
+      bottom: 6px;
+      font-size: 10px;
+      color: #6b7280;
+      opacity: 0.6;
+      pointer-events: none;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Άσκηση 229 – Επανάληψη Για Χ από Α μέχρι Μ με_βήμα Β</h1>
+  <div class="subtitle">
+    Συμπλήρωσε τα κενά Α, Μ, Β για κάθε περίπτωση. Πάτησε <strong>Αξιολόγηση</strong> ή <strong>Λύση</strong>.
+  </div>
+
+  <div class="panel">
+    <h2>Για Χ από Α μέχρι Μ με_βήμα Β</h2>
+
+    <!-- Υποάσκηση 1 -->
+    <div class="subq">
+      <div class="subq-title">1.</div>
+      <div class="subq-text">
+        Να εμφανίζονται όλοι οι ακέραιοι από 1 μέχρι και 100.
+      </div>
+      <div class="code-block">
+Για Χ από <input id="q1-a" class="code-input"> μέχρι <input id="q1-m" class="code-input"> με_βήμα <input id="q1-b" class="code-input">
+  Εμφάνισε Χ
+Τέλος_επανάληψης
+      </div>
+      <button id="q1-check" class="btn btn-primary">✅ Αξιολόγηση</button>
+      <button id="q1-solution" class="btn btn-secondary">👁 Λύση</button>
+      <div id="q1-feedback" class="feedback"></div>
+      <div id="q1-output" class="output"></div>
+    </div>
+
+    <!-- Υποάσκηση 2 -->
+    <div class="subq">
+      <div class="subq-title">2.</div>
+      <div class="subq-text">
+        Να εμφανίζονται όλοι οι ακέραιοι από 10 μέχρι και 200 σε φθίνουσα σειρά.
+      </div>
+      <div class="code-block">
+Για Χ από <input id="q2-a" class="code-input"> μέχρι <input id="q2-m" class="code-input"> με_βήμα <input id="q2-b" class="code-input">
+  Εμφάνισε Χ
+Τέλος_επανάληψης
+      </div>
+      <button id="q2-check" class="btn btn-primary">✅ Αξιολόγηση</button>
+      <button id="q2-solution" class="btn btn-secondary">👁 Λύση</button>
+      <div id="q2-feedback" class="feedback"></div>
+      <div id="q2-output" class="output"></div>
+    </div>
+
+    <!-- Υποάσκηση 3 -->
+    <div class="subq">
+      <div class="subq-title">3.</div>
+      <div class="subq-text">
+        Να εμφανίζονται όλοι οι ακέραιοι από -1 μέχρι και -200 σε αύξουσα σειρά.
+      </div>
+      <div class="code-block">
+Για Χ από <input id="q3-a" class="code-input"> μέχρι <input id="q3-m" class="code-input"> με_βήμα <input id="q3-b" class="code-input">
+  Εμφάνισε Χ
+Τέλος_επανάληψης
+      </div>
+      <button id="q3-check" class="btn btn-primary">✅ Αξιολόγηση</button>
+      <button id="q3-solution" class="btn btn-secondary">👁 Λύση</button>
+      <div id="q3-feedback" class="feedback"></div>
+      <div id="q3-output" class="output"></div>
+    </div>
+
+    <!-- Υποάσκηση 4 -->
+    <div class="subq">
+      <div class="subq-title">4.</div>
+      <div class="subq-text">
+        Να εμφανίζονται όλοι οι άρτιοι ακέραιοι από 100 μέχρι και 200.
+      </div>
+      <div class="code-block">
+Για Χ από <input id="q4-a" class="code-input"> μέχρι <input id="q4-m" class="code-input"> με_βήμα <input id="q4-b" class="code-input">
+  Εμφάνισε Χ
+Τέλος_επανάληψης
+      </div>
+      <button id="q4-check" class="btn btn-primary">✅ Αξιολόγηση</button>
+      <button id="q4-solution" class="btn btn-secondary">👁 Λύση</button>
+      <div id="q4-feedback" class="feedback"></div>
+      <div id="q4-output" class="output"></div>
+    </div>
+
+    <!-- Υποάσκηση 5 -->
+    <div class="subq">
+      <div class="subq-title">5.</div>
+      <div class="subq-text">
+        Να εμφανίζονται όλοι οι θετικοί ακέραιοι που είναι μικρότεροι του 8128.
+      </div>
+      <div class="code-block">
+Για Χ από <input id="q5-a" class="code-input"> μέχρι <input id="q5-m" class="code-input"> με_βήμα <input id="q5-b" class="code-input">
+  Εμφάνισε Χ
+Τέλος_επανάληψης
+      </div>
+      <button id="q5-check" class="btn btn-primary">✅ Αξιολόγηση</button>
+      <button id="q5-solution" class="btn btn-secondary">👁 Λύση</button>
+      <div id="q5-feedback" class="feedback"></div>
+      <div id="q5-output" class="output"></div>
+    </div>
+
+    <!-- Υποάσκηση 6 -->
+    <div class="subq">
+      <div class="subq-title">6.</div>
+      <div class="subq-text">
+        Να εμφανίζονται όλοι οι περιττοί ακέραιοι από το 100 μέχρι το 1000.
+      </div>
+      <div class="code-block">
+Για Χ από <input id="q6-a" class="code-input"> μέχρι <input id="q6-m" class="code-input"> με_βήμα <input id="q6-b" class="code-input">
+  Εμφάνισε Χ
+Τέλος_επανάληψης
+      </div>
+      <button id="q6-check" class="btn btn-primary">✅ Αξιολόγηση</button>
+      <button id="q6-solution" class="btn btn-secondary">👁 Λύση</button>
+      <div id="q6-feedback" class="feedback"></div>
+      <div id="q6-output" class="output"></div>
+    </div>
+
+    <!-- Υποάσκηση 7 -->
+    <div class="subq">
+      <div class="subq-title">7.</div>
+      <div class="subq-text">
+        Να εμφανίζονται όλοι οι ακέραιοι από το -20 μέχρι και το 10 σε φθίνουσα σειρά.
+      </div>
+      <div class="code-block">
+Για Χ από <input id="q7-a" class="code-input"> μέχρι <input id="q7-m" class="code-input"> με_βήμα <input id="q7-b" class="code-input">
+  Εμφάνισε Χ
+Τέλος_επανάληψης
+      </div>
+      <button id="q7-check" class="btn btn-primary">✅ Αξιολόγηση</button>
+      <button id="q7-solution" class="btn btn-secondary">👁 Λύση</button>
+      <div id="q7-feedback" class="feedback"></div>
+      <div id="q7-output" class="output"></div>
+    </div>
+
+    <!-- Υποάσκηση 8 -->
+    <div class="subq">
+      <div class="subq-title">8.</div>
+      <div class="subq-text">
+        Να εμφανίζονται όλα τα πολλαπλάσια του 3 από το 1 μέχρι το 80.
+      </div>
+      <div class="code-block">
+Για Χ από <input id="q8-a" class="code-input"> μέχρι <input id="q8-m" class="code-input"> με_βήμα <input id="q8-b" class="code-input">
+  Εμφάνισε Χ
+Τέλος_επανάληψης
+      </div>
+      <button id="q8-check" class="btn btn-primary">✅ Αξιολόγηση</button>
+      <button id="q8-solution" class="btn btn-secondary">👁 Λύση</button>
+      <div id="q8-feedback" class="feedback"></div>
+      <div id="q8-output" class="output"></div>
+    </div>
+
+    <!-- Υποάσκηση 9 -->
+    <div class="subq">
+      <div class="subq-title">9.</div>
+      <div class="subq-text">
+        Να εμφανίζονται όλοι οι θετικοί ακέραιοι που είναι μικρότεροι του 8128 και πολλαπλάσια του 13.
+      </div>
+      <div class="code-block">
+Για Χ από <input id="q9-a" class="code-input"> μέχρι <input id="q9-m" class="code-input"> με_βήμα <input id="q9-b" class="code-input">
+  Εμφάνισε Χ
+Τέλος_επανάληψης
+      </div>
+      <button id="q9-check" class="btn btn-primary">✅ Αξιολόγηση</button>
+      <button id="q9-solution" class="btn btn-secondary">👁 Λύση</button>
+      <div id="q9-feedback" class="feedback"></div>
+      <div id="q9-output" class="output"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="credit-signature">
+  Ιδέα + Δημιουργία: Ευτυχία Δουφέκα, Δημήτρης Γιακοβής
+</div>
+
+<script>
+  function clearClasses(inputs) {
+    inputs.forEach(inp => inp.classList.remove('correct', 'wrong'));
+  }
+
+  function mark(inputs, oks) {
+    inputs.forEach((inp, idx) => {
+      inp.classList.add(oks[idx] ? 'correct' : 'wrong');
+    });
+  }
+
+  function animateSequence(outputEl, values) {
+    outputEl.textContent = '';
+    let idx = 0;
+    function step() {
+      if (idx >= values.length) return;
+      if (idx > 0) outputEl.textContent += ', ';
+      outputEl.textContent += values[idx];
+      idx++;
+      setTimeout(step, 600);
+    }
+    step();
+  }
+
+  // ------- Υποάσκηση 1: 1..100 -------
+  (function(){
+    const A = document.getElementById('q1-a');
+    const M = document.getElementById('q1-m');
+    const B = document.getElementById('q1-b');
+    const fb = document.getElementById('q1-feedback');
+    const out = document.getElementById('q1-output');
+
+    document.getElementById('q1-check').addEventListener('click', () => {
+      const inputs = [A,M,B];
+      clearClasses(inputs);
+      const okA = parseInt(A.value) === 1;
+      const okM = parseInt(M.value) === 100;
+      const okB = parseInt(B.value) === 1;
+      const oks = [okA,okM,okB];
+      mark(inputs,oks);
+      fb.innerHTML = oks.every(Boolean)
+        ? '<span class="ok">Σωστά.</span>'
+        : '<span class="bad">Κάποιο κενό είναι λάθος.</span>';
+    });
+
+    document.getElementById('q1-solution').addEventListener('click', () => {
+      const filled = (A.value==='1' && M.value==='100' && B.value==='1');
+      if (filled) {
+        A.value = ''; M.value=''; B.value='';
+        out.textContent=''; fb.textContent='';
+        clearClasses([A,M,B]);
+      } else {
+        A.value='1'; M.value='100'; B.value='1';
+        clearClasses([A,M,B]);
+        animateSequence(out, ['1','2','3','4','5','...','100']);
+      }
+    });
+  })();
+
+  // ------- Υποάσκηση 2: 10..200 φθίνουσα (200..10) -------
+  (function(){
+    const A = document.getElementById('q2-a');
+    const M = document.getElementById('q2-m');
+    const B = document.getElementById('q2-b');
+    const fb = document.getElementById('q2-feedback');
+    const out = document.getElementById('q2-output');
+
+    document.getElementById('q2-check').addEventListener('click', () => {
+      const inputs = [A,M,B];
+      clearClasses(inputs);
+      const okA = parseInt(A.value) === 200;
+      const okM = parseInt(M.value) === 10;
+      const okB = parseInt(B.value) === -1;
+      const oks = [okA,okM,okB];
+      mark(inputs,oks);
+      fb.innerHTML = oks.every(Boolean)
+        ? '<span class="ok">Σωστά.</span>'
+        : '<span class="bad">Κάποιο κενό είναι λάθος.</span>';
+    });
+
+    document.getElementById('q2-solution').addEventListener('click', () => {
+      const filled = (A.value==='200' && M.value==='10' && B.value==='-1');
+      if (filled) {
+        A.value=''; M.value=''; B.value='';
+        out.textContent=''; fb.textContent='';
+        clearClasses([A,M,B]);
+      } else {
+        A.value='200'; M.value='10'; B.value='-1';
+        clearClasses([A,M,B]);
+        animateSequence(out, ['200','199','198','...','10']);
+      }
+    });
+  })();
+
+  // ------- Υποάσκηση 3: -200..-1 αύξουσα -------
+  (function(){
+    const A = document.getElementById('q3-a');
+    const M = document.getElementById('q3-m');
+    const B = document.getElementById('q3-b');
+    const fb = document.getElementById('q3-feedback');
+    const out = document.getElementById('q3-output');
+
+    document.getElementById('q3-check').addEventListener('click', () => {
+      const inputs = [A,M,B];
+      clearClasses(inputs);
+      const okA = parseInt(A.value) === -200;
+      const okM = parseInt(M.value) === -1;
+      const okB = parseInt(B.value) === 1;
+      const oks = [okA,okM,okB];
+      mark(inputs,oks);
+      fb.innerHTML = oks.every(Boolean)
+        ? '<span class="ok">Σωστά.</span>'
+        : '<span class="bad">Κάποιο κενό είναι λάθος.</span>';
+    });
+
+    document.getElementById('q3-solution').addEventListener('click', () => {
+      const filled = (A.value==='-200' && M.value==='-1' && B.value==='1');
+      if (filled) {
+        A.value=''; M.value=''; B.value='';
+        out.textContent=''; fb.textContent='';
+        clearClasses([A,M,B]);
+      } else {
+        A.value='-200'; M.value='-1'; B.value='1';
+        clearClasses([A,M,B]);
+        animateSequence(out, ['-200','-199','-198','...','-1']);
+      }
+    });
+  })();
+
+  // ------- Υποάσκηση 4: άρτιοι 100..200 -------
+  (function(){
+    const A = document.getElementById('q4-a');
+    const M = document.getElementById('q4-m');
+    const B = document.getElementById('q4-b');
+    const fb = document.getElementById('q4-feedback');
+    const out = document.getElementById('q4-output');
+
+    document.getElementById('q4-check').addEventListener('click', () => {
+      const inputs = [A,M,B];
+      clearClasses(inputs);
+      const okA = parseInt(A.value) === 100;
+      const okMv = parseInt(M.value);
+      const okM = okMv === 200; // μόνο 200 εδώ
+      const okB = parseInt(B.value) === 2;
+      const oks = [okA,okM,okB];
+      mark(inputs,oks);
+      fb.innerHTML = oks.every(Boolean)
+        ? '<span class="ok">Σωστά.</span>'
+        : '<span class="bad">Κάποιο κενό είναι λάθος.</span>';
+    });
+
+    document.getElementById('q4-solution').addEventListener('click', () => {
+      const filled = (A.value==='100' && M.value==='200' && B.value==='2');
+      if (filled) {
+        A.value=''; M.value=''; B.value='';
+        out.textContent=''; fb.textContent='';
+        clearClasses([A,M,B]);
+      } else {
+        A.value='100'; M.value='200'; B.value='2';
+        clearClasses([A,M,B]);
+        animateSequence(out, ['100','102','104','...','200']);
+      }
+    });
+  })();
+
+  // ------- Υποάσκηση 5: 1..8127 -------
+  (function(){
+    const A = document.getElementById('q5-a');
+    const M = document.getElementById('q5-m');
+    const B = document.getElementById('q5-b');
+    const fb = document.getElementById('q5-feedback');
+    const out = document.getElementById('q5-output');
+
+    document.getElementById('q5-check').addEventListener('click', () => {
+      const inputs = [A,M,B];
+      clearClasses(inputs);
+      const okA = parseInt(A.value) === 1;
+      const okM = parseInt(M.value) === 8127;
+      const okB = parseInt(B.value) === 1;
+      const oks = [okA,okM,okB];
+      mark(inputs,oks);
+      fb.innerHTML = oks.every(Boolean)
+        ? '<span class="ok">Σωστά.</span>'
+        : '<span class="bad">Κάποιο κενό είναι λάθος.</span>';
+    });
+
+    document.getElementById('q5-solution').addEventListener('click', () => {
+      const filled = (A.value==='1' && M.value==='8127' && B.value==='1');
+      if (filled) {
+        A.value=''; M.value=''; B.value='';
+        out.textContent=''; fb.textContent='';
+        clearClasses([A,M,B]);
+      } else {
+        A.value='1'; M.value='8127'; B.value='1';
+        clearClasses([A,M,B]);
+        animateSequence(out, ['1','2','3','4','5','...','8127']);
+      }
+    });
+  })();
+
+  // ------- Υποάσκηση 6: περιττοί 100..1000 (101..999, μέχρι μπορεί να είναι 999 ή 1000) -------
+  (function(){
+    const A = document.getElementById('q6-a');
+    const M = document.getElementById('q6-m');
+    const B = document.getElementById('q6-b');
+    const fb = document.getElementById('q6-feedback');
+    const out = document.getElementById('q6-output');
+
+    document.getElementById('q6-check').addEventListener('click', () => {
+      const inputs = [A,M,B];
+      clearClasses(inputs);
+      const okA = parseInt(A.value) === 101;
+      const mVal = parseInt(M.value);
+      const okM = (mVal === 999 || mVal === 1000);
+      const okB = parseInt(B.value) === 2;
+      const oks = [okA,okM,okB];
+      mark(inputs,oks);
+      fb.innerHTML = oks.every(Boolean)
+        ? '<span class="ok">Σωστά.</span>'
+        : '<span class="bad">Κάποιο κενό είναι λάθος.</span>';
+    });
+
+    document.getElementById('q6-solution').addEventListener('click', () => {
+      const mVal = parseInt(M.value);
+      const filled =
+        A.value==='101' &&
+        (mVal===999 || mVal===1000) &&
+        B.value==='2';
+      if (filled) {
+        A.value=''; M.value=''; B.value='';
+        out.textContent=''; fb.textContent='';
+        clearClasses([A,M,B]);
+      } else {
+        A.value='101';
+        M.value='1000';    // προτείνουμε μέχρι 1000
+        B.value='2';
+        clearClasses([A,M,B]);
+        animateSequence(out, ['101','103','105','...','999']);
+      }
+    });
+  })();
+
+  // ------- Υποάσκηση 7: -20..10 φθίνουσα (10..-20) -------
+  (function(){
+    const A = document.getElementById('q7-a');
+    const M = document.getElementById('q7-m');
+    const B = document.getElementById('q7-b');
+    const fb = document.getElementById('q7-feedback');
+    const out = document.getElementById('q7-output');
+
+    document.getElementById('q7-check').addEventListener('click', () => {
+      const inputs = [A,M,B];
+      clearClasses(inputs);
+      const okA = parseInt(A.value) === 10;
+      const okM = parseInt(M.value) === -20;
+      const okB = parseInt(B.value) === -1;
+      const oks = [okA,okM,okB];
+      mark(inputs,oks);
+      fb.innerHTML = oks.every(Boolean)
+        ? '<span class="ok">Σωστά.</span>'
+        : '<span class="bad">Κάποιο κενό είναι λάθος.</span>';
+    });
+
+    document.getElementById('q7-solution').addEventListener('click', () => {
+      const filled = (A.value==='10' && M.value==='-20' && B.value==='-1');
+      if (filled) {
+        A.value=''; M.value=''; B.value='';
+        out.textContent=''; fb.textContent='';
+        clearClasses([A,M,B]);
+      } else {
+        A.value='10'; M.value='-20'; B.value='-1';
+        clearClasses([A,M,B]);
+        animateSequence(out, ['10','9','8','...','-20']);
+      }
+    });
+  })();
+
+  // ------- Υποάσκηση 8: πολλαπλάσια 3, 3..78 (μέχρι 78 ή 80) -------
+  (function(){
+    const A = document.getElementById('q8-a');
+    const M = document.getElementById('q8-m');
+    const B = document.getElementById('q8-b');
+    const fb = document.getElementById('q8-feedback');
+    const out = document.getElementById('q8-output');
+
+    document.getElementById('q8-check').addEventListener('click', () => {
+      const inputs = [A,M,B];
+      clearClasses(inputs);
+      const okA = parseInt(A.value) === 3;
+      const mVal = parseInt(M.value);
+      const okM = (mVal === 78 || mVal === 80);
+      const okB = parseInt(B.value) === 3;
+      const oks = [okA,okM,okB];
+      mark(inputs,oks);
+      fb.innerHTML = oks.every(Boolean)
+        ? '<span class="ok">Σωστά.</span>'
+        : '<span class="bad">Κάποιο κενό είναι λάθος.</span>';
+    });
+
+    document.getElementById('q8-solution').addEventListener('click', () => {
+      const mVal = parseInt(M.value);
+      const filled =
+        A.value==='3' &&
+        (mVal===78 || mVal===80) &&
+        B.value==='3';
+      if (filled) {
+        A.value=''; M.value=''; B.value='';
+        out.textContent=''; fb.textContent='';
+        clearClasses([A,M,B]);
+      } else {
+        A.value='3';
+        M.value='80';    // δείχνουμε μέχρι 80
+        B.value='3';
+        clearClasses([A,M,B]);
+        animateSequence(out, ['3','6','9','12','15','...','78']);
+      }
+    });
+  })();
+
+  // ------- Υποάσκηση 9: πολλαπλάσια 13 <8128, 13..8125 (μέχρι 8125 ή 8127) -------
+  (function(){
+    const A = document.getElementById('q9-a');
+    const M = document.getElementById('q9-m');
+    const B = document.getElementById('q9-b');
+    const fb = document.getElementById('q9-feedback');
+    const out = document.getElementById('q9-output');
+
+    document.getElementById('q9-check').addEventListener('click', () => {
+      const inputs = [A,M,B];
+      clearClasses(inputs);
+      const okA = parseInt(A.value) === 13;
+      const mVal = parseInt(M.value);
+      const okM = (mVal === 8125 || mVal === 8127);
+      const okB = parseInt(B.value) === 13;
+      const oks = [okA,okM,okB];
+      mark(inputs,oks);
+      fb.innerHTML = oks.every(Boolean)
+        ? '<span class="ok">Σωστά.</span>'
+        : '<span class="bad">Κάποιο κενό είναι λάθος.</span>';
+    });
+
+    document.getElementById('q9-solution').addEventListener('click', () => {
+      const mVal = parseInt(M.value);
+      const filled =
+        A.value==='13' &&
+        (mVal===8125 || mVal===8127) &&
+        B.value==='13';
+      if (filled) {
+        A.value=''; M.value=''; B.value='';
+        out.textContent=''; fb.textContent='';
+        clearClasses([A,M,B]);
+      } else {
+        A.value='13';
+        M.value='8127';    // προτείνουμε μέχρι 8127
+        B.value='13';
+        clearClasses([A,M,B]);
+        animateSequence(out, ['13','26','39','52','...','8073','8086','8099','8112','8125']);
+      }
+    });
+  })();
+</script>
+</body>
+</html>

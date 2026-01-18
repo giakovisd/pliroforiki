@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ασκήσεις 1–5 – Διαδραστική Συμπλήρωση</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #e5e7eb;
+      font-size: 17px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 26px 36px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      color: #111827;
+    }
+
+    .subtitle {
+      font-size: 17px;
+      color: #4b5563;
+      margin-bottom: 20px;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      border-radius: 999px;
+      border: none;
+      padding: 8px 16px;
+      font-size: 16px;
+      cursor: pointer;
+      background: #e5e7eb;
+      color: #111827;
+      transition: background 0.15s ease, transform 0.06s ease;
+      white-space: nowrap;
+    }
+
+    .tab-btn.active {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
+    }
+
+    .tab-btn:active {
+      transform: translateY(1px);
+      box-shadow: none;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .panel {
+      background: #f9fafb;
+      border-radius: 16px;
+      border: 1px solid #e5e7eb;
+      padding: 16px 18px 18px;
+      margin-bottom: 18px;
+    }
+
+    .panel h2 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      color: #111827;
+    }
+
+    .statement {
+      font-size: 16px;
+      color: #4b5563;
+      margin-bottom: 12px;
+    }
+
+    .code-block {
+      font-family: "Fira Code", ui-monospace, Menlo, Monaco, Consolas, "Courier New", monospace;
+      font-size: 17px;
+      background: #ffffff;
+      color: #111827;
+      border-radius: 12px;
+      padding: 12px 14px;
+      border: 1px solid #d1d5db;
+      white-space: pre;
+      line-height: 1.9;
+    }
+
+    .code-input {
+      min-width: 38px;
+      max-width: 90px;
+      text-align: center;
+      padding: 2px 3px;
+      font-size: 14px;
+      border-radius: 4px;
+      border: 1px solid #9ca3af;
+      margin: 0 3px;
+    }
+
+    .code-input.correct {
+      border-color: #16a34a;
+      background: #dcfce7;
+    }
+
+    .code-input.wrong {
+      border-color: #dc2626;
+      background: #fee2e2;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: none;
+      padding: 8px 16px;
+      font-size: 15px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-right: 8px;
+      margin-top: 8px;
+      transition: transform 0.06s ease, box-shadow 0.06s ease, background 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+      box-shadow: none;
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 3px 8px rgba(37, 99, 235, 0.35);
+    }
+
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .feedback {
+      margin-top: 6px;
+      font-size: 15px;
+      color: #111827;
+    }
+
+    .feedback span.ok {
+      color: #15803d;
+      font-weight: 600;
+    }
+
+    .feedback span.bad {
+      color: #b91c1c;
+      font-weight: 600;
+    }
+
+    .output {
+      margin-top: 8px;
+      font-size: 16px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      min-height: 28px;
+    }
+
+    .small-note {
+      margin-top: 4px;
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .credit-signature {
+      position: fixed;
+      right: 10px;
+      bottom: 6px;
+      font-size: 10px;
+      color: #6b7280;
+      opacity: 0.6;
+      pointer-events: none;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Ασκήσεις 1–5 – Διαδραστική Συμπλήρωση</h1>
+  <div class="subtitle">
+    Συμπλήρωσε τα κενά, πάτησε <strong>Αξιολόγηση</strong> και μετά <strong>Λύση</strong> για να δεις τις τιμές να εμφανίζονται.
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="tab1">Άσκηση 1</button>
+    <button class="tab-btn" data-tab="tab2">Άσκηση 2</button>
+    <button class="tab-btn" data-tab="tab3">Άσκηση 3</button>
+    <button class="tab-btn" data-tab="tab4">Άσκηση 4</button>
+    <button class="tab-btn" data-tab="tab5">Άσκηση 5</button>
+  </div>
+
+  <!-- Άσκηση 1 (224) -->
+  <div id="tab1" class="tab-content active">
+    <div class="panel">
+      <h2>Άσκηση 1</h2>
+      <div class="statement">
+        Να συμπληρωθούν τα κενά, ώστε να εμφανίζονται οι τιμές:
+        <strong>4, 8, 16, 20, 28, 32, 40</strong>.
+      </div>
+      <div class="code-block">
+i &larr; <input id="ex1-iStart" class="code-input">
+Όσο i &le; <input id="ex1-iEnd" class="code-input"> επανάλαβε
+  Αν i <input id="ex1-cond1" class="code-input"> &lt;&gt; <input id="ex1-cond2" class="code-input"> τότε
+     Γράψε i
+  Τέλος_αν
+  i &larr; i + <input id="ex1-step" class="code-input">
+Τέλος_επανάληψης
+      </div>
+      <button id="ex1-check" class="btn btn-primary">✅ Αξιολόγηση</button>
+      <button id="ex1-solution" class="btn btn-secondary">👁 Λύση</button>
+      <div id="ex1-feedback" class="feedback"></div>
+      <div id="ex1-output" class="output"></div>
+    </div>
+  </div>
+
+  <!-- Άσκηση 2 (225) -->
+  <div id="tab2" class="tab-content">
+    <div class="panel">
+      <h2>Άσκηση 2</h2>
+      <div class="statement">
+        Να συμπληρωθεί, ώστε να εμφανίζονται διαδοχικά οι τιμές:
+        <strong>2, 4, 8, 10, 14</strong>.
+      </div>
+      <div class="code-block">
+Για i από <input id="ex2-from" class="code-input"> μέχρι <input id="ex2-to" class="code-input"> με_βήμα <input id="ex2-step" class="code-input">
+  Αν <input id="ex2-cond1" class="code-input"> και <input id="ex2-cond2" class="code-input"> τότε
+     Εμφάνισε i
+  Τέλος_αν
+Τέλος_επανάληψης
+      </div>
+      <button id="ex2-check" class="btn btn-primary">✅ Αξιολόγηση</button>
+      <button id="ex2-sol1" class="btn btn-secondary">👁 Λύση 1</button>
+      <button id="ex2-sol2" class="btn btn-secondary">👁 Λύση 2</button>
+      <div id="ex2-feedback" class="feedback"></div>
+      <div id="ex2-output" class="output"></div>
+      <div class="small-note">
+        Λύση 1: χρήση MOD. Λύση 2: χρήση των τιμών <code>i &lt;&gt; 6</code> και <code>i &lt;&gt; 12</code>.
+      </div>
+    </div>
+  </div>
+
+  <!-- Άσκηση 3 (226) -->
+  <div id="tab3" class="tab-content">
+    <div class="panel">
+      <h2>Άσκηση 3</h2>
+      <div class="statement">
+        Να συμπληρωθούν τα κενά, ώστε να εμφανίζονται διαδοχικά οι τιμές:
+        <strong>1, 2, 3, 4, 5, 1, 2, 3, 4, 1, 2, 3</strong>.
+      </div>
+      <div class="code-block">
+ΓΙΑ Χ ΑΠΟ 5 ΜΕΧΡΙ <input id="ex3-xTo" class="code-input"> ΜΕ_ΒΗΜΑ <input id="ex3-xStep" class="code-input">
+  ΓΙΑ <input id="ex3-var" class="code-input"> ΑΠΟ <input id="ex3-from" class="code-input"> ΜΕΧΡΙ <input id="ex3-to" class="code-input"> ΜΕ_ΒΗΜΑ <input id="ex3-step" class="code-input">
+     ΓΡΑΨΕ Ψ
+  ΤΕΛΟΣ_ΕΠΑΝΑΛΗΨΗΣ
+ΤΕΛΟΣ_ΕΠΑΝΑΛΗΨΗΣ
+      </div>
+      <button id="ex3-check" class="btn btn-primary">✅ Αξιολόγηση</button>
+      <button id="ex3-solution" class="btn btn-secondary">👁 Λύση</button>
+      <div id="ex3-feedback" class="feedback"></div>
+      <div id="ex3-output" class="output"></div>
+    </div>
+  </div>
+
+  <!-- Άσκηση 4 (227) -->
+  <div id="tab4" class="tab-content">
+    <div class="panel">
+      <h2>Άσκηση 4</h2>
+      <div class="statement">
+        Να συμπληρωθεί, έτσι ώστε να υπολογίζει και να εμφανίζει τα τετράγωνα
+        των πολλαπλασίων του 5 από το 0 μέχρι τον αριθμό Χ που διαβάστηκε.
+      </div>
+      <div class="code-block">
+ΑΡΧΗ_ΕΠΑΝΑΛΗΨΗΣ
+  ΓΡΑΨΕ 'ΔΩΣΕ ΘΕΤΙΚΟ ΑΡΙΘΜΟ'
+  ΔΙΑΒΑΣΕ <input id="ex4-varX" class="code-input">
+ΜΕΧΡΙΣ_ΟΤΟΥ Χ <input id="ex4-cond" class="code-input">
+ΓΙΑ i ΑΠΟ 0 ΜΕΧΡΙ <input id="ex4-max" class="code-input"> ΜΕ_ΒΗΜΑ <input id="ex4-step" class="code-input">
+  Α &larr; i ^ <input id="ex4-exp" class="code-input">
+  ΓΡΑΨΕ <input id="ex4-print" class="code-input">
+ΤΕΛΟΣ_ΕΠΑΝΑΛΗΨΗΣ
+      </div>
+      <button id="ex4-check" class="btn btn-primary">✅ Αξιολόγηση</button>
+      <button id="ex4-solution" class="btn btn-secondary">👁 Λύση</button>
+      <div id="ex4-feedback" class="feedback"></div>
+      <div id="ex4-output" class="output"></div>
+      <div class="small-note">
+        Στο παράδειγμα των τιμών χρησιμοποιείται ενδεικτικά Χ = 20.
+      </div>
+    </div>
+  </div>
+
+  <!-- Άσκηση 5 (228) -->
+  <div id="tab5" class="tab-content">
+    <div class="panel">
+      <h2>Άσκηση 5</h2>
+      <div class="statement">
+        Να συμπληρωθούν τα κενά (1)–(5), ώστε να υπολογίζεται το γινόμενο
+        των πολλαπλασίων του 3, από το 3 μέχρι και τον αριθμό Χ που διαβάστηκε.
+      </div>
+      <div class="code-block">
+ΓΙΝ &larr; <input id="ex5-init" class="code-input">
+ΑΡΧΗ_ΕΠΑΝΑΛΗΨΗΣ
+  ΓΡΑΨΕ "Δώσε ακέραιο αριθμό μεγαλύτερο ή ίσο του 3: "
+  ΔΙΑΒΑΣΕ Χ
+ΜΕΧΡΙΣ_ΟΤΟΥ Χ <input id="ex5-cond" class="code-input">
+ΓΙΑ i ΑΠΟ 3 ΜΕΧΡΙ <input id="ex5-max" class="code-input">
+  ΑΝ <input id="ex5-if" class="code-input"> ΤΟΤΕ
+     ΓΙΝ &larr; ΓΙΝ <input id="ex5-op" class="code-input">
+  ΤΕΛΟΣ_ΑΝ
+ΤΕΛΟΣ_ΕΠΑΝΑΛΗΨΗΣ
+ΓΡΑΨΕ ΓΙΝ
+      </div>
+      <button id="ex5-check" class="btn btn-primary">✅ Αξιολόγηση</button>
+      <button id="ex5-solution" class="btn btn-secondary">👁 Λύση</button>
+      <div id="ex5-feedback" class="feedback"></div>
+      <div id="ex5-output" class="output"></div>
+      <div class="small-note">
+        Στο παράδειγμα των τιμών χρησιμοποιείται ενδεικτικά Χ = 12.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="credit-signature">
+  Ιδέα + Δημιουργία: Ευτυχία Δουφέκα, Δημήτρης Γιακοβής
+</div>
+
+<script>
+  // ---------------- Tabs ----------------
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ---------------- Βοηθητικά ----------------
+  function normalize(str) {
+    let t = (str || '').toLowerCase();
+    t = t.replace(/\s+/g, '');
+    t = t.replace(/≠/g, '<>');
+    t = t.replace(/←/g, '<-');
+    return t;
+  }
+
+  function animateSequence(outputEl, values) {
+    outputEl.textContent = '';
+    let idx = 0;
+    function step() {
+      if (idx >= values.length) return;
+      if (idx > 0) outputEl.textContent += ', ';
+      outputEl.textContent += values[idx];
+      idx++;
+      setTimeout(step, 700);
+    }
+    step();
+  }
+
+  function clearClasses(inputs) {
+    inputs.forEach(inp => inp.classList.remove('correct', 'wrong'));
+  }
+
+  // ---------------- Άσκηση 1 ----------------
+  const ex1 = {
+    iStart: document.getElementById('ex1-iStart'),
+    iEnd: document.getElementById('ex1-iEnd'),
+    cond1: document.getElementById('ex1-cond1'),
+    cond2: document.getElementById('ex1-cond2'),
+    step: document.getElementById('ex1-step'),
+    feedback: document.getElementById('ex1-feedback'),
+    output: document.getElementById('ex1-output')
+  };
+
+  document.getElementById('ex1-check').addEventListener('click', () => {
+    const inputs = [ex1.iStart, ex1.iEnd, ex1.cond1, ex1.cond2, ex1.step];
+    clearClasses(inputs);
+
+    const okStart = parseInt(ex1.iStart.value) === 4;
+    const okEnd   = parseInt(ex1.iEnd.value) === 40;
+    const c1norm  = normalize(ex1.cond1.value);
+    const okCond1 = (c1norm === 'mod12');
+    const okCond2 = parseInt(ex1.cond2.value) === 0;
+    const okStep  = parseInt(ex1.step.value) === 4;
+
+    const oks = [okStart, okEnd, okCond1, okCond2, okStep];
+    oks.forEach((ok, idx) => {
+      inputs[idx].classList.add(ok ? 'correct' : 'wrong');
+    });
+
+    if (oks.every(Boolean)) {
+      ex1.feedback.innerHTML = '<span class="ok">Σωστά συμπληρωμένο.</span>';
+    } else {
+      ex1.feedback.innerHTML = '<span class="bad">Υπάρχουν λάθη στα κενά.</span>';
+    }
+  });
+
+  document.getElementById('ex1-solution').addEventListener('click', () => {
+    if (
+      ex1.iStart.value === '4' &&
+      ex1.iEnd.value === '40' &&
+      normalize(ex1.cond1.value) === 'mod12' &&
+      ex1.cond2.value.trim() === '0' &&
+      ex1.step.value === '4'
+    ) {
+      ex1.iStart.value = '';
+      ex1.iEnd.value = '';
+      ex1.cond1.value = '';
+      ex1.cond2.value = '';
+      ex1.step.value = '';
+      ex1.output.textContent = '';
+      ex1.feedback.textContent = '';
+      clearClasses([ex1.iStart, ex1.iEnd, ex1.cond1, ex1.cond2, ex1.step]);
+    } else {
+      ex1.iStart.value = '4';
+      ex1.iEnd.value = '40';
+      ex1.cond1.value = 'MOD 12';
+      ex1.cond2.value = '0';
+      ex1.step.value = '4';
+      clearClasses([ex1.iStart, ex1.iEnd, ex1.cond1, ex1.cond2, ex1.step]);
+      animateSequence(ex1.output, [4, 8, 16, 20, 28, 32, 40]);
+    }
+  });
+
+  // ---------------- Άσκηση 2 ----------------
+  const ex2 = {
+    from: document.getElementById('ex2-from'),
+    to: document.getElementById('ex2-to'),
+    step: document.getElementById('ex2-step'),
+    cond1: document.getElementById('ex2-cond1'),
+    cond2: document.getElementById('ex2-cond2'),
+    feedback: document.getElementById('ex2-feedback'),
+    output: document.getElementById('ex2-output')
+  };
+
+  document.getElementById('ex2-check').addEventListener('click', () => {
+    const inputs = [ex2.from, ex2.to, ex2.step, ex2.cond1, ex2.cond2];
+    clearClasses(inputs);
+
+    const fromVal = parseInt(ex2.from.value);
+    const toVal   = parseInt(ex2.to.value);
+    const stepVal = parseInt(ex2.step.value);
+    const c1 = normalize(ex2.cond1.value);
+    const c2 = normalize(ex2.cond2.value);
+
+    // Λύση 1
+    const sol1 =
+      fromVal === 1 &&
+      toVal === 14 &&
+      stepVal === 1 &&
+      c1 === 'imod2=0' &&
+      c2 === 'imod3<>0';
+
+    // Λύση 2 (i από 2 μέχρι 14, βήμα 2, i <> 6, i <> 12 σε οποιαδήποτε σειρά)
+    const condPair2 =
+      (c1 === 'i<>6' && c2 === 'i<>12') ||
+      (c1 === 'i<>12' && c2 === 'i<>6');
+
+    const sol2 =
+      fromVal === 2 &&
+      toVal === 14 &&
+      stepVal === 2 &&
+      condPair2;
+
+    if (sol1 || sol2) {
+      inputs.forEach(inp => inp.classList.add('correct'));
+      ex2.feedback.innerHTML = '<span class="ok">Μία από τις σωστές λύσεις.</span>';
+    } else {
+      inputs.forEach(inp => inp.classList.add('wrong'));
+      ex2.feedback.innerHTML = '<span class="bad">Δεν ταιριάζει με κάποια από τις προτεινόμενες λύσεις.</span>';
+    }
+  });
+
+  // Λύση 1
+  document.getElementById('ex2-sol1').addEventListener('click', () => {
+    const already =
+      ex2.from.value === '1' &&
+      ex2.to.value === '14' &&
+      ex2.step.value === '1' &&
+      normalize(ex2.cond1.value) === 'imod2=0' &&
+      normalize(ex2.cond2.value) === 'imod3<>0';
+
+    if (already) {
+      ex2.from.value = '';
+      ex2.to.value = '';
+      ex2.step.value = '';
+      ex2.cond1.value = '';
+      ex2.cond2.value = '';
+      ex2.output.textContent = '';
+      ex2.feedback.textContent = '';
+      clearClasses([ex2.from, ex2.to, ex2.step, ex2.cond1, ex2.cond2]);
+    } else {
+      ex2.from.value = '1';
+      ex2.to.value = '14';
+      ex2.step.value = '1';
+      ex2.cond1.value = 'i MOD 2 = 0';
+      ex2.cond2.value = 'i MOD 3 <> 0';
+      clearClasses([ex2.from, ex2.to, ex2.step, ex2.cond1, ex2.cond2]);
+      animateSequence(ex2.output, [2, 4, 8, 10, 14]);
+    }
+  });
+
+  // Λύση 2
+  document.getElementById('ex2-sol2').addEventListener('click', () => {
+    const c1 = normalize(ex2.cond1.value);
+    const c2 = normalize(ex2.cond2.value);
+    const already =
+      ex2.from.value === '2' &&
+      ex2.to.value === '14' &&
+      ex2.step.value === '2' &&
+      ((c1 === 'i<>6' && c2 === 'i<>12') || (c1 === 'i<>12' && c2 === 'i<>6'));
+
+    if (already) {
+      ex2.from.value = '';
+      ex2.to.value = '';
+      ex2.step.value = '';
+      ex2.cond1.value = '';
+      ex2.cond2.value = '';
+      ex2.output.textContent = '';
+      ex2.feedback.textContent = '';
+      clearClasses([ex2.from, ex2.to, ex2.step, ex2.cond1, ex2.cond2]);
+    } else {
+      ex2.from.value = '2';
+      ex2.to.value = '14';
+      ex2.step.value = '2';
+      ex2.cond1.value = 'i <> 6';
+      ex2.cond2.value = 'i <> 12';
+      clearClasses([ex2.from, ex2.to, ex2.step, ex2.cond1, ex2.cond2]);
+      animateSequence(ex2.output, [2, 4, 8, 10, 14]);
+    }
+  });
+
+  // ---------------- Άσκηση 3 ----------------
+  const ex3 = {
+    xTo: document.getElementById('ex3-xTo'),
+    xStep: document.getElementById('ex3-xStep'),
+    v: document.getElementById('ex3-var'),
+    from: document.getElementById('ex3-from'),
+    to: document.getElementById('ex3-to'),
+    step: document.getElementById('ex3-step'),
+    feedback: document.getElementById('ex3-feedback'),
+    output: document.getElementById('ex3-output')
+  };
+
+  document.getElementById('ex3-check').addEventListener('click', () => {
+    const inputs = [ex3.xTo, ex3.xStep, ex3.v, ex3.from, ex3.to, ex3.step];
+    clearClasses(inputs);
+
+    const okXto   = parseInt(ex3.xTo.value) === 3;
+    const okXstep = parseInt(ex3.xStep.value) === -1;
+    const okVar   = ex3.v.value.trim() === 'Ψ';
+    const okFrom  = parseInt(ex3.from.value) === 1;
+    const okTo    = ex3.to.value.trim() === 'Χ';
+    const okStep  = parseInt(ex3.step.value) === 1;
+
+    const oks = [okXto, okXstep, okVar, okFrom, okTo, okStep];
+    oks.forEach((ok, idx) => inputs[idx].classList.add(ok ? 'correct' : 'wrong'));
+
+    if (oks.every(Boolean)) {
+      ex3.feedback.innerHTML = '<span class="ok">Σωστά συμπληρωμένο.</span>';
+    } else {
+      ex3.feedback.innerHTML = '<span class="bad">Υπάρχουν λάθη στα κενά.</span>';
+    }
+  });
+
+  document.getElementById('ex3-solution').addEventListener('click', () => {
+    if (
+      ex3.xTo.value === '3' &&
+      ex3.xStep.value === '-1' &&
+      ex3.v.value.trim() === 'Ψ' &&
+      ex3.from.value === '1' &&
+      ex3.to.value.trim() === 'Χ' &&
+      ex3.step.value === '1'
+    ) {
+      ex3.xTo.value = '';
+      ex3.xStep.value = '';
+      ex3.v.value = '';
+      ex3.from.value = '';
+      ex3.to.value = '';
+      ex3.step.value = '';
+      ex3.output.textContent = '';
+      ex3.feedback.textContent = '';
+      clearClasses([ex3.xTo, ex3.xStep, ex3.v, ex3.from, ex3.to, ex3.step]);
+    } else {
+      ex3.xTo.value = '3';
+      ex3.xStep.value = '-1';
+      ex3.v.value = 'Ψ';
+      ex3.from.value = '1';
+      ex3.to.value = 'Χ';
+      ex3.step.value = '1';
+      clearClasses([ex3.xTo, ex3.xStep, ex3.v, ex3.from, ex3.to, ex3.step]);
+      animateSequence(ex3.output, [1,2,3,4,5,1,2,3,4,1,2,3]);
+    }
+  });
+
+  // ---------------- Άσκηση 4 ----------------
+  const ex4 = {
+    varX: document.getElementById('ex4-varX'),
+    cond: document.getElementById('ex4-cond'),
+    max: document.getElementById('ex4-max'),
+    step: document.getElementById('ex4-step'),
+    exp: document.getElementById('ex4-exp'),
+    print: document.getElementById('ex4-print'),
+    feedback: document.getElementById('ex4-feedback'),
+    output: document.getElementById('ex4-output')
+  };
+
+  document.getElementById('ex4-check').addEventListener('click', () => {
+    const inputs = [ex4.varX, ex4.cond, ex4.max, ex4.step, ex4.exp, ex4.print];
+    clearClasses(inputs);
+
+    const okVarX = ex4.varX.value.trim() === 'Χ';
+    const c = normalize(ex4.cond.value);
+    const okCond = (c === '>0');
+    const okMax = ex4.max.value.trim() === 'Χ';
+    const okStep = parseInt(ex4.step.value) === 5;
+    const okExp = parseInt(ex4.exp.value) === 2;
+    const okPrint = ex4.print.value.trim() === 'Α';
+
+    const oks = [okVarX, okCond, okMax, okStep, okExp, okPrint];
+    oks.forEach((ok, idx) => inputs[idx].classList.add(ok ? 'correct' : 'wrong'));
+
+    if (oks.every(Boolean)) {
+      ex4.feedback.innerHTML = '<span class="ok">Σωστά συμπληρωμένο.</span>';
+    } else {
+      ex4.feedback.innerHTML = '<span class="bad">Υπάρχουν λάθη στα κενά.</span>';
+    }
+  });
+
+  document.getElementById('ex4-solution').addEventListener('click', () => {
+    const currentFilled =
+      ex4.varX.value.trim() === 'Χ' &&
+      normalize(ex4.cond.value) === '>0' &&
+      ex4.max.value.trim() === 'Χ' &&
+      ex4.step.value === '5' &&
+      ex4.exp.value === '2' &&
+      ex4.print.value.trim() === 'Α';
+
+    if (currentFilled) {
+      ex4.varX.value = '';
+      ex4.cond.value = '';
+      ex4.max.value = '';
+      ex4.step.value = '';
+      ex4.exp.value = '';
+      ex4.print.value = '';
+      ex4.output.textContent = '';
+      ex4.feedback.textContent = '';
+      clearClasses([ex4.varX, ex4.cond, ex4.max, ex4.step, ex4.exp, ex4.print]);
+    } else {
+      ex4.varX.value = 'Χ';
+      ex4.cond.value = '> 0';
+      ex4.max.value = 'Χ';
+      ex4.step.value = '5';
+      ex4.exp.value = '2';
+      ex4.print.value = 'Α';
+      clearClasses([ex4.varX, ex4.cond, ex4.max, ex4.step, ex4.exp, ex4.print]);
+      // Παράδειγμα για Χ = 20: 0^2=0, 5^2=25, 10^2=100, 15^2=225, 20^2=400
+      animateSequence(ex4.output, ['0', '25', '100', '225', '400']);
+    }
+  });
+
+  // ---------------- Άσκηση 5 ----------------
+  const ex5 = {
+    init: document.getElementById('ex5-init'),
+    cond: document.getElementById('ex5-cond'),
+    max: document.getElementById('ex5-max'),
+    iff: document.getElementById('ex5-if'),
+    op: document.getElementById('ex5-op'),
+    feedback: document.getElementById('ex5-feedback'),
+    output: document.getElementById('ex5-output')
+  };
+
+  document.getElementById('ex5-check').addEventListener('click', () => {
+    const inputs = [ex5.init, ex5.cond, ex5.max, ex5.iff, ex5.op];
+    clearClasses(inputs);
+
+    const okInit = parseInt(ex5.init.value) === 1;
+    const c = normalize(ex5.cond.value);
+    const okCond = (c === '>=3');
+    const okMax  = ex5.max.value.trim() === 'Χ';
+    const iffNorm = normalize(ex5.iff.value);
+    const okIf = (iffNorm === 'imod3=0');
+    const opNorm = normalize(ex5.op.value);
+    const okOp = (opNorm === '*i');
+
+    const oks = [okInit, okCond, okMax, okIf, okOp];
+    oks.forEach((ok, idx) => inputs[idx].classList.add(ok ? 'correct' : 'wrong'));
+
+    if (oks.every(Boolean)) {
+      ex5.feedback.innerHTML = '<span class="ok">Σωστά συμπληρωμένο.</span>';
+    } else {
+      ex5.feedback.innerHTML = '<span class="bad">Υπάρχουν λάθη στα κενά.</span>';
+    }
+  });
+
+  document.getElementById('ex5-solution').addEventListener('click', () => {
+    const currentFilled =
+      ex5.init.value === '1' &&
+      normalize(ex5.cond.value) === '>=3' &&
+      ex5.max.value.trim() === 'Χ' &&
+      normalize(ex5.iff.value) === 'imod3=0' &&
+      normalize(ex5.op.value) === '*i';
+
+    if (currentFilled) {
+      ex5.init.value = '';
+      ex5.cond.value = '';
+      ex5.max.value = '';
+      ex5.iff.value = '';
+      ex5.op.value = '';
+      ex5.output.textContent = '';
+      ex5.feedback.textContent = '';
+      clearClasses([ex5.init, ex5.cond, ex5.max, ex5.iff, ex5.op]);
+    } else {
+      ex5.init.value = '1';
+      ex5.cond.value = '>= 3';
+      ex5.max.value = 'Χ';
+      ex5.iff.value = 'i MOD 3 = 0';
+      ex5.op.value = '* i';
+      clearClasses([ex5.init, ex5.cond, ex5.max, ex5.iff, ex5.op]);
+      // Παράδειγμα για Χ = 12: πολλαπλάσια 3,6,9,12 → 3, 18, 162, 1944
+      animateSequence(ex5.output, ['3', '18', '162', '1944']);
+    }
+  });
+</script>
+</body>
+</html>
