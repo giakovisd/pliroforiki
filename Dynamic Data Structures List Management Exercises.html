@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8">
+  <title>CAD Δομών Δεδομένων (Final Version)</title>
+  <style>
+    :root {
+      --bg-color: #f4f6f9;
+      --primary: #1565c0;
+      
+      /* Χρώματα Κόμβων (βάσει εικόνων) */
+      --node-header: #ffe082;
+      --node-border: #ffca28;
+      --node-body: #fff;
+      
+      /* Χρώματα Βελών */
+      --arrow-blue: #1976d2;
+      --arrow-red: #d32f2f;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      margin: 0; padding: 0;
+      background: var(--bg-color);
+      color: #333;
+      height: 100vh;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* SVG Defs (Markers) - Μόνιμα στο DOM για να μην χάνονται */
+    #svg-defs { position: absolute; width: 0; height: 0; }
+
+    header {
+      background: #37474f; color: white; padding: 10px 20px;
+      flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    header h1 { margin: 0; font-size: 18px; }
+
+    /* Tabs */
+    .tabs {
+      display: flex; background: #fff; border-bottom: 1px solid #ccc;
+      padding-left: 15px; flex-shrink: 0;
+    }
+    .tab-btn {
+      padding: 12px 25px; border: none; background: none; cursor: pointer;
+      font-size: 14px; font-weight: 600; color: #555;
+      border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: #f57c00; border-bottom-color: #f57c00; }
+    .tab-btn:hover { background: #fff8e1; }
+
+    /* Layout */
+    .workspace { display: none; flex: 1; height: 100%; overflow: hidden; }
+    .workspace.active { display: flex; }
+
+    .panel-left {
+      width: 420px; /* Πιο φαρδύ για να χωράει άνετα η μνήμη */
+      background: #fff; border-right: 1px solid #ddd;
+      padding: 15px; display: flex; flex-direction: column;
+      overflow-y: auto; z-index: 20; box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+    }
+
+    .panel-right {
+      flex: 1; position: relative; background-color: #fafafa;
+      background-image: radial-gradient(#ccc 1px, transparent 1px);
+      background-size: 20px 20px;
+      overflow: auto; 
+    }
+
+    /* Controls */
+    .controls-box {
+      background: #e3f2fd; padding: 10px; border-radius: 6px;
+      border: 1px solid #90caf9; margin-bottom: 15px;
+    }
+    .btn {
+      border: none; padding: 10px; border-radius: 4px; cursor: pointer;
+      font-weight: bold; width: 100%; margin-top: 8px; font-size: 13px;
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-secondary { background: #546e7a; color: white; }
+    .btn-success { background: #2e7d32; color: white; margin-top: 20px;}
+
+    /* MEMORY GRID - Στυλ από εικόνα image_c3043d.png */
+    .grid-label { font-weight: bold; margin-bottom: 5px; font-size: 13px; color: #455a64; }
+    
+    .mem-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr); /* 5 στήλες για να είναι ευρύχωρα */
+      gap: 6px;
+      margin-top: 5px;
+    }
+    .mem-cell {
+      border: 1px dashed #cfd8dc;
+      border-radius: 6px;
+      background: #ffffff;
+      min-height: 75px; /* Ψηλό κελί */
+      display: flex; flex-direction: column;
+      position: relative;
+      padding: 4px;
+    }
+    .mem-cell.highlight {
+      background: #e3f2fd; border: 1px solid #2196f3;
+    }
+    
+    .cell-addr { 
+      font-size: 10px; color: #546e7a; font-weight: bold; margin-bottom: 2px;
+    }
+    .cell-val { 
+      text-align: center; font-weight: bold; font-size: 14px; 
+      color: #000; flex-grow: 1; display: flex; align-items: center; justify-content: center;
+    }
+    
+    /* Pointer boxes inside memory cell (like the screenshot) */
+    .cell-ptrs { 
+      display: flex; gap: 2px; margin-top: auto; 
+    }
+    .ptr-box {
+      border: 1px solid #eee; background: #fafafa;
+      font-size: 9px; text-align: center; width: 100%; padding: 2px 0;
+      color: #666;
+    }
+    /* Inputs inside Grid for Tab 2 */
+    .mini-input {
+      width: 100%; border: 1px solid #ccc; text-align: center; font-size: 10px;
+      padding: 2px 0; border-radius: 2px; background: #fff;
+    }
+    .mini-input:focus { border-color: var(--primary); outline: none; background: #fff; }
+    .mini-input.error { background: #ffcdd2; border-color: #e53935; }
+    .mini-input.correct { background: #c8e6c9; border-color: #2e7d32; }
+
+    /* NODES - Στυλ από εικόνα image_b4dddb.png */
+    .node {
+      position: absolute;
+      width: 140px;
+      background: var(--node-body);
+      border: 2px solid var(--node-border);
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      display: flex; flex-direction: column;
+      user-select: none; z-index: 10;
+    }
+    .node-header {
+      background: var(--node-header);
+      padding: 5px 8px; font-weight: bold; font-size: 12px; color: #5d4037;
+      border-bottom: 1px solid #ffe082; /* Subtle separator */
+      border-radius: 8px 8px 0 0;
+      display: flex; justify-content: space-between; align-items: center;
+      cursor: grab;
+    }
+    .node-header:active { cursor: grabbing; }
+    
+    .node-body { 
+        padding: 10px; 
+        display: flex; flex-direction: column; 
+        gap: 8px; 
+    }
+    .input-row { display: flex; align-items: center; justify-content: space-between; }
+    .input-lbl { font-size: 12px; color: #795548; font-weight: 600; width: 35px;}
+    .node-input {
+      width: 100%; border: 1px solid #ddd; border-radius: 4px;
+      text-align: center; padding: 4px; font-size: 13px; font-weight: 500;
+    }
+    .node-input:focus { border-color: #ffb300; outline: none; }
+
+    /* SVG Arrows */
+    svg {
+      position: absolute; top: 0; left: 0;
+      width: 4000px; height: 3000px;
+      pointer-events: none; z-index: 1;
+    }
+    
+    /* ΓΡΑΜΜΕΣ */
+    path.conn-line { 
+      fill: none; 
+      stroke-width: 2px; 
+      stroke-linecap: round; 
+    }
+    
+    /* Χρώματα */
+    .arrow-blue { stroke: var(--arrow-blue); }
+    .arrow-red { stroke: var(--arrow-red); stroke-dasharray: 6 3; }
+
+    #feedback-t1, #feedback-t2 {
+      margin-top: 15px; padding: 10px; border-radius: 4px;
+      text-align: center; font-weight: bold; font-size: 13px; display: none;
+    }
+  </style>
+</head>
+<body>
+
+<svg id="svg-defs">
+  <defs>
+    <marker id="marker-blue" viewBox="0 0 10 10" refX="9" refY="5"
+        markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1976d2" />
+    </marker>
+    <marker id="marker-red" viewBox="0 0 10 10" refX="9" refY="5"
+        markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#d32f2f" />
+    </marker>
+  </defs>
+</svg>
+
+<header>
+  <h1>CAD Δομών Δεδομένων</h1>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('tab1')">1. Μνήμη → Σχέδιο</button>
+  <button class="tab-btn" onclick="switchTab('tab2')">2. Σχέδιο → Μνήμη</button>
+</div>
+
+<div id="tab1" class="workspace active">
+  <div class="panel-left">
+    <div class="controls-box">
+      <div style="font-weight:bold; margin-bottom:8px; color:#1565c0;">Επιλογή Δομής:</div>
+      <label style="margin-right:15px; cursor:pointer;"><input type="radio" name="modeT1" value="singly" checked onchange="initTab1()"> Απλή Λίστα</label>
+      <label style="cursor:pointer;"><input type="radio" name="modeT1" value="doubly" onchange="initTab1()"> Διπλή Λίστα</label>
+      <button class="btn btn-secondary" onclick="initTab1()">🔄 Νέα Άσκηση</button>
+    </div>
+
+    <div class="grid-label">Περιεχόμενα Μνήμης RAM:</div>
+    <div id="grid-t1" class="mem-grid"></div>
+    <div style="margin-top:8px; font-weight:bold; color:#e65100; font-size:13px;" id="head-t1"></div>
+
+    <hr style="border:0; border-top:1px solid #ddd; margin:15px 0;">
+    
+    <button class="btn btn-primary" onclick="addNodeT1()">+ Προσθήκη Κόμβου</button>
+    <div style="font-size:11px; color:#666; margin-top:8px;">
+      * Πάτα προσθήκη, βάλε διεύθυνση, συμπλήρωσε τιμές.
+    </div>
+
+    <button class="btn btn-success" onclick="checkTab1()">✅ Έλεγχος</button>
+    <div id="feedback-t1"></div>
+  </div>
+
+  <div class="panel-right" id="canvas-t1">
+    <svg id="svg-t1"></svg>
+  </div>
+</div>
+
+<div id="tab2" class="workspace">
+  <div class="panel-left">
+    <div class="controls-box">
+      <div style="font-weight:bold; margin-bottom:8px; color:#1565c0;">Επιλογή Δομής:</div>
+      <label style="margin-right:15px; cursor:pointer;"><input type="radio" name="modeT2" value="singly" checked onchange="initTab2()"> Απλή Λίστα</label>
+      <label style="cursor:pointer;"><input type="radio" name="modeT2" value="doubly" onchange="initTab2()"> Διπλή Λίστα</label>
+      <button class="btn btn-secondary" onclick="initTab2()">🔄 Νέα Άσκηση</button>
+    </div>
+
+    <div class="grid-label">Συμπλήρωσε τη Μνήμη:</div>
+    <div style="font-size:11px; color:#777; margin-bottom:5px;">Γράψε τις διευθύνσεις στα κενά.</div>
+    <div id="grid-t2" class="mem-grid"></div>
+
+    <button class="btn btn-success" onclick="checkTab2()">✅ Έλεγχος</button>
+    <div id="feedback-t2"></div>
+  </div>
+
+  <div class="panel-right" id="canvas-t2">
+    <svg id="svg-t2"></svg>
+  </div>
+</div>
+
+<script>
+  // Settings
+  const MEM_SIZE = 25; // 5x5 grid roughly
+  let baseAddr = 100;
+
+  let stateT1 = { mode: 'singly', memory: [], head: null };
+  let stateT2 = { mode: 'singly', graph: [] };
+
+  document.addEventListener("DOMContentLoaded", () => {
+    initTab1();
+    generateTab2Data();
+  });
+
+  function switchTab(id) {
+    document.querySelectorAll('.workspace').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    
+    document.getElementById(id).classList.add('active');
+    event.target.classList.add('active');
+
+    // FIX: Redraw arrows when switching to tab 2 to ensure they render
+    if (id === 'tab2') {
+      setTimeout(() => { 
+          renderTab2Canvas(); 
+          setTimeout(redrawArrowsT2, 50); 
+      }, 10);
+    }
+  }
+
+  function randomBase() {
+    baseAddr = Math.floor(Math.random() * 800) + 100;
+  }
+
+  // ================= TAB 1 =================
+  function initTab1() {
+    stateT1.mode = document.querySelector('input[name="modeT1"]:checked').value;
+    document.getElementById('feedback-t1').style.display = 'none';
+    randomBase();
+
+    const canvas = document.getElementById('canvas-t1');
+    canvas.innerHTML = '<svg id="svg-t1"></svg>';
+
+    let len = Math.floor(Math.random()*3)+3;
+    let nodes = [];
+    for(let i=0; i<len; i++) nodes.push({ val: Math.floor(Math.random()*90)+10, next: null, prev: null });
+
+    let used = new Set();
+    nodes.forEach(n => {
+      let a; do { a = baseAddr + Math.floor(Math.random()*MEM_SIZE); } while(used.has(a));
+      used.add(a); n.addr = a;
+    });
+
+    for(let i=0; i<len; i++) {
+      if(i<len-1) { nodes[i].next = nodes[i+1].addr; nodes[i+1].prev = nodes[i].addr; }
+    }
+    stateT1.head = nodes[0].addr;
+    stateT1.memory = nodes;
+
+    renderGridT1();
+    document.getElementById('head-t1').innerText = `HEAD Address: ${stateT1.head}`;
+  }
+
+  function renderGridT1() {
+    const grid = document.getElementById('grid-t1');
+    grid.innerHTML = '';
+    
+    for(let i=0; i<MEM_SIZE; i++) {
+      let addr = baseAddr+i;
+      let n = stateT1.memory.find(x => x.addr === addr);
+      let cell = document.createElement('div');
+      cell.className = 'mem-cell' + (n ? ' highlight' : '');
+      
+      let html = `<div class="cell-addr">${addr}</div>`;
+      if(n) {
+        html += `<div class="cell-val">${n.val}</div>`;
+        html += `<div class="cell-ptrs">`;
+        if(stateT1.mode==='doubly') {
+            html += `<div class="ptr-box">Prev: ${n.prev||'-'}</div>`;
+            html += `<div class="ptr-box">Next: ${n.next||'-'}</div>`;
+        } else {
+            html += `<div class="ptr-box">Next: ${n.next||'-'}</div>`;
+        }
+        html += `</div>`;
+      } else { 
+          // Empty cell style
+          html += `<div class="cell-val" style="color:#eee">-</div>`; 
+      }
+      
+      cell.innerHTML = html;
+      grid.appendChild(cell);
+    }
+  }
+
+  function addNodeT1() {
+    let addr = prompt("Δώσε διεύθυνση:");
+    if(!addr) return;
+    let addrNum = parseInt(addr);
+    if(isNaN(addrNum)) return;
+    if(document.getElementById(`node-t1-${addrNum}`)) { alert("Υπάρχει ήδη!"); return; }
+
+    const canvas = document.getElementById('canvas-t1');
+    let el = document.createElement('div');
+    el.className = 'node';
+    el.id = `node-t1-${addrNum}`;
+    el.dataset.addr = addrNum;
+    el.style.left = (50 + Math.random()*150) + 'px';
+    el.style.top = (50 + Math.random()*150) + 'px';
+
+    let inputs = `
+      <div class="input-row"><span class="input-lbl">Val</span><input class="node-input val"></div>
+      <div class="input-row"><span class="input-lbl">Next</span><input class="node-input next" oninput="drawT1()"></div>
+    `;
+    if(stateT1.mode==='doubly') {
+      inputs = `<div class="input-row"><span class="input-lbl">Prev</span><input class="node-input prev" oninput="drawT1()"></div>` + inputs;
+    }
+
+    el.innerHTML = `
+      <div class="node-header" onmousedown="startDrag(event, this)">
+        <span>@${addrNum}</span>
+        <span style="cursor:pointer;color:#d32f2f" onclick="delT1(${addrNum})">×</span>
+      </div>
+      <div class="node-body">${inputs}</div>
+    `;
+    canvas.appendChild(el);
+  }
+
+  function delT1(a) { document.getElementById(`node-t1-${a}`).remove(); drawT1(); }
+
+  function drawT1() {
+    const svg = document.getElementById('svg-t1');
+    svg.innerHTML = '';
+    const nodes = document.querySelectorAll('#canvas-t1 .node');
+    nodes.forEach(el => {
+      let nVal = el.querySelector('.next').value;
+      if(nVal && document.getElementById(`node-t1-${nVal}`)) {
+        drawArrow(svg, el, document.getElementById(`node-t1-${nVal}`), 'next');
+      }
+      if(stateT1.mode==='doubly') {
+        let pVal = el.querySelector('.prev').value;
+        if(pVal && document.getElementById(`node-t1-${pVal}`)) {
+          drawArrow(svg, el, document.getElementById(`node-t1-${pVal}`), 'prev');
+        }
+      }
+    });
+  }
+
+  // ================= TAB 2 =================
+  function initTab2() {
+    generateTab2Data();
+    renderTab2Canvas();
+    setTimeout(redrawArrowsT2, 50);
+  }
+
+  function generateTab2Data() {
+    stateT2.mode = document.querySelector('input[name="modeT2"]:checked').value;
+    document.getElementById('feedback-t2').style.display='none';
+    randomBase();
+
+    let len = Math.floor(Math.random()*3)+3;
+    let nodes = [];
+    let startX = 50; 
+    let gap = 250; 
+
+    for(let i=0; i<len; i++) {
+      nodes.push({ id:i, val:Math.floor(Math.random()*90)+10, x:startX + i*gap, y:100 });
+    }
+
+    let used = new Set();
+    nodes.forEach(n => {
+      let a; do { a = baseAddr + Math.floor(Math.random()*MEM_SIZE); } while(used.has(a));
+      used.add(a); n.addr = a;
+    });
+    stateT2.graph = nodes;
+    renderGridT2();
+  }
+
+  function renderTab2Canvas() {
+    const canvas = document.getElementById('canvas-t2');
+    canvas.innerHTML = '<svg id="svg-t2"></svg>'; 
+
+    stateT2.graph.forEach(n => {
+      let el = document.createElement('div');
+      el.className = 'node';
+      el.id = `node-t2-${n.id}`;
+      el.style.left = n.x + 'px'; el.style.top = n.y + 'px';
+      
+      let inputs = `
+        <div class="input-row"><span class="input-lbl">Val</span>
+        <div style="width:100%;text-align:center;font-weight:bold;font-size:16px;">${n.val}</div></div>
+        <div class="input-row"><span class="input-lbl">Next</span><div style="width:100%;border-bottom:1px solid #ddd;height:20px;"></div></div>
+      `;
+      if(stateT2.mode==='doubly') {
+        inputs = `<div class="input-row"><span class="input-lbl">Prev</span><div style="width:100%;border-bottom:1px solid #ddd;height:20px;"></div></div>` + inputs;
+      }
+
+      el.innerHTML = `
+        <div class="node-header" style="cursor:default">@${n.addr}</div>
+        <div class="node-body">${inputs}</div>
+      `;
+      canvas.appendChild(el);
+    });
+  }
+
+  function redrawArrowsT2() {
+    const svg = document.getElementById('svg-t2');
+    if(!svg) return;
+    svg.innerHTML = '';
+    let nodes = stateT2.graph;
+    for(let i=0; i<nodes.length; i++) {
+      let curr = document.getElementById(`node-t2-${i}`);
+      if(i < nodes.length-1) {
+        let next = document.getElementById(`node-t2-${i+1}`);
+        if(curr && next) drawArrow(svg, curr, next, 'next');
+      }
+      if(stateT2.mode==='doubly' && i > 0) {
+        let prev = document.getElementById(`node-t2-${i-1}`);
+        if(curr && prev) drawArrow(svg, curr, prev, 'prev');
+      }
+    }
+  }
+
+  function renderGridT2() {
+    const grid = document.getElementById('grid-t2');
+    grid.innerHTML = '';
+    
+    for(let i=0; i<MEM_SIZE; i++) {
+      let addr = baseAddr+i;
+      let n = stateT2.graph.find(x => x.addr === addr);
+      let cell = document.createElement('div');
+      cell.className = 'mem-cell' + (n ? ' highlight' : '');
+      
+      let html = `<div class="cell-addr">${addr}</div>`;
+      if(n) {
+        html += `<div class="cell-val">${n.val}</div>`;
+        html += `<div class="mem-input-group">`;
+        if(stateT2.mode==='doubly') html += `<input class="mini-input t2-prev" data-addr="${addr}" placeholder="Prev">`;
+        html += `<input class="mini-input t2-next" data-addr="${addr}" placeholder="Next"></div>`;
+      } else {
+        html += `<div class="cell-val" style="color:#eee">-</div>`;
+      }
+      cell.innerHTML = html;
+      grid.appendChild(cell);
+    }
+  }
+
+  // --- DRAW ARROW ---
+  function drawArrow(svg, from, to, type) {
+    let r1 = from.getBoundingClientRect();
+    let r2 = to.getBoundingClientRect();
+    let pRect = svg.getBoundingClientRect();
+
+    let x1 = (r1.left+r1.right)/2 - pRect.left;
+    let y1 = (r1.top+r1.bottom)/2 - pRect.top;
+    let x2 = (r2.left+r2.right)/2 - pRect.left;
+    let y2 = (r2.top+r2.bottom)/2 - pRect.top;
+
+    let d;
+    let isCurve = (stateT1.mode==='doubly' || stateT2.mode==='doubly');
+
+    // Υπολογισμός σημείων για να σταματάει στο κουτί
+    // box width ~150, height var.
+    // Απλοϊκή προσέγγιση: Κέντρο προς Κέντρο με offset.
+    
+    if(!isCurve) {
+       // ΕΥΘΕΙΑ ΓΡΑΜΜΗ (Singly)
+       // Στοχεύουμε αριστερά/δεξιά του κουτιού
+       let startX = x1 + 75; // Right edge
+       let endX = x2 - 80;   // Left edge (with gap)
+       d = `M ${startX} ${y1} L ${endX} ${y2}`;
+    } else {
+       // ΚΑΜΠΥΛΗ (Doubly)
+       let offset = (type==='next') ? -15 : 15; // Shift Y start/end
+       let cY = (type==='next') ? -40 : 40;     // Curve amount
+       
+       let startX = x1 + 75; // Right edge
+       let endX = x2 - 80;   // Left edge
+       
+       // Reverse direction check for Prev?
+       if (x2 < x1) { // Backwards arrow
+          startX = x1 - 75; 
+          endX = x2 + 80;
+       }
+
+       d = `M ${startX} ${y1+offset} Q ${(startX+endX)/2} ${(y1+y2)/2 + cY} ${endX} ${y2+offset}`;
+    }
+
+    let path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", d);
+    path.setAttribute("class", "conn-line " + (type==='next' ? 'arrow-blue' : 'arrow-red'));
+    path.setAttribute("marker-end", type==='next' ? 'url(#marker-blue)' : 'url(#marker-red)');
+    svg.appendChild(path);
+  }
+
+  // --- DRAG ---
+  let dragEl=null, dx=0, dy=0;
+  function startDrag(e, header) {
+    if(!document.getElementById('tab1').classList.contains('active')) return;
+    e.preventDefault();
+    dragEl = header.parentElement;
+    let r = dragEl.getBoundingClientRect();
+    dx = e.clientX - r.left; dy = e.clientY - r.top;
+    document.addEventListener('mousemove', onDrag);
+    document.addEventListener('mouseup', endDrag);
+  }
+  function onDrag(e) {
+    if(!dragEl) return;
+    let p = dragEl.parentElement.getBoundingClientRect();
+    dragEl.style.left = (e.clientX - p.left - dx)+'px';
+    dragEl.style.top = (e.clientY - p.top - dy)+'px';
+    drawT1();
+  }
+  function endDrag() {
+    dragEl=null; document.removeEventListener('mousemove', onDrag); document.removeEventListener('mouseup', endDrag);
+  }
+
+  // --- CHECK ---
+  function checkTab1() {
+    let fb = document.getElementById('feedback-t1'); fb.style.display='block';
+    let dom = document.querySelectorAll('#canvas-t1 .node');
+    if(dom.length !== stateT1.memory.length) { setFb(fb, false, "Λάθος πλήθος κόμβων!"); return; }
+
+    for(let n of stateT1.memory) {
+      let el = document.getElementById(`node-t1-${n.addr}`);
+      if(!el) { setFb(fb, false, `Λείπει ο κόμβος @${n.addr}`); return; }
+      
+      let v = el.querySelector('.val').value;
+      if(parseInt(v)!==n.val) { setFb(fb, false, `Λάθος τιμή στο @${n.addr}`); return; }
+
+      let nVal = el.querySelector('.next').value.trim();
+      let expN = n.next ? n.next+"" : "NULL";
+      if((nVal.toUpperCase()||"NULL") !== expN) { setFb(fb, false, `Λάθος Next στο @${n.addr}`); return; }
+
+      if(stateT1.mode==='doubly') {
+        let pVal = el.querySelector('.prev').value.trim();
+        let expP = n.prev ? n.prev+"" : "NULL";
+        if((pVal.toUpperCase()||"NULL") !== expP) { setFb(fb, false, `Λάθος Prev στο @${n.addr}`); return; }
+      }
+    }
+    setFb(fb, true, "Μπράβο! Σωστή κατασκευή!");
+  }
+
+  function checkTab2() {
+    let fb = document.getElementById('feedback-t2'); fb.style.display='block';
+    let ok = true;
+    stateT2.graph.forEach((n,i) => {
+      let nextInp = document.querySelector(`.t2-next[data-addr="${n.addr}"]`);
+      let expN = (i<stateT2.graph.length-1) ? stateT2.graph[i+1].addr+"" : "NULL";
+      if((nextInp.value.toUpperCase().trim()||"NULL") !== expN) { 
+        nextInp.classList.add('error'); ok=false; 
+      } else { 
+        nextInp.classList.remove('error'); nextInp.classList.add('correct'); 
+      }
+
+      if(stateT2.mode==='doubly') {
+        let prevInp = document.querySelector(`.t2-prev[data-addr="${n.addr}"]`);
+        let expP = (i>0) ? stateT2.graph[i-1].addr+"" : "NULL";
+        if((prevInp.value.toUpperCase().trim()||"NULL") !== expP) {
+          prevInp.classList.add('error'); ok=false;
+        } else {
+          prevInp.classList.remove('error'); prevInp.classList.add('correct');
+        }
+      }
+    });
+    if(ok) setFb(fb, true, "Άριστα!"); else setFb(fb, false, "Υπάρχουν λάθη.");
+  }
+
+  function setFb(el, success, msg) {
+    el.style.backgroundColor = success ? '#c8e6c9' : '#ffcdd2';
+    el.style.color = success ? '#2e7d32' : '#c62828';
+    el.textContent = (success ? "✅ " : "❌ ") + msg;
+  }
+</script>
+</body>
+</html>
