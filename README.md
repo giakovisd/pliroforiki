@@ -95,6 +95,8 @@
 
 [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Stack-Queue.html)
 
+[Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Stack-Queue-Exercises.html)
+
 ---
 ## Δένδρα
 
