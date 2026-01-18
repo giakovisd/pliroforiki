@@ -89,10 +89,7 @@
 
 ---
 
-## Δυναμικές Δομές Δεδομένων
-
-- Dynamic Data Structures – List Management Exercise  
-  [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Dynamic%20Data%20Structures%20List%20Management%20Exercise.html)
+## Ασήσεις στις Δυναμικές Δομές Δεδομένων
 
 - Dynamic Data Structures – List Management Exercises  
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Dynamic%20Data%20Structures%20List%20Management%20Exercises.html)
