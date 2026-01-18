@@ -109,6 +109,10 @@
 
 ## Δομές Επανάληψης – Μετατροπές
 
+- Αναλυτική παρουσίαση στις μετατροπές των εντολών επανάληψης 
+  [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Metatropes-stis-Domes-Epanalipsis.html)
+
+
 - Πρόγραμμα μετατροπών από μια δομή επανάληψης σε άλλη 
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Transformations%20of%20repetition%20structures%20with%20student%20solution%20input.html)
 
