@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Π[4,5] — Σάρωση κατά Γραμμές / Στήλες (ενιαίο)</title>
+<style>
+  :root{
+    --maxw: 980px;
+    --bg:#0d1520; --panel:#152131; --ink:#ecf0f1; --border:#2a3b57; --muted:#9fb2cc;
+    --hi:#f1c40f; --arrow:#ff5a5a;
+    --cellW: clamp(52px, 9vw, 86px); --cellH: clamp(52px, 9vw, 86px);
+    --fsVal: clamp(18px, 3vw, 28px); --fsIdx: clamp(11px, 1.9vw, 14px);
+
+    /* κοινές μεταβλητές βέλους */
+    --arrowHead: 14px;       /* μέγεθος κεφαλής */
+    --arrowT: 6px;           /* πάχος ουράς */
+    --arrowInset: 4px;       /* απόσταση έναρξης μέσα στο κελί */
+    --arrowTailH: calc(var(--cellW) * 0.28); /* μήκος ουράς για οριζόντιο */
+    --arrowTailV: calc(var(--cellH) * 0.28); /* μήκος ουράς για κάθετο */
+  }
+  *{box-sizing:border-box;font-family:system-ui,Segoe UI,Roboto,Arial}
+  body{margin:0;background:var(--bg);color:var(--ink)}
+  .wrap{max-width:var(--maxw); margin:16px auto; padding:0 12px}
+  h1{margin:0 0 12px; font-size:clamp(20px,3.6vw,26px)}
+
+  .layout{display:grid; grid-template-columns: 1fr 1fr; gap:14px}
+  @media (max-width: 900px){ .layout{grid-template-columns:1fr} }
+
+  .panel{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:12px}
+  .row{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+  textarea{flex:1; min-width:260px; height:64px; background:#0f1d30; color:#fff; border:1px solid #35527a; border-radius:8px; padding:8px; font-family:ui-monospace,Consolas,monospace}
+  select, button, input[type="range"]{border-radius:10px; border:1px solid #35527a; background:#22314a; color:#fff}
+  button{padding:8px 12px; border:0; font-weight:700; cursor:pointer}
+  button.primary{background:#2455a8}
+  button.ok{background:#1e7b54}
+  input[type="range"]{width:160px}
+
+  /* Stats (μικρά) */
+  .stats{display:grid; grid-template-columns:repeat(6,1fr); gap:8px; margin-top:8px}
+  .card{background:#0f1b2a; border:1px solid var(--border); border-radius:10px; padding:6px; text-align:center}
+  .card > div:first-child{font-size:12px; color:#b8c9e3}
+  .big{font-size:clamp(14px,2.6vw,18px); font-weight:800}
+  .legend{font-size:12px; color:#bcd}
+
+  /* Grid */
+  .grid{display:grid; grid-template-columns: repeat(5, var(--cellW)); gap:8px; justify-content:center}
+  .cell{
+    width:var(--cellW); height:var(--cellH);
+    border:1px solid #3a526f; border-radius:12px; background:#102036;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    position:relative; color:#dbe7ff; user-select:none;
+  }
+  .idx{position:absolute; top:6px; left:8px; font-size:var(--fsIdx); color:#8aa2c6; opacity:.9}
+  .val{font-size:var(--fsVal); font-weight:800}
+  .hi{outline:3px solid var(--hi); outline-offset:-3px}
+  @keyframes blink { 0%{box-shadow:0 0 0 0 rgba(241,196,15,.0)} 35%{box-shadow:0 0 0 10px rgba(241,196,15,.24)} 100%{box-shadow:0 0 0 0 rgba(241,196,15,.0)} }
+  .blink{animation: blink 520ms ease-out 1}
+
+  /* 🔴 ΒΕΛΑΚΙ ΣΤΟΧΟΥ */
+  /* Οριζόντιο: ξεκινά αριστερά, δείχνει δεξιά */
+  .cell.target-h::before{
+    content:""; position:absolute; top:50%; left: var(--arrowInset); transform: translateY(-50%);
+    width: var(--arrowTailH); height: var(--arrowT); background: var(--arrow); border-radius:999px; z-index:2; pointer-events:none;
+  }
+  .cell.target-h::after{
+    content:""; position:absolute; top:50%; left: calc(var(--arrowInset) + var(--arrowTailH) - 1px); transform: translateY(-50%);
+    width:0; height:0;
+    border-top: calc(var(--arrowHead)*.55) solid transparent;
+    border-bottom: calc(var(--arrowHead)*.55) solid transparent;
+    border-left: var(--arrowHead) solid var(--arrow); z-index:3; pointer-events:none;
+    filter: drop-shadow(0 0 4px rgba(255,90,90,.45));
+  }
+  /* Κάθετο: ξεκινά πάνω, δείχνει κάτω */
+  .cell.target-v::before{
+    content:""; position:absolute; left:50%; top: var(--arrowInset); transform: translateX(-50%);
+    width: var(--arrowT); height: var(--arrowTailV); background: var(--arrow); border-radius:999px; z-index:2; pointer-events:none;
+  }
+  .cell.target-v::after{
+    content:""; position:absolute; left:50%; top: calc(var(--arrowInset) + var(--arrowTailV) - 1px); transform: translateX(-50%);
+    width:0; height:0;
+    border-left: calc(var(--arrowHead)*.55) solid transparent;
+    border-right: calc(var(--arrowHead)*.55) solid transparent;
+    border-top: var(--arrowHead) solid var(--arrow); z-index:3; pointer-events:none;
+    filter: drop-shadow(0 0 4px rgba(255,90,90,.45));
+  }
+
+  /* Κώδικας */
+  .code{background:#0f1b2a; border:1px solid var(--border); border-radius:12px; padding:12px}
+  .line{font-family:ui-monospace,Consolas,monospace; font-size:15px; color:#cfe; padding:4px 8px; border-radius:8px; margin:2px 0}
+  .line .cm{color:#8aa2c6}
+  .hl{background:rgba(241,196,15,.14); outline:2px solid rgba(241,196,15,.5)}
+  .dim{opacity:.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🧮 Π[4,5] — Σάρωση κατά Γραμμές / Στήλες (με ιχνηλάτηση & βελάκι)</h1>
+
+  <div class="layout">
+    <!-- Αριστερά: Κώδικας & έλεγχος -->
+    <div class="panel">
+      <div class="row" style="margin-bottom:8px">
+        <label>Τρόπος σάρωσης:</label>
+        <select id="mode">
+          <option value="rows" selected>Κατά Γραμμές</option>
+          <option value="cols">Κατά Στήλες</option>
+        </select>
+      </div>
+
+      <div class="code" id="codeBox"></div>
+
+      <div class="row" style="margin-top:10px">
+        <textarea id="nums">1 2 3 4 5  6 7 8 9 10  11 12 13 14 15  16 17 18 19 20</textarea>
+      </div>
+      <div class="row" style="margin-top:6px">
+        <button id="load" class="primary">Φόρτωση 20 τιμών</button>
+        <button id="rand">Τυχαίες τιμές</button>
+        <button id="reset">Reset</button>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button id="next" class="ok">Επόμενο</button>
+        <button id="auto">Αυτόματη αναπαραγωγή</button>
+        <button id="stop">Στοπ</button>
+        <span class="legend">Ταχύτητα:</span>
+        <input type="range" id="speed" min="200" max="1400" value="700">
+      </div>
+
+      <div class="stats">
+        <div class="card"><div>Βήμα</div><div id="stepLbl" class="big">0 / 20</div></div>
+        <div class="card"><div>i</div><div id="iLbl" class="big">1</div></div>
+        <div class="card"><div>j</div><div id="jLbl" class="big">1</div></div>
+        <div class="card"><div>Θέση</div><div id="posLbl" class="big">Π[1,1]</div></div>
+        <div class="card"><div>Τελευταίο</div><div id="ijLast" class="big">—</div></div>
+        <div class="card"><div>Τρόπος</div><div id="modeLbl" class="big">Γραμμές</div></div>
+      </div>
+
+      <div class="legend" style="margin-top:6px">
+        Το <span style="color:#ff7d7d">κόκκινο βελάκι</span> δείχνει το <b>επόμενο</b> κελί: οριζόντιο για «Γραμμές», κάθετο για «Στήλες». Το κελί που γεμίζει κάνει <b>blink</b>.
+      </div>
+    </div>
+
+    <!-- Δεξιά: Πίνακας -->
+    <div class="panel">
+      <div id="grid" class="grid"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* -------- State -------- */
+const R=4, C=5, N=R*C;
+let data=Array.from({length:N},(_,k)=>k+1);
+let P=Array.from({length:R},()=>Array(C).fill(""));
+let k=0, busy=false, autoStop=false, mode="rows";
+
+/* -------- UI -------- */
+const $=s=>document.querySelector(s);
+const grid=$("#grid"), nums=$("#nums"), codeBox=$("#codeBox"), selMode=$("#mode");
+const stepLbl=$("#stepLbl"), iLbl=$("#iLbl"), jLbl=$("#jLbl"), posLbl=$("#posLbl"), ijLast=$("#ijLast"), modeLbl=$("#modeLbl");
+
+/* -------- Code blocks -------- */
+const CODE_ROWS = `
+  <div class="line" id="L1">Για <b>i</b> από 1 μέχρι 4</div>
+  <div class="line" id="L2" style="padding-left:24px">Για <b>j</b> από 1 μέχρι 5</div>
+  <div class="line" id="L3" style="padding-left:48px">Διάβασε <b>Π[i,j]</b></div>
+  <div class="line dim" id="L4" style="padding-left:24px">Τέλος_επανάληψης <span class="cm">/* του j */</span></div>
+  <div class="line dim" id="L5">Τέλος_επανάληψης <span class="cm">/* του i */</span></div>
+`;
+const CODE_COLS = `
+  <div class="line" id="L1">Για <b>j</b> από 1 μέχρι 5</div>
+  <div class="line" id="L2" style="padding-left:24px">Για <b>i</b> από 1 μέχρι 4</div>
+  <div class="line" id="L3" style="padding-left:48px">Διάβασε <b>Π[i,j]</b></div>
+  <div class="line dim" id="L4" style="padding-left:24px">Τέλος_επανάληψης <span class="cm">/* του i */</span></div>
+  <div class="line dim" id="L5">Τέλος_επανάληψης <span class="cm">/* του j */</span></div>
+`;
+function setCode(){
+  codeBox.innerHTML = (mode==="rows") ? CODE_ROWS : CODE_COLS;
+}
+
+/* refs to code lines (after setCode) */
+function lines(){ return {L1:$("#L1"), L2:$("#L2"), L3:$("#L3"), L4:$("#L4"), L5:$("#L5")}; }
+function clearHL(){ const {L1,L2,L3,L4,L5}=lines(); [L1,L2,L3,L4,L5].forEach(el=>el.classList.remove("hl")); }
+
+function idx1D(i,j){ return i*C + j; }
+
+/* Mapping step -> (i,j) */
+function rcFromStepRows(s){ const i=Math.floor(s/C), j=s% C; return [i,j]; }
+function rcFromStepCols(s){ const j=Math.floor(s/R), i=s%R; return [i,j]; }
+
+/* -------- Render / Stats -------- */
+function render(highIdx=-1){
+  grid.innerHTML="";
+  const targetIdx = (k<N)?k:-1;
+  for(let i=0;i<R;i++){
+    for(let j=0;j<C;j++){
+      const d=document.createElement("div");
+      const thisIdx = idx1D(i,j);
+      let targetClass="";
+      if(targetIdx>=0){
+        const [ti,tj] = (mode==="rows") ? rcFromStepRows(targetIdx) : rcFromStepCols(targetIdx);
+        if(i===ti && j===tj) targetClass = (mode==="rows") ? " target-h" : " target-v";
+      }
+      d.className = "cell" + (highIdx===thisIdx?" hi blink":"") + targetClass;
+      const idx=document.createElement("div"); idx.className="idx"; idx.textContent=`${i+1},${j+1}`;
+      const val=document.createElement("div"); val.className="val"; val.textContent=P[i][j]===""?"":P[i][j];
+      d.appendChild(idx); d.appendChild(val);
+      grid.appendChild(d);
+    }
+  }
+}
+function updateStat(){
+  stepLbl.textContent = `${k} / ${N}`;
+  const [ci,cj] = (mode==="rows") ? rcFromStepRows(Math.min(k,N-1)) : rcFromStepCols(Math.min(k,N-1));
+  iLbl.textContent = ci+1; jLbl.textContent = cj+1;
+  posLbl.textContent = `Π[${ci+1}, ${cj+1}]`;
+  modeLbl.textContent = (mode==="rows") ? "Γραμμές" : "Στήλες";
+}
+
+/* -------- Step with trace -------- */
+function sleep(ms){ return new Promise(res=>setTimeout(res,ms)); }
+async function runStep(){
+  if(k>=N || busy) return false;
+  busy=true; clearHL();
+
+  const t = Math.max(120, Math.floor(Number($("#speed").value)/3));
+  const {L1,L2,L3,L4,L5} = lines();
+
+  const [i,j] = (mode==="rows") ? rcFromStepRows(k) : rcFromStepCols(k);
+
+  if( (mode==="rows" && j===0) || (mode==="cols" && i===0) ){ L1.classList.add("hl"); await sleep(t); }
+  L2.classList.add("hl"); await sleep(t); L2.classList.remove("hl");
+
+  L3.classList.add("hl");
+  P[i][j] = data[k];
+  render(idx1D(i,j));                 // blink στο τρέχον κελί
+  await sleep(t);
+  L3.classList.remove("hl");
+
+  if( (mode==="rows" && j===C-1) || (mode==="cols" && i===R-1) ){
+    L4.classList.add("hl"); await sleep(t); L4.classList.remove("hl");
+    L1.classList.remove("hl");
+    L5.classList.add("hl"); await sleep(t); L5.classList.remove("hl");
+  }
+
+  ijLast.textContent = `(${i+1}, ${j+1})`;
+  k++;
+  updateStat();
+  render(-1);                          // δείξε το βελάκι στο επόμενο
+  busy=false;
+  return k<N;
+}
+
+/* -------- Auto -------- */
+async function runAuto(){
+  autoStop=false;
+  while(!autoStop && k<N){
+    const more = await runStep();
+    if(!more) break;
+  }
+}
+
+/* -------- Controls -------- */
+function resetAll(){
+  autoStop=true; busy=false; k=0; ijLast.textContent="—";
+  P=Array.from({length:R},()=>Array(C).fill(""));
+  clearHL(); setCode(); render(-1); updateStat();
+}
+function parse20(s){
+  const arr=s.trim().split(/[\s,]+/).filter(Boolean).map(Number);
+  if(arr.length!==N || arr.some(x=>!Number.isFinite(x))){ alert("Δώσε ακριβώς 20 αριθμούς."); return null; }
+  return arr;
+}
+
+/* Wire up */
+$("#load").onclick = ()=>{ const a=parse20(nums.value); if(!a) return; data=a; resetAll(); };
+$("#rand").onclick = ()=>{ data=Array.from({length:N},()=>Math.floor(Math.random()*90)+10); nums.value=data.join(" "); resetAll(); };
+$("#reset").onclick=resetAll;
+$("#next").onclick = ()=>{ runStep(); };
+$("#auto").onclick = ()=>{ if(!busy) runAuto(); };
+$("#stop").onclick = ()=>{ autoStop=true; };
+selMode.onchange = ()=>{
+  mode = selMode.value;
+  resetAll();
+};
+
+/* Boot */
+(function(){
+  setCode();
+  nums.value = data.join(" ");
+  render(-1); updateStat();
+})();
+</script>
+</body>
+</html>

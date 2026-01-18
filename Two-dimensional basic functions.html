@@ -1,0 +1,1770 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<title>Βασικές λειτουργίες στους Δισδιάστατους πίνακες</title>
+<style>
+    :root {
+        --cell-w: 44px;
+        --cell-h: 40px;
+    }
+
+    body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f4f6fb;
+        margin: 0;
+        padding: 20px;
+        color: #222;
+        transition: background 0.25s ease, color 0.25s ease;
+    }
+    body.dark-mode {
+        background: #020617;
+        color: #e5e7eb;
+    }
+    .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        padding: 24px 24px 40px;
+        position: relative;
+        transition: background 0.25s ease, box-shadow 0.25s ease;
+    }
+    body.dark-mode .container {
+        background: #020617;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+    }
+    h1 {
+        margin-top: 0;
+        text-align: center;
+        font-size: 1.6rem;
+    }
+
+    /* Tabs */
+    .tabs-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+    }
+    .tabs {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .tab-btn {
+        border-radius: 999px;
+        border: 1px solid #d1d5db;
+        background: #f9fafb;
+        padding: 6px 16px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        color: #374151;
+        transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+    }
+    .tab-btn.active {
+        background: #2563eb;
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(37,99,235,0.4);
+        border-color: #1d4ed8;
+        transform: translateY(-1px);
+    }
+    body.dark-mode .tab-btn {
+        border-color: #1f2937;
+        background: #020617;
+        color: #e5e7eb;
+    }
+    body.dark-mode .tab-btn.active {
+        background: #1d4ed8;
+        border-color: #1d4ed8;
+    }
+
+    button {
+        border: none;
+        border-radius: 999px;
+        padding: 8px 18px;
+        font-size: 0.95rem;
+        cursor: pointer;
+        background: #2563eb;
+        color: #fff;
+        box-shadow: 0 4px 10px rgba(37,99,235,0.35);
+        transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease;
+    }
+    button.secondary {
+        background: #e5e7eb;
+        color: #111827;
+        box-shadow: none;
+    }
+    body.dark-mode button.secondary {
+        background: #1e293b;
+        color: #e5e7eb;
+    }
+    button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(37,99,235,0.4);
+    }
+    button.secondary:hover {
+        box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+        background: #d1d5db;
+    }
+    body.dark-mode button.secondary:hover {
+        background: #0f172a;
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .controls {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+    }
+
+    .description {
+        max-width: 900px;
+        margin: 0 auto 10px;
+        font-size: 0.92rem;
+        color: #4b5563;
+    }
+    body.dark-mode .description {
+        color: #9ca3af;
+    }
+
+    .speed-and-status {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+        font-size: 0.85rem;
+    }
+    .speed-control {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+    }
+    .speed-control label {
+        font-size: 0.85rem;
+        color: #4b5563;
+    }
+    body.dark-mode .speed-control label { color: #9ca3af; }
+    .speed-control input[type="range"] { width: 160px; }
+
+    .main-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+        gap: 20px;
+    }
+    @media (max-width: 900px) {
+        .main-layout { grid-template-columns: 1fr; }
+    }
+    .table-area h2,
+    .code-area h2 {
+        font-size: 1.1rem;
+        margin: 10px 0;
+    }
+
+    .table-wrapper {
+        position: relative;
+        display: inline-block;
+        padding: 12px;
+        border-radius: 14px;
+        background: #f9fafb;
+        box-shadow: inset 0 0 0 1px #e5e7eb;
+    }
+    body.dark-mode .table-wrapper {
+        background: #020617;
+        box-shadow: inset 0 0 0 1px #1f2937;
+    }
+
+    table {
+        border-collapse: collapse;
+        margin: 0 auto;
+    }
+    td {
+        width: var(--cell-w);
+        height: var(--cell-h);
+        text-align: center;
+        border: 1px solid #d1d5db;
+        font-weight: 600;
+        background: #ffffff;
+        position: relative;
+        transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        box-sizing: border-box;
+    }
+    body.dark-mode td {
+        background: #020617;
+        border-color: #1f2937;
+        color: #e5e7eb;
+    }
+    tr.highlight-row td {
+        background: #e5f2ff;
+    }
+    body.dark-mode tr.highlight-row td {
+        background: #1d283a;
+    }
+    td.active-cell {
+        background: #fee2e2;
+        box-shadow: 0 0 0 2px #ef4444;
+        transform: scale(1.04);
+        z-index: 1;
+    }
+    body.dark-mode td.active-cell {
+        background: #4b1616;
+    }
+
+    .arrow {
+        position: absolute;
+        pointer-events: none;
+        opacity: 0;
+        transition: top 0.35s ease, left 0.35s ease, opacity 0.2s ease;
+        color: #ef4444;
+        font-family: "Fira Code", monospace;
+        white-space: pre;
+        font-size: 16px;
+    }
+
+    /* Γραμμές + Μέγιστος: μονοδιάστατος στο πλάι */
+    .row-table-and-avg {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        flex-wrap: nowrap;
+    }
+    .row-avg-array {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        position: relative;
+        margin-top: 0;
+    }
+
+    .avg-cell {
+        width: var(--cell-w);
+        height: var(--cell-h);
+        border-radius: 0;
+        border: 1px solid #d1d5db;
+        background: #f9fafb;
+        font-size: 0.8rem;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+    body.dark-mode .avg-cell {
+        border-color: #1f2937;
+        background: #020617;
+    }
+    .avg-cell-label {
+        font-size: 0.65rem;
+        color: #6b7280;
+        line-height: 1;
+    }
+    body.dark-mode .avg-cell-label { color: #9ca3af; }
+    .avg-cell-value {
+        font-weight: 700;
+        font-size: 0.85rem;
+        min-height: 1.1em;
+    }
+    .avg-cell.filled {
+        background: #ecfdf5;
+        border-color: #22c55e;
+        box-shadow: 0 0 0 1px rgba(34,197,94,0.7);
+        animation: pop 0.25s ease-out;
+    }
+    body.dark-mode .avg-cell.filled { background: #052e16; }
+    @keyframes pop {
+        0% { transform: scale(0.9); }
+        60% { transform: scale(1.04); }
+        100% { transform: scale(1); }
+    }
+
+    /* Στήλες: μο κάτω από πίνακα */
+    .col-avg-array {
+        display: flex;
+        flex-direction: row;
+        gap: 0;
+        margin-top: 8px;
+        justify-content: center;
+    }
+
+    .code-area {
+        padding: 10px 12px;
+        border-radius: 14px;
+        background: #ffffff;
+        color: #111827;
+        box-shadow: inset 0 0 0 1px #e5e7eb;
+        max-height: 380px;
+        overflow: auto;
+        transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+    }
+    body.dark-mode .code-area {
+        background: #0b1120;
+        color: #e5e7eb;
+        box-shadow: inset 0 0 0 1px #1f2937;
+    }
+    pre {
+        margin: 0;
+        font-family: "Fira Code", "Cascadia Code", monospace;
+        font-size: 0.9rem;
+        line-height: 1.0;
+    }
+    #row-codeBlock span,
+    #col-codeBlock span,
+    #max-codeBlock span,
+    #cmax-codeBlock span {
+        display: block;
+        padding: 2px 6px;
+        border-radius: 8px;
+        transition: background 0.15s ease, color 0.15s ease;
+    }
+    #row-codeBlock span.active-line,
+    #col-codeBlock span.active-line,
+    #max-codeBlock span.active-line,
+    #cmax-codeBlock span.active-line {
+        background: #1d4ed8;
+        color: #e5e7eb;
+    }
+    body.dark-mode #row-codeBlock span.active-line,
+    body.dark-mode #col-codeBlock span.active-line,
+    body.dark-mode #max-codeBlock span.active-line,
+    body.dark-mode #cmax-codeBlock span.active-line {
+        background: #1e40af;
+    }
+    #row-codeBlock span.dim-line,
+    #col-codeBlock span.dim-line,
+    #max-codeBlock span.dim-line,
+    #cmax-codeBlock span.dim-line { opacity: 0.7; }
+
+    .vars-panel {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+        font-size: 0.85rem;
+    }
+    .var-box {
+        min-width: 60px;
+        padding: 4px 8px;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        background: #f9fafb;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        box-shadow: inset 0 0 0 1px rgba(148,163,184,0.3);
+    }
+    body.dark-mode .var-box {
+        border-color: #1f2937;
+        background: #020617;
+        box-shadow: inset 0 0 0 1px rgba(30,64,175,0.5);
+    }
+    .var-name {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-bottom: 2px;
+    }
+    body.dark-mode .var-name { color: #9ca3af; }
+    .var-value {
+        font-size: 1rem;
+        font-weight: 700;
+    }
+
+    .credits {
+        position: absolute;
+        left: 16px;
+        bottom: 10px;
+        font-size: 0.75rem;
+        color: rgba(0,0,0,0.25);
+        pointer-events: none;
+    }
+    body.dark-mode .credits {
+        color: rgba(148,163,184,0.35);
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>Βασικές λειτουργίες στους Δισδιάστατους πίνακες</h1>
+
+    <div class="tabs-bar">
+        <div class="tabs">
+            <button id="tabRows"  class="tab-btn active">Μέσος όρος γραμμών</button>
+            <button id="tabCols"  class="tab-btn">Μέσος όρος στηλών</button>
+            <button id="tabMax"   class="tab-btn">Μέγιστος γραμμών</button>
+            <button id="tabCMax"  class="tab-btn">Μέγιστος στηλών</button>
+        </div>
+        <button id="themeBtn" class="secondary">Night 🌙</button>
+    </div>
+
+    <!-- ΚΑΡΤΕΛΑ 1: ΜΟ ΓΡΑΜΜΩΝ -->
+    <div id="panelRows" class="tab-panel active">
+        <div class="controls">
+            <button id="row-runBtn">▶ Νέα εκτέλεση</button>
+            <button id="row-stepBtn" class="secondary">Βήμα-βήμα</button>
+            <button id="row-toggleCodeBtn" class="secondary">Εμφάνιση κώδικα</button>
+        </div>
+
+        <div class="description">
+            Να γραφεί τμήμα αλγορίθμου που με δεδομένο τον πίνακα Π[4,5] θα υπολογίζει τον μέσο όρο κάθε γραμμής.
+        </div>
+
+        <div class="speed-and-status">
+            <div class="speed-control">
+                <label for="row-speedRange">Ταχύτητα εκτέλεσης:</label>
+                <input id="row-speedRange" type="range" min="200" max="1200" step="100" value="650">
+                <span>Αργά&nbsp;&larr;&rarr;&nbsp;Γρήγορα</span>
+            </div>
+            <div class="vars-panel">
+                <div class="var-box">
+                    <div class="var-name">i</div>
+                    <div class="var-value" id="row-varI">-</div>
+                </div>
+                <div class="var-box">
+                    <div class="var-name">j</div>
+                    <div class="var-value" id="row-varJ">-</div>
+                </div>
+                <div class="var-box">
+                    <div class="var-name">αθρ</div>
+                    <div class="var-value" id="row-varSum">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-layout">
+            <div class="table-area">
+                <h2>Μέσος όρος γραμμών: μο[1..4]</h2>
+                <div class="row-table-and-avg">
+                    <div class="table-wrapper" id="row-tableWrapper">
+                        <table id="row-matrixTable"></table>
+                        <div id="row-arrow" class="arrow">────▶</div>
+                    </div>
+                    <div id="row-avgArray" class="row-avg-array"></div>
+                </div>
+            </div>
+
+            <div class="code-area" id="row-codeArea" style="display:none;">
+                <h2>Αλγόριθμος (γραμμές)</h2>
+                <pre id="row-codeBlock">
+<span data-line="1" class="dim-line">Για i από 1 μέχρι 4</span>
+<span data-line="2" class="dim-line">   αθρ ← 0</span>
+<span data-line="3" class="dim-line">   Για j από 1 μέχρι 5</span>
+<span data-line="4" class="dim-line">      αθρ ← αθρ + Π[i,j]</span>
+<span data-line="5" class="dim-line">   Τέλος_επανάληψης</span>
+<span data-line="6" class="dim-line">   μο[i] ← αθρ / 5</span>
+<span data-line="7" class="dim-line">Τέλος_επανάληψης</span>
+                </pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- ΚΑΡΤΕΛΑ 2: ΜΟ ΣΤΗΛΩΝ -->
+    <div id="panelCols" class="tab-panel">
+        <div class="controls">
+            <button id="col-runBtn">▶ Νέα εκτέλεση</button>
+            <button id="col-stepBtn" class="secondary">Βήμα-βήμα</button>
+            <button id="col-toggleCodeBtn" class="secondary">Εμφάνιση κώδικα</button>
+        </div>
+
+        <div class="description">
+            Να γραφεί τμήμα αλγορίθμου που με δεδομένο τον πίνακα Π[4,5] θα υπολογίζει τον μέσο όρο κάθε στήλης.
+        </div>
+
+        <div class="speed-and-status">
+            <div class="speed-control">
+                <label for="col-speedRange">Ταχύτητα εκτέλεσης:</label>
+                <input id="col-speedRange" type="range" min="200" max="1200" step="100" value="650">
+                <span>Αργά&nbsp;&larr;&rarr;&nbsp;Γρήγορα</span>
+            </div>
+
+            <div class="vars-panel">
+                <div class="var-box">
+                    <div class="var-name">i</div>
+                    <div class="var-value" id="col-varI">-</div>
+                </div>
+                <div class="var-box">
+                    <div class="var-name">j</div>
+                    <div class="var-value" id="col-varJ">-</div>
+                </div>
+                <div class="var-box">
+                    <div class="var-name">αθρ</div>
+                    <div class="var-value" id="col-varSum">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-layout">
+            <div class="table-area">
+                <h2>Μέσος όρος στηλών: μο[1..5]</h2>
+                <div class="table-wrapper" id="col-tableWrapper">
+                    <table id="col-matrixTable"></table>
+                    <div id="col-arrow" class="arrow">│
+│
+▼</div>
+                    <div id="col-avgArray" class="col-avg-array"></div>
+                </div>
+            </div>
+
+            <div class="code-area" id="col-codeArea" style="display:none;">
+                <h2>Αλγόριθμος (στήλες)</h2>
+                <pre id="col-codeBlock">
+<span data-line="1" class="dim-line">Για j από 1 μέχρι 5</span>
+<span data-line="2" class="dim-line">   αθρ ← 0</span>
+<span data-line="3" class="dim-line">   Για i από 1 μέχρι 4</span>
+<span data-line="4" class="dim-line">      αθρ ← αθρ + Π[i,j]</span>
+<span data-line="5" class="dim-line">   Τέλος_επανάληψης</span>
+<span data-line="6" class="dim-line">   μο[j] ← αθρ / 4</span>
+<span data-line="7" class="dim-line">Τέλος_επανάληψης</span>
+                </pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- ΚΑΡΤΕΛΑ 3: ΜΕΓΙΣΤΟΣ ΓΡΑΜΜΩΝ -->
+    <div id="panelMax" class="tab-panel">
+        <div class="controls">
+            <button id="max-runBtn">▶ Νέα εκτέλεση</button>
+            <button id="max-stepBtn" class="secondary">Βήμα-βήμα</button>
+            <button id="max-toggleCodeBtn" class="secondary">Εμφάνιση κώδικα</button>
+        </div>
+
+        <div class="description">
+            Να γραφεί τμήμα αλγορίθμου που με δεδομένο τον πίνακα Π[4,5] θα υπολογίζει τον μέγιστο κάθε γραμμής.
+        </div>
+
+        <div class="speed-and-status">
+            <div class="speed-control">
+                <label for="max-speedRange">Ταχύτητα εκτέλεσης:</label>
+                <input id="max-speedRange" type="range" min="200" max="1200" step="100" value="650">
+                <span>Αργά&nbsp;&larr;&rarr;&nbsp;Γρήγορα</span>
+            </div>
+            <div class="vars-panel">
+                <div class="var-box">
+                    <div class="var-name">i</div>
+                    <div class="var-value" id="max-varI">-</div>
+                </div>
+                <div class="var-box">
+                    <div class="var-name">j</div>
+                    <div class="var-value" id="max-varJ">-</div>
+                </div>
+                <div class="var-box">
+                    <div class="var-name">max</div>
+                    <div class="var-value" id="max-varMax">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-layout">
+            <div class="table-area">
+                <h2>Μέγιστος κάθε γραμμής: maxγρ[1..4]</h2>
+                <div class="row-table-and-avg">
+                    <div class="table-wrapper" id="max-tableWrapper">
+                        <table id="max-matrixTable"></table>
+                        <div id="max-arrow" class="arrow">────▶</div>
+                    </div>
+                    <div id="max-avgArray" class="row-avg-array"></div>
+                </div>
+            </div>
+
+            <div class="code-area" id="max-codeArea" style="display:none;">
+                <h2>Αλγόριθμος (μέγιστος γραμμών)</h2>
+                <pre id="max-codeBlock">
+<span data-line="1" class="dim-line">Για i από 1 μέχρι 4</span>
+<span data-line="2" class="dim-line">   max ← Π[i,1]</span>
+<span data-line="3" class="dim-line">   Για j από 1 μέχρι 5</span>
+<span data-line="4" class="dim-line">      Αν Π[i,j] &gt; max τότε</span>
+<span data-line="5" class="dim-line">         max ← Π[i,j]</span>
+<span data-line="6" class="dim-line">      Τέλος_αν</span>
+<span data-line="7" class="dim-line">   Τέλος_επανάληψης</span>
+<span data-line="8" class="dim-line">   maxγρ[i] ← max</span>
+<span data-line="9" class="dim-line">Τέλος_επανάληψης</span>
+                </pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- ΚΑΡΤΕΛΑ 4: ΜΕΓΙΣΤΟΣ ΣΤΗΛΩΝ -->
+    <div id="panelCMax" class="tab-panel">
+        <div class="controls">
+            <button id="cmax-runBtn">▶ Νέα εκτέλεση</button>
+            <button id="cmax-stepBtn" class="secondary">Βήμα-βήμα</button>
+            <button id="cmax-toggleCodeBtn" class="secondary">Εμφάνιση κώδικα</button>
+        </div>
+
+        <div class="description">
+            Να γραφεί τμήμα αλγορίθμου που με δεδομένο τον πίνακα Π[4,5] θα υπολογίζει τον μέγιστο κάθε στήλης.
+        </div>
+
+        <div class="speed-and-status">
+            <div class="speed-control">
+                <label for="cmax-speedRange">Ταχύτητα εκτέλεσης:</label>
+                <input id="cmax-speedRange" type="range" min="200" max="1200" step="100" value="650">
+                <span>Αργά&nbsp;&larr;&rarr;&nbsp;Γρήγορα</span>
+            </div>
+            <div class="vars-panel">
+                <div class="var-box">
+                    <div class="var-name">i</div>
+                    <div class="var-value" id="cmax-varI">-</div>
+                </div>
+                <div class="var-box">
+                    <div class="var-name">j</div>
+                    <div class="var-value" id="cmax-varJ">-</div>
+                </div>
+                <div class="var-box">
+                    <div class="var-name">max</div>
+                    <div class="var-value" id="cmax-varMax">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-layout">
+            <div class="table-area">
+                <h2>Μέγιστος κάθε στήλης: maxστ[1..5]</h2>
+                <div class="table-wrapper" id="cmax-tableWrapper">
+                    <table id="cmax-matrixTable"></table>
+                    <div id="cmax-arrow" class="arrow">│
+│
+▼</div>
+                    <div id="cmax-avgArray" class="col-avg-array"></div>
+                </div>
+            </div>
+
+            <div class="code-area" id="cmax-codeArea" style="display:none;">
+                <h2>Αλγόριθμος (μέγιστος στηλών)</h2>
+                <pre id="cmax-codeBlock">
+<span data-line="1" class="dim-line">Για j από 1 μέχρι 5</span>
+<span data-line="2" class="dim-line">   max ← Π[1,j]</span>
+<span data-line="3" class="dim-line">   Για i από 1 μέχρι 4</span>
+<span data-line="4" class="dim-line">      Αν Π[i,j] &gt; max τότε</span>
+<span data-line="5" class="dim-line">         max ← Π[i,j]</span>
+<span data-line="6" class="dim-line">      Τέλος_αν</span>
+<span data-line="7" class="dim-line">   Τέλος_επανάληψης</span>
+<span data-line="8" class="dim-line">   maxστ[j] ← max</span>
+<span data-line="9" class="dim-line">Τέλος_επανάληψης</span>
+                </pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="credits">Ιδέα+Δημιουργία: Ευτυχία Δουφέκα, Δημήτρης Γιακοβής</div>
+</div>
+
+<script>
+/************* TABS + THEME *************/
+(function() {
+    const tabRows = document.getElementById('tabRows');
+    const tabCols = document.getElementById('tabCols');
+    const tabMax  = document.getElementById('tabMax');
+    const tabCMax = document.getElementById('tabCMax');
+
+    const panelRows = document.getElementById('panelRows');
+    const panelCols = document.getElementById('panelCols');
+    const panelMax  = document.getElementById('panelMax');
+    const panelCMax = document.getElementById('panelCMax');
+
+    const themeBtn = document.getElementById('themeBtn');
+
+    function activate(tab) {
+        tabRows.classList.toggle('active', tab === 'rows');
+        tabCols.classList.toggle('active', tab === 'cols');
+        tabMax.classList.toggle('active',  tab === 'max');
+        tabCMax.classList.toggle('active', tab === 'cmax');
+
+        panelRows.classList.toggle('active', tab === 'rows');
+        panelCols.classList.toggle('active', tab === 'cols');
+        panelMax.classList.toggle('active',  tab === 'max');
+        panelCMax.classList.toggle('active', tab === 'cmax');
+    }
+
+    tabRows.addEventListener('click', () => activate('rows'));
+    tabCols.addEventListener('click', () => activate('cols'));
+    tabMax.addEventListener('click',  () => activate('max'));
+    tabCMax.addEventListener('click', () => activate('cmax'));
+
+    themeBtn.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+        const isDark = document.body.classList.contains('dark-mode');
+        themeBtn.textContent = isDark ? 'Day ☀️' : 'Night 🌙';
+    });
+})();
+
+/************* HELPER: RANDOM INT *************/
+function randInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+/************* ΚΑΡΤΕΛΑ 1: ΜΟ ΓΡΑΜΜΩΝ *************/
+(function() {
+    const ROWS = 4, COLS = 5;
+
+    const table = document.getElementById('row-matrixTable');
+    const avgArrayDiv = document.getElementById('row-avgArray');
+    const runBtn = document.getElementById('row-runBtn');
+    const stepBtn = document.getElementById('row-stepBtn');
+    const toggleCodeBtn = document.getElementById('row-toggleCodeBtn');
+    const speedRange = document.getElementById('row-speedRange');
+
+    const codeArea = document.getElementById('row-codeArea');
+    const codeBlock = document.getElementById('row-codeBlock');
+    const tableWrapper = document.getElementById('row-tableWrapper');
+    const arrowEl = document.getElementById('row-arrow');
+
+    const varI = document.getElementById('row-varI');
+    const varJ = document.getElementById('row-varJ');
+    const varSum = document.getElementById('row-varSum');
+
+    let matrix = [];
+    let steps = [];
+    let stepIndex = 0;
+    let timerId = null;
+    let autoMode = false;
+    let speed = Number(speedRange.value);
+    let currentSum = 0;
+    let finished = false;
+
+    function alignAvgArray() {
+        const firstCell = table.querySelector('tr:first-child td:first-child');
+        if (!firstCell) return;
+        const wrapperRect = tableWrapper.getBoundingClientRect();
+        const cellRect = firstCell.getBoundingClientRect();
+        const offset = cellRect.top - wrapperRect.top + 4; // μικρή διόρθωση
+        avgArrayDiv.style.marginTop = offset + 'px';
+    }
+
+    function generateMatrix() {
+        matrix = [];
+        table.innerHTML = '';
+        for (let i = 0; i < ROWS; i++) {
+            const row = [];
+            const tr = document.createElement('tr');
+            for (let j = 0; j < COLS; j++) {
+                const value = randInt(1, 99);
+                row.push(value);
+                const td = document.createElement('td');
+                td.textContent = value;
+                td.dataset.i = i;
+                td.dataset.j = j;
+                tr.appendChild(td);
+            }
+            matrix.push(row);
+            table.appendChild(tr);
+        }
+        requestAnimationFrame(alignAvgArray);
+    }
+
+    function generateAvgArrayPlaceholders() {
+        avgArrayDiv.innerHTML = '';
+        for (let i = 0; i < ROWS; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'avg-cell';
+            cell.dataset.i = i;
+
+            const label = document.createElement('span');
+            label.className = 'avg-cell-label';
+            label.textContent = `μο[${i + 1}]`;
+
+            const valueSpan = document.createElement('span');
+            valueSpan.className = 'avg-cell-value';
+            valueSpan.textContent = '';
+
+            cell.appendChild(label);
+            cell.appendChild(valueSpan);
+            avgArrayDiv.appendChild(cell);
+        }
+    }
+
+    function moveArrowToCell(i, j) {
+        const cell = table.querySelector(`td[data-i="${i}"][data-j="${j}"]`);
+        if (!cell) {
+            arrowEl.style.opacity = 0;
+            return;
+        }
+        const wrapperRect = tableWrapper.getBoundingClientRect();
+        const cellRect = cell.getBoundingClientRect();
+        const arrowHeight = arrowEl.offsetHeight || 16;
+
+        const offsetTop = cellRect.top - wrapperRect.top + (cellRect.height / 2) - (arrowHeight / 2);
+        const offsetLeft = cellRect.left - wrapperRect.left - 50;
+
+        arrowEl.style.top = offsetTop + 'px';
+        arrowEl.style.left = offsetLeft + 'px';
+        arrowEl.style.opacity = 1;
+    }
+
+    function clearCellHighlight() {
+        table.querySelectorAll('td.active-cell').forEach(td => td.classList.remove('active-cell'));
+    }
+    function highlightCell(i, j) {
+        clearCellHighlight();
+        const cell = table.querySelector(`td[data-i="${i}"][data-j="${j}"]`);
+        if (cell) cell.classList.add('active-cell');
+    }
+    function clearRowHighlights() {
+        table.querySelectorAll('tr.highlight-row').forEach(tr => tr.classList.remove('highlight-row'));
+    }
+    function highlightRow(i) {
+        clearRowHighlights();
+        const row = table.rows[i];
+        if (row) row.classList.add('highlight-row');
+    }
+
+    function setActiveLine(lineNumber) {
+        const lines = codeBlock.querySelectorAll('span[data-line]');
+        lines.forEach(span => {
+            span.classList.remove('active-line');
+            if (!span.classList.contains('dim-line')) span.classList.add('dim-line');
+        });
+        if (lineNumber == null) return;
+        const target = codeBlock.querySelector(`span[data-line="${lineNumber}"]`);
+        if (target) {
+            target.classList.add('active-line');
+            target.classList.remove('dim-line');
+        }
+    }
+
+    function updateVars(iVal, jVal, sumVal) {
+        varI.textContent = iVal;
+        varJ.textContent = jVal;
+        varSum.textContent = sumVal;
+    }
+
+    function buildSteps() {
+        steps = [];
+        for (let i = 0; i < ROWS; i++) {
+            steps.push({ action: 'newRow', i, line: 1 });
+            steps.push({ action: 'resetSum', i, line: 2 });
+            for (let j = 0; j < COLS; j++) {
+                steps.push({ action: 'enterJ', i, j, line: 3 });
+                steps.push({ action: 'add', i, j, line: 4 });
+            }
+            steps.push({ action: 'endJ', i, line: 5 });
+            steps.push({ action: 'setAvg', i, line: 6 });
+        }
+        steps.push({ action: 'endAll', line: 7 });
+    }
+
+    function finalizeAnimation() {
+        if (timerId !== null) clearTimeout(timerId);
+        timerId = null;
+        autoMode = false;
+        setActiveLine(null);
+        arrowEl.style.opacity = 0;
+        clearCellHighlight();
+        clearRowHighlights();
+    }
+
+    function resetAnimation() {
+        if (timerId !== null) clearTimeout(timerId);
+        timerId = null;
+        stepIndex = 0;
+        autoMode = false;
+        finished = false;
+        clearCellHighlight();
+        clearRowHighlights();
+        arrowEl.style.opacity = 0;
+        setActiveLine(null);
+        currentSum = 0;
+        updateVars('-', '-', 0);
+        generateMatrix();
+        generateAvgArrayPlaceholders();
+        buildSteps();
+    }
+
+    function doStep() {
+        if (stepIndex >= steps.length) {
+            finished = true;
+            finalizeAnimation();
+            return false;
+        }
+        const step = steps[stepIndex++];
+        if (step.line) setActiveLine(step.line);
+
+        switch (step.action) {
+            case 'newRow':
+                highlightRow(step.i);
+                clearCellHighlight();
+                arrowEl.style.opacity = 0;
+                currentSum = 0;
+                updateVars(step.i + 1, '-', currentSum);
+                break;
+            case 'resetSum':
+                currentSum = 0;
+                updateVars(step.i + 1, '-', currentSum);
+                break;
+            case 'enterJ':
+                moveArrowToCell(step.i, step.j);
+                highlightCell(step.i, step.j);
+                updateVars(step.i + 1, step.j + 1, currentSum);
+                break;
+            case 'add':
+                highlightCell(step.i, step.j);
+                currentSum += matrix[step.i][step.j];
+                updateVars(step.i + 1, step.j + 1, currentSum);
+                break;
+            case 'endJ':
+                clearCellHighlight();
+                break;
+            case 'setAvg':
+                const avg = (currentSum / COLS).toFixed(2);
+                const avgCell = avgArrayDiv.querySelector(`.avg-cell[data-i="${step.i}"]`);
+                if (avgCell) {
+                    const valSpan = avgCell.querySelector('.avg-cell-value');
+                    avgCell.classList.remove('filled');
+                    void avgCell.offsetWidth;
+                    valSpan.textContent = avg;
+                    avgCell.classList.add('filled');
+                }
+                break;
+            case 'endAll':
+                clearRowHighlights();
+                arrowEl.style.opacity = 0;
+                updateVars(ROWS + 1, COLS + 1, currentSum);
+                finished = true;
+                break;
+        }
+
+        if (stepIndex >= steps.length) {
+            finished = true;
+            finalizeAnimation();
+            return false;
+        }
+        return true;
+    }
+
+    function autoStepLoop() {
+        if (!autoMode) return;
+        const more = doStep();
+        if (more) timerId = setTimeout(autoStepLoop, speed);
+    }
+    function startAutoAnimation() {
+        resetAnimation();
+        autoMode = true;
+        finished = false;
+        autoStepLoop();
+    }
+
+    runBtn.addEventListener('click', startAutoAnimation);
+    stepBtn.addEventListener('click', () => {
+        if (timerId !== null) clearTimeout(timerId);
+        timerId = null;
+        autoMode = false;
+        if (finished) return;
+        if (stepIndex === 0) resetAnimation();
+        doStep();
+    });
+    toggleCodeBtn.addEventListener('click', () => {
+        const hidden = codeArea.style.display === 'none';
+        codeArea.style.display = hidden ? 'block' : 'none';
+        toggleCodeBtn.textContent = hidden ? 'Απόκρυψη κώδικα' : 'Εμφάνιση κώδικα';
+    });
+    speedRange.addEventListener('input', e => speed = Number(e.target.value));
+    window.addEventListener('resize', () => requestAnimationFrame(alignAvgArray));
+
+    generateMatrix();
+    generateAvgArrayPlaceholders();
+    buildSteps();
+})();
+
+/************* ΚΑΡΤΕΛΑ 2: ΜΟ ΣΤΗΛΩΝ *************/
+(function() {
+    const ROWS = 4, COLS = 5;
+
+    const table = document.getElementById('col-matrixTable');
+    const avgArrayDiv = document.getElementById('col-avgArray');
+    const runBtn = document.getElementById('col-runBtn');
+    const stepBtn = document.getElementById('col-stepBtn');
+    const toggleCodeBtn = document.getElementById('col-toggleCodeBtn');
+    const speedRange = document.getElementById('col-speedRange');
+
+    const codeArea = document.getElementById('col-codeArea');
+    const codeBlock = document.getElementById('col-codeBlock');
+    const tableWrapper = document.getElementById('col-tableWrapper');
+    const arrowEl = document.getElementById('col-arrow');
+
+    const varI = document.getElementById('col-varI');
+    const varJ = document.getElementById('col-varJ');
+    const varSum = document.getElementById('col-varSum');
+
+    let matrix = [];
+    let steps = [];
+    let stepIndex = 0;
+    let timerId = null;
+    let autoMode = false;
+    let speed = Number(speedRange.value);
+    let currentSum = 0;
+    let finished = false;
+
+    function generateMatrix() {
+        matrix = [];
+        table.innerHTML = '';
+        for (let i = 0; i < ROWS; i++) {
+            const row = [];
+            const tr = document.createElement('tr');
+            for (let j = 0; j < COLS; j++) {
+                const value = randInt(1, 99);
+                row.push(value);
+                const td = document.createElement('td');
+                td.textContent = value;
+                td.dataset.i = i;
+                td.dataset.j = j;
+                tr.appendChild(td);
+            }
+            matrix.push(row);
+            table.appendChild(tr);
+        }
+    }
+
+    function generateAvgArrayPlaceholders() {
+        avgArrayDiv.innerHTML = '';
+        for (let j = 0; j < COLS; j++) {
+            const cell = document.createElement('div');
+            cell.className = 'avg-cell';
+            cell.dataset.j = j;
+
+            const label = document.createElement('span');
+            label.className = 'avg-cell-label';
+            label.textContent = `μο[${j + 1}]`;
+
+            const valueSpan = document.createElement('span');
+            valueSpan.className = 'avg-cell-value';
+            valueSpan.textContent = '';
+
+            cell.appendChild(label);
+            cell.appendChild(valueSpan);
+            avgArrayDiv.appendChild(cell);
+        }
+    }
+
+    function moveArrowToCell(i, j) {
+        const cell = table.querySelector(`td[data-i="${i}"][data-j="${j}"]`);
+        if (!cell) {
+            arrowEl.style.opacity = 0;
+            return;
+        }
+        const wrapperRect = tableWrapper.getBoundingClientRect();
+        const cellRect = cell.getBoundingClientRect();
+        const arrowHeight = arrowEl.offsetHeight || 24;
+
+        const offsetLeft = cellRect.left - wrapperRect.left + (cellRect.width / 2) - 6;
+        const offsetTop = cellRect.top - wrapperRect.top - arrowHeight - 4;
+
+        arrowEl.style.left = offsetLeft + 'px';
+        arrowEl.style.top = offsetTop + 'px';
+        arrowEl.style.opacity = 1;
+    }
+
+    function clearCellHighlight() {
+        table.querySelectorAll('td.active-cell').forEach(td => td.classList.remove('active-cell'));
+    }
+    function highlightCell(i, j) {
+        clearCellHighlight();
+        const cell = table.querySelector(`td[data-i="${i}"][data-j="${j}"]`);
+        if (cell) cell.classList.add('active-cell');
+    }
+
+    function setActiveLine(lineNumber) {
+        const lines = codeBlock.querySelectorAll('span[data-line]');
+        lines.forEach(span => {
+            span.classList.remove('active-line');
+            if (!span.classList.contains('dim-line')) span.classList.add('dim-line');
+        });
+        if (lineNumber == null) return;
+        const target = codeBlock.querySelector(`span[data-line="${lineNumber}"]`);
+        if (target) {
+            target.classList.add('active-line');
+            target.classList.remove('dim-line');
+        }
+    }
+
+    function updateVars(iVal, jVal, sumVal) {
+        varI.textContent = iVal;
+        varJ.textContent = jVal;
+        varSum.textContent = sumVal;
+    }
+
+    function buildSteps() {
+        steps = [];
+        for (let j = 0; j < COLS; j++) {
+            steps.push({ action: 'newCol', j, line: 1 });
+            steps.push({ action: 'resetSum', j, line: 2 });
+            for (let i = 0; i < ROWS; i++) {
+                steps.push({ action: 'enterI', i, j, line: 3 });
+                steps.push({ action: 'add', i, j, line: 4 });
+            }
+            steps.push({ action: 'endI', j, line: 5 });
+            steps.push({ action: 'setAvg', j, line: 6 });
+        }
+        steps.push({ action: 'endAll', line: 7 });
+    }
+
+    function finalizeAnimation() {
+        if (timerId !== null) clearTimeout(timerId);
+        timerId = null;
+        autoMode = false;
+        setActiveLine(null);
+        arrowEl.style.opacity = 0;
+        clearCellHighlight();
+    }
+
+    function resetAnimation() {
+        if (timerId !== null) clearTimeout(timerId);
+        timerId = null;
+        stepIndex = 0;
+        autoMode = false;
+        finished = false;
+        clearCellHighlight();
+        arrowEl.style.opacity = 0;
+        setActiveLine(null);
+        currentSum = 0;
+        updateVars('-', '-', 0);
+        generateMatrix();
+        generateAvgArrayPlaceholders();
+        buildSteps();
+    }
+
+    function doStep() {
+        if (stepIndex >= steps.length) {
+            finished = true;
+            finalizeAnimation();
+            return false;
+        }
+        const step = steps[stepIndex++];
+        if (step.line) setActiveLine(step.line);
+
+        switch (step.action) {
+            case 'newCol':
+                clearCellHighlight();
+                arrowEl.style.opacity = 0;
+                currentSum = 0;
+                updateVars('-', step.j + 1, currentSum);
+                break;
+            case 'resetSum':
+                currentSum = 0;
+                updateVars('-', step.j + 1, currentSum);
+                break;
+            case 'enterI':
+                moveArrowToCell(step.i, step.j);
+                highlightCell(step.i, step.j);
+                updateVars(step.i + 1, step.j + 1, currentSum);
+                break;
+            case 'add':
+                highlightCell(step.i, step.j);
+                currentSum += matrix[step.i][step.j];
+                updateVars(step.i + 1, step.j + 1, currentSum);
+                break;
+            case 'endI':
+                clearCellHighlight();
+                break;
+            case 'setAvg':
+                const avg = (currentSum / ROWS).toFixed(2);
+                const avgCell = avgArrayDiv.querySelector(`.avg-cell[data-j="${step.j}"]`);
+                if (avgCell) {
+                    const valSpan = avgCell.querySelector('.avg-cell-value');
+                    avgCell.classList.remove('filled');
+                    void avgCell.offsetWidth;
+                    valSpan.textContent = avg;
+                    avgCell.classList.add('filled');
+                }
+                break;
+            case 'endAll':
+                arrowEl.style.opacity = 0;
+                clearCellHighlight();
+                updateVars(ROWS + 1, COLS + 1, currentSum);
+                finished = true;
+                break;
+        }
+
+        if (stepIndex >= steps.length) {
+            finished = true;
+            finalizeAnimation();
+            return false;
+        }
+        return true;
+    }
+
+    function autoStepLoop() {
+        if (!autoMode) return;
+        const more = doStep();
+        if (more) timerId = setTimeout(autoStepLoop, speed);
+    }
+    function startAutoAnimation() {
+        resetAnimation();
+        autoMode = true;
+        finished = false;
+        autoStepLoop();
+    }
+
+    runBtn.addEventListener('click', startAutoAnimation);
+    stepBtn.addEventListener('click', () => {
+        if (timerId !== null) clearTimeout(timerId);
+        timerId = null;
+        autoMode = false;
+        if (finished) return;
+        if (stepIndex === 0) resetAnimation();
+        doStep();
+    });
+    toggleCodeBtn.addEventListener('click', () => {
+        const hidden = codeArea.style.display === 'none';
+        codeArea.style.display = hidden ? 'block' : 'none';
+        toggleCodeBtn.textContent = hidden ? 'Απόκρυψη κώδικα' : 'Εμφάνιση κώδικα';
+    });
+    speedRange.addEventListener('input', e => speed = Number(e.target.value));
+
+    generateMatrix();
+    generateAvgArrayPlaceholders();
+    buildSteps();
+})();
+
+/************* ΚΑΡΤΕΛΑ 3: ΜΕΓΙΣΤΟΣ ΓΡΑΜΜΩΝ *************/
+(function() {
+    const ROWS = 4, COLS = 5;
+
+    const table = document.getElementById('max-matrixTable');
+    const maxArrayDiv = document.getElementById('max-avgArray');
+    const runBtn = document.getElementById('max-runBtn');
+    const stepBtn = document.getElementById('max-stepBtn');
+    const toggleCodeBtn = document.getElementById('max-toggleCodeBtn');
+    const speedRange = document.getElementById('max-speedRange');
+
+    const codeArea = document.getElementById('max-codeArea');
+    const codeBlock = document.getElementById('max-codeBlock');
+    const tableWrapper = document.getElementById('max-tableWrapper');
+    const arrowEl = document.getElementById('max-arrow');
+
+    const varI = document.getElementById('max-varI');
+    const varJ = document.getElementById('max-varJ');
+    const varMax = document.getElementById('max-varMax');
+
+    let matrix = [];
+    let steps = [];
+    let stepIndex = 0;
+    let timerId = null;
+    let autoMode = false;
+    let speed = Number(speedRange.value);
+    let currentMax = null;
+    let finished = false;
+
+    function alignMaxArray() {
+        const firstCell = table.querySelector('tr:first-child td:first-child');
+        if (!firstCell) return;
+        const wrapperRect = tableWrapper.getBoundingClientRect();
+        const cellRect = firstCell.getBoundingClientRect();
+        const offset = cellRect.top - wrapperRect.top + 4; // όπως είπες
+        maxArrayDiv.style.marginTop = offset + 'px';
+    }
+
+    function generateMatrix() {
+        matrix = [];
+        table.innerHTML = '';
+        for (let i = 0; i < ROWS; i++) {
+            const row = [];
+            const tr = document.createElement('tr');
+            for (let j = 0; j < COLS; j++) {
+                const value = randInt(1, 99);
+                row.push(value);
+                const td = document.createElement('td');
+                td.textContent = value;
+                td.dataset.i = i;
+                td.dataset.j = j;
+                tr.appendChild(td);
+            }
+            matrix.push(row);
+            table.appendChild(tr);
+        }
+        requestAnimationFrame(alignMaxArray);
+    }
+
+    function generateMaxArrayPlaceholders() {
+        maxArrayDiv.innerHTML = '';
+        for (let i = 0; i < ROWS; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'avg-cell';
+            cell.dataset.i = i;
+
+            const label = document.createElement('span');
+            label.className = 'avg-cell-label';
+            label.textContent = `maxγρ[${i + 1}]`;
+
+            const valueSpan = document.createElement('span');
+            valueSpan.className = 'avg-cell-value';
+            valueSpan.textContent = '';
+
+            cell.appendChild(label);
+            cell.appendChild(valueSpan);
+            maxArrayDiv.appendChild(cell);
+        }
+    }
+
+    function moveArrowToCell(i, j) {
+        const cell = table.querySelector(`td[data-i="${i}"][data-j="${j}"]`);
+        if (!cell) {
+            arrowEl.style.opacity = 0;
+            return;
+        }
+        const wrapperRect = tableWrapper.getBoundingClientRect();
+        const cellRect = cell.getBoundingClientRect();
+        const arrowHeight = arrowEl.offsetHeight || 16;
+
+        const offsetTop = cellRect.top - wrapperRect.top + (cellRect.height / 2) - (arrowHeight / 2);
+        const offsetLeft = cellRect.left - wrapperRect.left - 50;
+
+        arrowEl.style.top = offsetTop + 'px';
+        arrowEl.style.left = offsetLeft + 'px';
+        arrowEl.style.opacity = 1;
+    }
+
+    function clearCellHighlight() {
+        table.querySelectorAll('td.active-cell').forEach(td => td.classList.remove('active-cell'));
+    }
+    function highlightCell(i, j) {
+        clearCellHighlight();
+        const cell = table.querySelector(`td[data-i="${i}"][data-j="${j}"]`);
+        if (cell) cell.classList.add('active-cell');
+    }
+    function clearRowHighlights() {
+        table.querySelectorAll('tr.highlight-row').forEach(tr => tr.classList.remove('highlight-row'));
+    }
+    function highlightRow(i) {
+        clearRowHighlights();
+        const row = table.rows[i];
+        if (row) row.classList.add('highlight-row');
+    }
+
+    function setActiveLine(lineNumber) {
+        const lines = codeBlock.querySelectorAll('span[data-line]');
+        lines.forEach(span => {
+            span.classList.remove('active-line');
+            if (!span.classList.contains('dim-line')) span.classList.add('dim-line');
+        });
+        if (lineNumber == null) return;
+        const target = codeBlock.querySelector(`span[data-line="${lineNumber}"]`);
+        if (target) {
+            target.classList.add('active-line');
+            target.classList.remove('dim-line');
+        }
+    }
+
+    function updateVars(iVal, jVal, maxVal) {
+        varI.textContent = iVal;
+        varJ.textContent = jVal;
+        varMax.textContent = maxVal;
+    }
+
+    function buildSteps() {
+        steps = [];
+        for (let i = 0; i < ROWS; i++) {
+            steps.push({ action: 'newRow', i, line: 1 });
+            steps.push({ action: 'setInitialMax', i, line: 2 });
+            for (let j = 0; j < COLS; j++) {
+                steps.push({ action: 'enterJ', i, j, line: 3 });
+                steps.push({ action: 'compare', i, j, line: 4 });
+                steps.push({ action: 'maybeUpdate', i, j, line: 5 });
+                steps.push({ action: 'endIf', i, j, line: 6 });
+            }
+            steps.push({ action: 'endJ', i, line: 7 });
+            steps.push({ action: 'setRowMax', i, line: 8 });
+        }
+        steps.push({ action: 'endAll', line: 9 });
+    }
+
+    function finalizeAnimation() {
+        if (timerId !== null) clearTimeout(timerId);
+        timerId = null;
+        autoMode = false;
+        setActiveLine(null);
+        arrowEl.style.opacity = 0;
+        clearCellHighlight();
+        clearRowHighlights();
+    }
+
+    function resetAnimation() {
+        if (timerId !== null) clearTimeout(timerId);
+        timerId = null;
+        stepIndex = 0;
+        autoMode = false;
+        finished = false;
+        clearCellHighlight();
+        clearRowHighlights();
+        arrowEl.style.opacity = 0;
+        setActiveLine(null);
+        currentMax = null;
+        updateVars('-', '-', '-');
+        generateMatrix();
+        generateMaxArrayPlaceholders();
+        buildSteps();
+    }
+
+    function doStep() {
+        if (stepIndex >= steps.length) {
+            finished = true;
+            finalizeAnimation();
+            return false;
+        }
+        const step = steps[stepIndex++];
+        if (step.line) setActiveLine(step.line);
+
+        switch (step.action) {
+            case 'newRow':
+                highlightRow(step.i);
+                clearCellHighlight();
+                arrowEl.style.opacity = 0;
+                currentMax = null;
+                updateVars(step.i + 1, '-', '-');
+                break;
+            case 'setInitialMax':
+                currentMax = matrix[step.i][0];
+                highlightCell(step.i, 0);
+                moveArrowToCell(step.i, 0);
+                updateVars(step.i + 1, 1, currentMax);
+                break;
+            case 'enterJ':
+                moveArrowToCell(step.i, step.j);
+                highlightCell(step.i, step.j);
+                updateVars(step.i + 1, step.j + 1, currentMax);
+                break;
+            case 'compare':
+                break;
+            case 'maybeUpdate':
+                const value = matrix[step.i][step.j];
+                if (currentMax === null || value > currentMax) {
+                    currentMax = value;
+                    updateVars(step.i + 1, step.j + 1, currentMax);
+                }
+                break;
+            case 'endIf':
+                break;
+            case 'endJ':
+                clearCellHighlight();
+                break;
+            case 'setRowMax':
+                const maxCell = maxArrayDiv.querySelector(`.avg-cell[data-i="${step.i}"]`);
+                if (maxCell) {
+                    const valSpan = maxCell.querySelector('.avg-cell-value');
+                    maxCell.classList.remove('filled');
+                    void maxCell.offsetWidth;
+                    valSpan.textContent = currentMax;
+                    maxCell.classList.add('filled');
+                }
+                break;
+            case 'endAll':
+                clearRowHighlights();
+                arrowEl.style.opacity = 0;
+                updateVars(ROWS + 1, COLS + 1, currentMax);
+                finished = true;
+                break;
+        }
+
+        if (stepIndex >= steps.length) {
+            finished = true;
+            finalizeAnimation();
+            return false;
+        }
+        return true;
+    }
+
+    function autoStepLoop() {
+        if (!autoMode) return;
+        const more = doStep();
+        if (more) timerId = setTimeout(autoStepLoop, speed);
+    }
+    function startAutoAnimation() {
+        resetAnimation();
+        autoMode = true;
+        finished = false;
+        autoStepLoop();
+    }
+
+    runBtn.addEventListener('click', startAutoAnimation);
+    stepBtn.addEventListener('click', () => {
+        if (timerId !== null) clearTimeout(timerId);
+        timerId = null;
+        autoMode = false;
+        if (finished) return;
+        if (stepIndex === 0) resetAnimation();
+        doStep();
+    });
+    toggleCodeBtn.addEventListener('click', () => {
+        const hidden = codeArea.style.display === 'none';
+        codeArea.style.display = hidden ? 'block' : 'none';
+        toggleCodeBtn.textContent = hidden ? 'Απόκρυψη κώδικα' : 'Εμφάνιση κώδικα';
+    });
+    speedRange.addEventListener('input', e => speed = Number(e.target.value));
+    window.addEventListener('resize', () => requestAnimationFrame(alignMaxArray));
+
+    generateMatrix();
+    generateMaxArrayPlaceholders();
+    buildSteps();
+})();
+
+/************* ΚΑΡΤΕΛΑ 4: ΜΕΓΙΣΤΟΣ ΣΤΗΛΩΝ *************/
+(function() {
+    const ROWS = 4, COLS = 5;
+
+    const table = document.getElementById('cmax-matrixTable');
+    const maxArrayDiv = document.getElementById('cmax-avgArray');
+    const runBtn = document.getElementById('cmax-runBtn');
+    const stepBtn = document.getElementById('cmax-stepBtn');
+    const toggleCodeBtn = document.getElementById('cmax-toggleCodeBtn');
+    const speedRange = document.getElementById('cmax-speedRange');
+
+    const codeArea = document.getElementById('cmax-codeArea');
+    const codeBlock = document.getElementById('cmax-codeBlock');
+    const tableWrapper = document.getElementById('cmax-tableWrapper');
+    const arrowEl = document.getElementById('cmax-arrow');
+
+    const varI = document.getElementById('cmax-varI');
+    const varJ = document.getElementById('cmax-varJ');
+    const varMax = document.getElementById('cmax-varMax');
+
+    let matrix = [];
+    let steps = [];
+    let stepIndex = 0;
+    let timerId = null;
+    let autoMode = false;
+    let speed = Number(speedRange.value);
+    let currentMax = null;
+    let finished = false;
+
+    function generateMatrix() {
+        matrix = [];
+        table.innerHTML = '';
+        for (let i = 0; i < ROWS; i++) {
+            const row = [];
+            const tr = document.createElement('tr');
+            for (let j = 0; j < COLS; j++) {
+                const value = randInt(1, 99);
+                row.push(value);
+                const td = document.createElement('td');
+                td.textContent = value;
+                td.dataset.i = i;
+                td.dataset.j = j;
+                tr.appendChild(td);
+            }
+            matrix.push(row);
+            table.appendChild(tr);
+        }
+    }
+
+    function generateMaxArrayPlaceholders() {
+        maxArrayDiv.innerHTML = '';
+        for (let j = 0; j < COLS; j++) {
+            const cell = document.createElement('div');
+            cell.className = 'avg-cell';
+            cell.dataset.j = j;
+
+            const label = document.createElement('span');
+            label.className = 'avg-cell-label';
+            label.textContent = `maxστ[${j + 1}]`;
+
+            const valueSpan = document.createElement('span');
+            valueSpan.className = 'avg-cell-value';
+            valueSpan.textContent = '';
+
+            cell.appendChild(label);
+            cell.appendChild(valueSpan);
+            maxArrayDiv.appendChild(cell);
+        }
+    }
+
+    function moveArrowToCell(i, j) {
+        const cell = table.querySelector(`td[data-i="${i}"][data-j="${j}"]`);
+        if (!cell) {
+            arrowEl.style.opacity = 0;
+            return;
+        }
+        const wrapperRect = tableWrapper.getBoundingClientRect();
+        const cellRect = cell.getBoundingClientRect();
+        const arrowHeight = arrowEl.offsetHeight || 24;
+
+        const offsetLeft = cellRect.left - wrapperRect.left + (cellRect.width / 2) - 6;
+        const offsetTop = cellRect.top - wrapperRect.top - arrowHeight - 4;
+
+        arrowEl.style.left = offsetLeft + 'px';
+        arrowEl.style.top = offsetTop + 'px';
+        arrowEl.style.opacity = 1;
+    }
+
+    function clearCellHighlight() {
+        table.querySelectorAll('td.active-cell').forEach(td => td.classList.remove('active-cell'));
+    }
+    function highlightCell(i, j) {
+        clearCellHighlight();
+        const cell = table.querySelector(`td[data-i="${i}"][data-j="${j}"]`);
+        if (cell) cell.classList.add('active-cell');
+    }
+
+    function setActiveLine(lineNumber) {
+        const lines = codeBlock.querySelectorAll('span[data-line]');
+        lines.forEach(span => {
+            span.classList.remove('active-line');
+            if (!span.classList.contains('dim-line')) span.classList.add('dim-line');
+        });
+        if (lineNumber == null) return;
+        const target = codeBlock.querySelector(`span[data-line="${lineNumber}"]`);
+        if (target) {
+            target.classList.add('active-line');
+            target.classList.remove('dim-line');
+        }
+    }
+
+    function updateVars(iVal, jVal, maxVal) {
+        varI.textContent = iVal;
+        varJ.textContent = jVal;
+        varMax.textContent = maxVal;
+    }
+
+    function buildSteps() {
+        steps = [];
+        for (let j = 0; j < COLS; j++) {
+            steps.push({ action: 'newCol', j, line: 1 });
+            steps.push({ action: 'setInitialMax', j, line: 2 });
+            for (let i = 0; i < ROWS; i++) {
+                steps.push({ action: 'enterI', i, j, line: 3 });
+                steps.push({ action: 'compare', i, j, line: 4 });
+                steps.push({ action: 'maybeUpdate', i, j, line: 5 });
+                steps.push({ action: 'endIf', i, j, line: 6 });
+            }
+            steps.push({ action: 'endI', j, line: 7 });
+            steps.push({ action: 'setColMax', j, line: 8 });
+        }
+        steps.push({ action: 'endAll', line: 9 });
+    }
+
+    function finalizeAnimation() {
+        if (timerId !== null) clearTimeout(timerId);
+        timerId = null;
+        autoMode = false;
+        setActiveLine(null);
+        arrowEl.style.opacity = 0;
+        clearCellHighlight();
+    }
+
+    function resetAnimation() {
+        if (timerId !== null) clearTimeout(timerId);
+        timerId = null;
+        stepIndex = 0;
+        autoMode = false;
+        finished = false;
+        clearCellHighlight();
+        arrowEl.style.opacity = 0;
+        setActiveLine(null);
+        currentMax = null;
+        updateVars('-', '-', '-');
+        generateMatrix();
+        generateMaxArrayPlaceholders();
+        buildSteps();
+    }
+
+    function doStep() {
+        if (stepIndex >= steps.length) {
+            finished = true;
+            finalizeAnimation();
+            return false;
+        }
+        const step = steps[stepIndex++];
+        if (step.line) setActiveLine(step.line);
+
+        switch (step.action) {
+            case 'newCol':
+                clearCellHighlight();
+                arrowEl.style.opacity = 0;
+                currentMax = null;
+                updateVars('-', step.j + 1, '-');
+                break;
+            case 'setInitialMax':
+                currentMax = matrix[0][step.j];
+                highlightCell(0, step.j);
+                moveArrowToCell(0, step.j);
+                updateVars(1, step.j + 1, currentMax);
+                break;
+            case 'enterI':
+                moveArrowToCell(step.i, step.j);
+                highlightCell(step.i, step.j);
+                updateVars(step.i + 1, step.j + 1, currentMax);
+                break;
+            case 'compare':
+                break;
+            case 'maybeUpdate':
+                const val = matrix[step.i][step.j];
+                if (currentMax === null || val > currentMax) {
+                    currentMax = val;
+                    updateVars(step.i + 1, step.j + 1, currentMax);
+                }
+                break;
+            case 'endIf':
+                break;
+            case 'endI':
+                clearCellHighlight();
+                break;
+            case 'setColMax':
+                const maxCell = maxArrayDiv.querySelector(`.avg-cell[data-j="${step.j}"]`);
+                if (maxCell) {
+                    const valSpan = maxCell.querySelector('.avg-cell-value');
+                    maxCell.classList.remove('filled');
+                    void maxCell.offsetWidth;
+                    valSpan.textContent = currentMax;
+                    maxCell.classList.add('filled');
+                }
+                break;
+            case 'endAll':
+                arrowEl.style.opacity = 0;
+                clearCellHighlight();
+                updateVars(ROWS + 1, COLS + 1, currentMax);
+                finished = true;
+                break;
+        }
+
+        if (stepIndex >= steps.length) {
+            finished = true;
+            finalizeAnimation();
+            return false;
+        }
+        return true;
+    }
+
+    function autoStepLoop() {
+        if (!autoMode) return;
+        const more = doStep();
+        if (more) timerId = setTimeout(autoStepLoop, speed);
+    }
+    function startAutoAnimation() {
+        resetAnimation();
+        autoMode = true;
+        finished = false;
+        autoStepLoop();
+    }
+
+    runBtn.addEventListener('click', startAutoAnimation);
+    stepBtn.addEventListener('click', () => {
+        if (timerId !== null) clearTimeout(timerId);
+        timerId = null;
+        autoMode = false;
+        if (finished) return;
+        if (stepIndex === 0) resetAnimation();
+        doStep();
+    });
+    toggleCodeBtn.addEventListener('click', () => {
+        const hidden = codeArea.style.display === 'none';
+        codeArea.style.display = hidden ? 'block' : 'none';
+        toggleCodeBtn.textContent = hidden ? 'Απόκρυψη κώδικα' : 'Εμφάνιση κώδικα';
+    });
+    speedRange.addEventListener('input', e => speed = Number(e.target.value));
+
+    generateMatrix();
+    generateMaxArrayPlaceholders();
+    buildSteps();
+})();
+</script>
+</body>
+</html>

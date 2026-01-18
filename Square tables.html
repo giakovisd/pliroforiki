@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <title>Πίνακας Π[5,5] – Διαγώνιες, Μέσος Όρος & Μέγιστο</title>
+  <style>
+    :root {
+      --bg-body: #f5f5f5;
+      --bg-app: #ffffff;
+      --text-main: #111111;
+      --text-sub: #666666;
+      --border-soft: #d0d0d0;
+      --tab-border: #dddddd;
+      --btn-bg: #fafafa;
+      --btn-bg-hover: #f0f0f0;
+      --btn-border: #d0d0d0;
+      --accent: #4a7dff;
+      --accent-soft: #e6f0ff;
+      --code-bg: #0d1117;
+      --code-text: #ffffff;
+      --panel-bg: #f7f9ff;
+      --panel-border: #d7e0ff;
+      --matrix-cell-bg: #ffffff;
+      --matrix-cell-border: #d0d0d0;
+    }
+
+    body.dark {
+      --bg-body: #0b0b10;
+      --bg-app: #16171f;
+      --text-main: #f3f4f8;
+      --text-sub: #a0a4b8;
+      --border-soft: #3b3d4a;
+      --tab-border: #2a2c37;
+      --btn-bg: #202331;
+      --btn-bg-hover: #262a38;
+      --btn-border: #3b3d4a;
+      --accent: #7aa2ff;
+      --accent-soft: #1c2848;
+      --code-bg: #050609;
+      --code-text: #ffffff;
+      --panel-bg: #1c2133;
+      --panel-border: #343b57;
+      --matrix-cell-bg: #202335;
+      --matrix-cell-border: #3b3d4a;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: var(--bg-body);
+      color: var(--text-main);
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .app {
+      width: 100%;
+      min-height: 100vh;
+      background: var(--bg-app);
+      padding: 20px 24px 24px;
+      border-radius: 0;
+      box-shadow: none;
+      transition: background 0.2s ease, box-shadow 0.2s ease;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      font-size: 22px;
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: var(--text-sub);
+      font-size: 14px;
+      margin-bottom: 18px;
+    }
+
+    /* Top bar (tabs + theme) */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--tab-border);
+      padding-bottom: 4px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      border: none;
+      background: transparent;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--text-sub);
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .tab-btn:hover {
+      background: var(--btn-bg-hover);
+    }
+
+    .tab-btn.active {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .tab-content {
+      display: none;
+      margin-top: 6px;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Theme button */
+    .theme-btn {
+      border: 1px solid var(--btn-border);
+      background: var(--btn-bg);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.15s ease, box-shadow 0.15s ease;
+      white-space: nowrap;
+      color: var(--text-main);
+    }
+
+    .theme-btn:hover {
+      background: var(--btn-bg-hover);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Κοινά για πίνακες */
+    .container {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .grid-wrapper {
+      flex: 1 1 250px;
+      min-width: 250px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .grid-labels {
+      font-size: 13px;
+      color: var(--text-sub);
+    }
+
+    .matrix-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 52px);
+      grid-template-rows: repeat(5, 52px);
+      gap: 4px;
+    }
+
+    .cell {
+      position: relative;
+      width: 52px;
+      height: 52px;
+      border-radius: 10px;
+      border: 1px solid var(--matrix-cell-border);
+      background: var(--matrix-cell-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+      font-size: 13px;
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.05s ease, box-shadow 0.05s ease;
+      color: var(--text-main);
+      box-sizing: border-box;
+    }
+
+    .cell.highlight {
+      transform: scale(1.03);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    }
+
+    /* Κελιά καρτέλας 1: δείχνουν (i,j) σκέτο */
+    #matrix .cell {
+      justify-content: center;
+    }
+
+    /* Κελιά καρτελών 2/3: τιμή κέντρο, διεύθυνση κάτω αριστερά */
+    .cell-value {
+      font-size: 13px;
+    }
+
+    .cell-addr {
+      position: absolute;
+      left: 4px;
+      bottom: 3px;
+      font-size: 10px;
+      opacity: 0.55;
+    }
+
+    /* 1η διαγώνιος i = j */
+    .primary-diagonal {
+      background: #ffe5e5;
+      border-color: red;
+      color: #222;
+    }
+
+    /* 2η διαγώνιος i + j = 6 */
+    .secondary-diagonal {
+      background: #e3f6e3;
+      border-color: green;
+      color: #222;
+    }
+
+    /* Τρίγωνο πάνω από 1η διαγώνιο i < j */
+    .upper-main {
+      background: #e5f0ff;
+      border-color: #4a7dff;
+    }
+
+    /* Τρίγωνο κάτω από 1η διαγώνιο i > j */
+    .lower-main {
+      background: #fff1d9;
+      border-color: #ffb347;
+    }
+
+    /* Τρίγωνο πάνω από 2η διαγώνιο i + j < 6 */
+    .upper-secondary {
+      background: #f3e5ff;
+      border-color: #a14dff;
+    }
+
+    /* Τρίγωνο κάτω από 2η διαγώνιο i + j > 6 */
+    .lower-secondary {
+      background: #e0f7f8;
+      border-color: #1aa3a3;
+    }
+
+    .legend {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--text-sub);
+      text-align: center;
+    }
+
+    .legend span {
+      display: inline-block;
+      margin-right: 12px;
+      margin-bottom: 4px;
+    }
+
+    /* Πλευρά επιλογών καρτέλας 1 */
+    .controls {
+      flex: 1 1 260px;
+      min-width: 240px;
+    }
+
+    .controls h2 {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    button.mode-btn {
+      border: 1px solid var(--btn-border);
+      background: var(--btn-bg);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 13px;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
+      color: var(--text-main);
+    }
+
+    button.mode-btn:hover {
+      background: var(--btn-bg-hover);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    button.mode-btn.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(74, 125, 255, 0.35);
+    }
+
+    .info-box {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      font-size: 13px;
+    }
+
+    .info-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .info-formula {
+      font-family: "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+      font-size: 13px;
+      background: #ffffff10;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px dashed #c0c8ff;
+      display: inline-block;
+      margin-top: 2px;
+    }
+
+    /* Καρτέλες 2 & 3 – διάταξη */
+    .algo-layout {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .algo-left {
+      flex: 1 1 320px;
+      min-width: 300px;
+    }
+
+    .algo-right {
+      flex: 1 1 260px;
+      min-width: 250px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .solution-toggle,
+    .solution-toggle-max {
+      display: inline-flex;
+      border-radius: 999px;
+      border: 1px solid var(--btn-border);
+      overflow: hidden;
+      margin-bottom: 10px;
+      background: var(--btn-bg);
+    }
+
+    .solution-btn,
+    .solution-btn-max {
+      border: none;
+      background: transparent;
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+      color: var(--text-main);
+    }
+
+    .solution-btn.active,
+    .solution-btn-max.active {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .code-block {
+      background: var(--code-bg);
+      color: var(--code-text);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-family: "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+      font-size: 12px;
+      max-height: 260px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+    }
+
+    .code-line {
+      padding: 2px 4px;
+      border-radius: 6px;
+      transition: background 0.15s ease;
+      white-space: pre;
+    }
+
+    .code-line.active-line {
+      background: rgba(88, 166, 255, 0.35);
+    }
+
+    .algo-buttons {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .algo-btn {
+      border: 1px solid var(--btn-border);
+      background: var(--btn-bg);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.15s ease, box-shadow 0.15s ease;
+      color: var(--text-main);
+      white-space: nowrap;
+    }
+
+    .algo-btn:hover {
+      background: var(--btn-bg-hover);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    }
+
+    .algo-btn.active {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .algo-vars {
+      font-size: 13px;
+      background: var(--panel-bg);
+      border-radius: 10px;
+      border: 1px solid var(--panel-border);
+      padding: 8px 10px;
+      margin-bottom: 6px;
+    }
+
+    .algo-vars span.value {
+      font-weight: 600;
+      font-family: "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+    }
+
+    .algo-status {
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+
+    .algo-matrix-caption {
+      font-size: 13px;
+      color: var(--text-sub);
+      text-align: center;
+    }
+
+    .diag-info {
+      font-size: 12px;
+      color: var(--text-sub);
+      margin-top: 4px;
+      text-align: center;
+    }
+
+    .speed-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-sub);
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+
+    .speed-control input[type="range"] {
+      width: 140px;
+    }
+
+    /* Λωρίδα σάρωσης γραμμής/στήλης */
+
+    .row-scan {
+      background: rgba(74, 125, 255, 0.08);
+    }
+
+    .col-scan {
+      background: rgba(74, 125, 255, 0.08);
+    }
+
+    /* Τρέχον στοιχείο – πράσινο πλαίσιο & διάφανο πράσινο */
+
+    .current-cell {
+      box-shadow: 0 0 0 2px rgba(0, 160, 0, 0.9);
+      border-color: #00a000;
+      background: rgba(0, 160, 0, 0.18);
+      transform: scale(1.06);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>Πίνακας Π[5,5] – Διαγώνιες, Μέσος Όρος 1ης & Μέγιστο 2ης Διαγωνίου</h1>
+    <div class="subtitle">
+      Ο πίνακας Π είναι τετραγωνικός 5×5, με δείκτες i, j από 1 έως 5.
+    </div>
+
+    <div class="top-bar">
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="visual">Καρτέλα 1: Διαγώνιες & Τρίγωνα</button>
+        <button class="tab-btn" data-tab="algorithm">Καρτέλα 2: Μέσος όρος 1ης διαγωνίου</button>
+        <button class="tab-btn" data-tab="maxdiag">Καρτέλα 3: Μέγιστο 2ης διαγωνίου</button>
+      </div>
+
+      <!-- Day/Night -->
+      <button id="theme-toggle" class="theme-btn">Night mode</button>
+    </div>
+
+    <!-- ΚΑΡΤΕΛΑ 1 -->
+    <div id="tab-visual" class="tab-content active">
+      <div class="container">
+        <!-- Πλευρά επιλογών -->
+        <div class="controls">
+          <h2>Επιλογή περιοχής</h2>
+          <div class="buttons">
+            <button class="mode-btn" data-mode="primary">
+              1η διαγώνιος (κύρια): <strong>i = j</strong>
+            </button>
+            <button class="mode-btn" data-mode="secondary">
+              2η διαγώνιος: <strong>i + j = 6</strong>
+            </button>
+            <button class="mode-btn" data-mode="upper-main">
+              Πάνω από 1η διαγώνιο: <strong>i &lt; j</strong>
+            </button>
+            <button class="mode-btn" data-mode="lower-main">
+              Κάτω από 1η διαγώνιο: <strong>i &gt; j</strong>
+            </button>
+            <button class="mode-btn" data-mode="upper-secondary">
+              Πάνω από 2η διαγώνιο: <strong>i + j &lt; 6</strong>
+            </button>
+            <button class="mode-btn" data-mode="lower-secondary">
+              Κάτω από 2η διαγώνιο: <strong>i + j &gt; 6</strong>
+            </button>
+          </div>
+
+          <div class="info-box">
+            <div class="info-title">Τρέχουσα περιοχή:</div>
+            <div id="info-text">Καμία επιλογή ακόμη.</div>
+            <div id="info-formula" class="info-formula" style="display:none;"></div>
+          </div>
+        </div>
+
+        <!-- Πλευρά πίνακα καρτέλας 1 -->
+        <div class="grid-wrapper">
+          <div class="grid-labels">
+            Κάθε κελί δείχνει το ζεύγος <code>(i,j)</code>.
+          </div>
+          <div id="matrix" class="matrix-grid"></div>
+          <div class="legend">
+            <span>Κόκκινο περίγραμμα: 1η διαγώνιος (i = j)</span>
+            <span>Πράσινο περίγραμμα: 2η διαγώνιος (i + j = 6)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ΚΑΡΤΕΛΑ 2 – Μέσος όρος 1ης διαγωνίου -->
+    <div id="tab-algorithm" class="tab-content">
+      <div class="algo-layout">
+        <!-- Αριστερά: κώδικας + κουμπιά -->
+        <div class="algo-left">
+          <div class="solution-toggle">
+            <button class="solution-btn active" data-solution="1">
+              Λύση 1 – διπλή επανάληψη
+            </button>
+            <button class="solution-btn" data-solution="2">
+              Λύση 2 – μία επανάληψη
+            </button>
+          </div>
+
+          <!-- Κώδικας λύσης 1 -->
+          <div id="code-solution1" class="code-block">
+1η λύση:
+<div class="code-line" data-line="1" data-sol="1">αθρ ← 0</div>
+<div class="code-line" data-line="2" data-sol="1">Για i από 1 μέχρι 5</div>
+<div class="code-line" data-line="3" data-sol="1">   Για j από 1 μέχρι 5</div>
+<div class="code-line" data-line="4" data-sol="1">      Αν i = j τότε</div>
+<div class="code-line" data-line="5" data-sol="1">         αθρ ← αθρ + Π[i,j]</div>
+<div class="code-line" data-line="6" data-sol="1">      Τέλος_αν</div>
+<div class="code-line" data-line="7" data-sol="1">   Τέλος_επανάληψης</div>
+<div class="code-line" data-line="8" data-sol="1">Τέλος_επανάληψης</div>
+<div class="code-line" data-line="9" data-sol="1">μο ← αθρ / 5</div>
+          </div>
+
+          <!-- Κώδικας λύσης 2 -->
+          <div id="code-solution2" class="code-block" style="display:none;">
+2η λύση:
+<div class="code-line" data-line="1" data-sol="2">αθρ ← 0</div>
+<div class="code-line" data-line="2" data-sol="2">Για i από 1 μέχρι 5</div>
+<div class="code-line" data-line="3" data-sol="2">   αθρ ← αθρ + Π[i,i]</div>
+<div class="code-line" data-line="4" data-sol="2">Τέλος_επανάληψης</div>
+<div class="code-line" data-line="5" data-sol="2">μο ← αθρ / 5</div>
+          </div>
+
+          <div class="algo-buttons">
+            <button id="btn-reset" class="algo-btn">Επαναφορά</button>
+            <button id="btn-step" class="algo-btn">Βήμα-βήμα</button>
+            <button id="btn-auto" class="algo-btn">Αυτόματη εκτέλεση</button>
+          </div>
+
+          <div class="speed-control">
+            <span>Ταχύτητα:</span>
+            <input id="speed-range" type="range" min="1" max="3" value="2" />
+            <span id="speed-label">Μεσαία</span>
+          </div>
+
+          <div class="algo-vars">
+            αθρ = <span id="var-sum" class="value">0</span>,
+            i = <span id="var-i" class="value">-</span>,
+            j = <span id="var-j" class="value">-</span>,
+            μο = <span id="var-avg" class="value">-</span>
+          </div>
+          <div class="algo-status" id="algo-status">
+            Πάτησε «Βήμα-βήμα» ή «Αυτόματη εκτέλεση» για να ξεκινήσει η εκτέλεση της επιλεγμένης λύσης.
+          </div>
+        </div>
+
+        <!-- Δεξιά: πίνακας καρτέλας 2 -->
+        <div class="algo-right">
+          <div class="algo-matrix-caption">
+            Πίνακας Π[5,5] με τυχαίες τιμές μεταξύ 1 και 99.
+          </div>
+          <div id="matrix2" class="matrix-grid"></div>
+          <div class="diag-info">
+            Στην 1η διαγώνιο (i = j) βρίσκονται τα στοιχεία:
+            Π[1,1], Π[2,2], Π[3,3], Π[4,4], Π[5,5].
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ΚΑΡΤΕΛΑ 3 – Μέγιστο 2ης διαγωνίου -->
+    <div id="tab-maxdiag" class="tab-content">
+      <div class="algo-layout">
+        <!-- Αριστερά: κώδικας + κουμπιά -->
+        <div class="algo-left">
+          <div class="solution-toggle-max">
+            <button class="solution-btn-max active" data-solution="1">Λύση 1 – διπλή επανάληψη</button>
+            <button class="solution-btn-max" data-solution="2">Λύση 2 – μία επανάληψη</button>
+          </div>
+
+          <div id="code-max-1" class="code-block">
+1η λύση:
+<div class="code-line" data-line="1" data-solm="1">max ← Π[1,5]</div>
+<div class="code-line" data-line="2" data-solm="1">Για i από 1 μέχρι 5</div>
+<div class="code-line" data-line="3" data-solm="1">   Για j από 1 μέχρι 5</div>
+<div class="code-line" data-line="4" data-solm="1">      Αν i + j = 6 τότε</div>
+<div class="code-line" data-line="5" data-solm="1">         Αν Π[i,j] &gt; max τότε</div>
+<div class="code-line" data-line="6" data-solm="1">             max ← Π[i,j]</div>
+<div class="code-line" data-line="7" data-solm="1">         Τέλος_αν</div>
+<div class="code-line" data-line="8" data-solm="1">      Τέλος_αν</div>
+<div class="code-line" data-line="9" data-solm="1">   Τέλος_επανάληψης</div>
+<div class="code-line" data-line="10" data-solm="1">Τέλος_επανάληψης</div>
+<div class="code-line" data-line="11" data-solm="1">Γράψε max</div>
+          </div>
+
+          <div id="code-max-2" class="code-block" style="display:none;">
+2η λύση:
+<div class="code-line" data-line="1" data-solm="2">max ← Π[1,5]</div>
+<div class="code-line" data-line="2" data-solm="2">Για i από 1 μέχρι 5</div>
+<div class="code-line" data-line="3" data-solm="2">   Αν Π[i,6-i] &gt; max τότε</div>
+<div class="code-line" data-line="4" data-solm="2">        max ← Π[i,6-i]</div>
+<div class="code-line" data-line="5" data-solm="2">Τέλος_επανάληψης</div>
+<div class="code-line" data-line="6" data-solm="2">Γράψε max</div>
+          </div>
+
+          <div class="algo-buttons">
+            <button id="btn-max-reset" class="algo-btn">Επαναφορά</button>
+            <button id="btn-max-step" class="algo-btn">Βήμα-βήμα</button>
+            <button id="btn-max-auto" class="algo-btn">Αυτόματη εκτέλεση</button>
+          </div>
+
+          <div class="speed-control">
+            <span>Ταχύτητα:</span>
+            <input id="speed-range-max" type="range" min="1" max="3" value="2" />
+            <span id="speed-label-max">Μεσαία</span>
+          </div>
+
+          <div class="algo-vars">
+            max = <span id="max-var" class="value">-</span>,
+            i = <span id="max-i" class="value">-</span>,
+            j = <span id="max-j" class="value">-</span>
+          </div>
+          <div class="algo-status" id="max-status">
+            Πάτησε «Βήμα-βήμα» ή «Αυτόματη εκτέλεση» για να ξεκινήσει.
+          </div>
+        </div>
+
+        <!-- Δεξιά: πίνακας καρτέλας 3 -->
+        <div class="algo-right">
+          <div class="algo-matrix-caption">
+            Πίνακας Π[5,5] με τυχαίες τιμές μεταξύ 1 και 99 (για τη 2η διαγώνιο i + j = 6).
+          </div>
+          <div id="matrix3" class="matrix-grid"></div>
+          <div class="diag-info">
+            2η διαγώνιος (i + j = 6): Π[1,5], Π[2,4], Π[3,3], Π[4,2], Π[5,1].
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const N = 5;
+
+    /* ==================== ΘΕΜΑ DAY / NIGHT ==================== */
+    const themeToggleBtn = document.getElementById("theme-toggle");
+    function updateThemeButton() {
+      if (document.body.classList.contains("dark")) {
+        themeToggleBtn.textContent = "Day mode";
+      } else {
+        themeToggleBtn.textContent = "Night mode";
+      }
+    }
+    themeToggleBtn.addEventListener("click", () => {
+      document.body.classList.toggle("dark");
+      updateThemeButton();
+    });
+    updateThemeButton();
+
+    /* ==================== ΚΑΡΤΕΛΑ 1 – Πίνακας & περιοχές ==================== */
+
+    const matrixEl = document.getElementById("matrix");
+    const infoTextEl = document.getElementById("info-text");
+    const infoFormulaEl = document.getElementById("info-formula");
+    const modeButtons = document.querySelectorAll(".mode-btn");
+
+    function buildMatrix() {
+      for (let i = 1; i <= N; i++) {
+        for (let j = 1; j <= N; j++) {
+          const cell = document.createElement("div");
+          cell.classList.add("cell");
+          cell.dataset.i = i;
+          cell.dataset.j = j;
+          cell.textContent = `${i},${j}`;
+          matrixEl.appendChild(cell);
+        }
+      }
+    }
+
+    function clearHighlights() {
+      const cells = document.querySelectorAll("#matrix .cell");
+      cells.forEach(cell => {
+        cell.classList.remove(
+          "highlight",
+          "primary-diagonal",
+          "secondary-diagonal",
+          "upper-main",
+          "lower-main",
+          "upper-secondary",
+          "lower-secondary"
+        );
+      });
+    }
+
+    function setActiveButton(mode) {
+      modeButtons.forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.mode === mode);
+      });
+    }
+
+    function updateInfo(label, formula) {
+      infoTextEl.textContent = label;
+      if (formula) {
+        infoFormulaEl.style.display = "inline-block";
+        infoFormulaEl.textContent = formula;
+      } else {
+        infoFormulaEl.style.display = "none";
+      }
+    }
+
+    function highlightMode(mode) {
+      clearHighlights();
+      setActiveButton(mode);
+
+      const cells = document.querySelectorAll("#matrix .cell");
+
+      switch (mode) {
+        case "primary": { // i = j
+          cells.forEach(cell => {
+            const i = Number(cell.dataset.i);
+            const j = Number(cell.dataset.j);
+            if (i === j) {
+              cell.classList.add("highlight", "primary-diagonal");
+            }
+          });
+          updateInfo("1η διαγώνιος – κύρια διαγώνιος του πίνακα.", "i = j");
+          break;
+        }
+        case "secondary": { // i + j = 6
+          cells.forEach(cell => {
+            const i = Number(cell.dataset.i);
+            const j = Number(cell.dataset.j);
+            if (i + j === N + 1) {
+              cell.classList.add("highlight", "secondary-diagonal");
+            }
+          });
+          updateInfo("2η διαγώνιος του πίνακα.", "i + j = 6");
+          break;
+        }
+        case "upper-main": { // i < j
+          cells.forEach(cell => {
+            const i = Number(cell.dataset.i);
+            const j = Number(cell.dataset.j);
+            if (i < j) {
+              cell.classList.add("highlight", "upper-main");
+            }
+          });
+          updateInfo("Τρίγωνο πάνω από την 1η διαγώνιο.", "i < j");
+          break;
+        }
+        case "lower-main": { // i > j
+          cells.forEach(cell => {
+            const i = Number(cell.dataset.i);
+            const j = Number(cell.dataset.j);
+            if (i > j) {
+              cell.classList.add("highlight", "lower-main");
+            }
+          });
+          updateInfo("Τρίγωνο κάτω από την 1η διαγώνιο.", "i > j");
+          break;
+        }
+        case "upper-secondary": { // i + j < 6
+          cells.forEach(cell => {
+            const i = Number(cell.dataset.i);
+            const j = Number(cell.dataset.j);
+            if (i + j < N + 1) {
+              cell.classList.add("highlight", "upper-secondary");
+            }
+          });
+          updateInfo("Τρίγωνο πάνω από τη 2η διαγώνιο.", "i + j < 6");
+          break;
+        }
+        case "lower-secondary": { // i + j > 6
+          cells.forEach(cell => {
+            const i = Number(cell.dataset.i);
+            const j = Number(cell.dataset.j);
+            if (i + j > N + 1) {
+              cell.classList.add("highlight", "lower-secondary");
+            }
+          });
+          updateInfo("Τρίγωνο κάτω από τη 2η διαγώνιο.", "i + j > 6");
+          break;
+        }
+        default:
+          updateInfo("Καμία επιλογή ακόμη.", "");
+      }
+    }
+
+    modeButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const mode = btn.dataset.mode;
+        highlightMode(mode);
+      });
+    });
+
+    /* ==================== ΚΑΡΤΕΛΑ 2 – Αλγόριθμοι (Μέσος όρος) ==================== */
+
+    const matrix2El = document.getElementById("matrix2");
+    const algoStatusEl = document.getElementById("algo-status");
+    const varSumEl = document.getElementById("var-sum");
+    const varIEl = document.getElementById("var-i");
+    const varJEl = document.getElementById("var-j");
+    const varAvgEl = document.getElementById("var-avg");
+
+    const solutionButtons = document.querySelectorAll(".solution-btn");
+    const codeSol1 = document.getElementById("code-solution1");
+    const codeSol2 = document.getElementById("code-solution2");
+
+    const btnReset = document.getElementById("btn-reset");
+    const btnStep = document.getElementById("btn-step");
+    const btnAuto = document.getElementById("btn-auto");
+    const speedRange = document.getElementById("speed-range");
+    const speedLabel = document.getElementById("speed-label");
+
+    let currentSolution = 1;
+    const algoCells = Array.from({ length: N + 1 }, () => Array(N + 1));
+    const algoValues = Array.from({ length: N + 1 }, () => Array(N + 1));
+
+    let autoRunning = false;
+    let autoTimer = null;
+
+    function getSpeedMs() {
+      const v = Number(speedRange.value);
+      if (v === 1) return 800;   // αργό
+      if (v === 2) return 400;   // μεσαίο
+      return 180;                // γρήγορο
+    }
+
+    function updateSpeedLabel() {
+      const v = Number(speedRange.value);
+      if (v === 1) speedLabel.textContent = "Αργή";
+      else if (v === 2) speedLabel.textContent = "Μεσαία";
+      else speedLabel.textContent = "Γρήγορη";
+    }
+    speedRange.addEventListener("input", updateSpeedLabel);
+    updateSpeedLabel();
+
+    function buildMatrix2() {
+      for (let i = 1; i <= N; i++) {
+        for (let j = 1; j <= N; j++) {
+          const cell = document.createElement("div");
+          cell.classList.add("cell");
+          cell.dataset.i = i;
+          cell.dataset.j = j;
+
+          const value = Math.floor(Math.random() * 99) + 1;
+          cell.dataset.value = value;
+          algoCells[i][j] = cell;
+          algoValues[i][j] = value;
+
+          const valueSpan = document.createElement("span");
+          valueSpan.classList.add("cell-value");
+          valueSpan.textContent = value;
+
+          const addrSpan = document.createElement("span");
+          addrSpan.classList.add("cell-addr");
+          addrSpan.textContent = `${i},${j}`;
+
+          cell.appendChild(valueSpan);
+          cell.appendChild(addrSpan);
+
+          matrix2El.appendChild(cell);
+        }
+      }
+      // 1η διαγώνιος (i=j) με κόκκινο
+      for (let k = 1; k <= N; k++) {
+        algoCells[k][k].classList.add("primary-diagonal");
+      }
+    }
+
+    function getMatrixValue(i, j) {
+      return algoValues[i][j];
+    }
+
+    function clearCurrentCellHighlight() {
+      for (let i = 1; i <= N; i++) {
+        for (let j = 1; j <= N; j++) {
+          if (algoCells[i][j]) {
+            algoCells[i][j].classList.remove("current-cell", "highlight");
+          }
+        }
+      }
+    }
+
+    function clearAlgoScan() {
+      for (let i = 1; i <= N; i++) {
+        for (let j = 1; j <= N; j++) {
+          if (algoCells[i][j]) {
+            algoCells[i][j].classList.remove("row-scan", "col-scan");
+          }
+        }
+      }
+    }
+
+    function setAlgoScan(i, j) {
+      clearAlgoScan();
+      if (i >= 1 && i <= N) {
+        for (let c = 1; c <= N; c++) {
+          if (algoCells[i][c]) algoCells[i][c].classList.add("row-scan");
+        }
+      }
+      if (j >= 1 && j <= N) {
+        for (let r = 1; r <= N; r++) {
+          if (algoCells[r][j]) algoCells[r][j].classList.add("col-scan");
+        }
+      }
+    }
+
+    function resetAlgoGrid() {
+      for (let i = 1; i <= N; i++) {
+        for (let j = 1; j <= N; j++) {
+          if (algoCells[i][j]) {
+            algoCells[i][j].classList.remove(
+              "current-cell",
+              "highlight",
+              "secondary-diagonal",
+              "upper-main",
+              "lower-main",
+              "upper-secondary",
+              "lower-secondary",
+              "primary-diagonal",
+              "row-scan",
+              "col-scan"
+            );
+          }
+        }
+      }
+      // ξαναβάζουμε την 1η διαγώνιο
+      for (let k = 1; k <= N; k++) {
+        algoCells[k][k].classList.add("primary-diagonal");
+      }
+    }
+
+    function markCurrentCell(i, j) {
+      const cell = algoCells[i][j];
+      if (!cell) return;
+      cell.classList.add("highlight", "current-cell");
+    }
+
+    function clearCodeHighlights() {
+      document.querySelectorAll(".code-line").forEach(line => {
+        line.classList.remove("active-line");
+      });
+    }
+
+    function highlightCodeLine(lineNumber, sol) {
+      clearCodeHighlights();
+      const selector = `.code-line[data-line="${lineNumber}"][data-sol="${sol}"]`;
+      const lineEl = document.querySelector(selector);
+      if (lineEl) {
+        lineEl.classList.add("active-line");
+      }
+    }
+
+    function updateVars(sim) {
+      varSumEl.textContent = sim.sum;
+      varIEl.textContent = sim.i > 0 ? sim.i : "-";
+      if (currentSolution === 1) {
+        varJEl.textContent = sim.j > 0 ? sim.j : "-";
+      } else {
+        varJEl.textContent = "–";
+      }
+      varAvgEl.textContent = sim.avg !== null ? sim.avg : "-";
+    }
+
+    function setStatus(text) {
+      algoStatusEl.textContent = text;
+    }
+
+    // Καταστάσεις προσομοίωσης
+    let sim1, sim2;
+
+    function initSim1() {
+      sim1 = {
+        sum: 0,
+        i: 0,
+        j: 0,
+        avg: null,
+        stage: "start",
+        done: false
+      };
+    }
+
+    function initSim2() {
+      sim2 = {
+        sum: 0,
+        i: 0,
+        avg: null,
+        stage: "start",
+        done: false
+      };
+    }
+
+    function stopAuto() {
+      autoRunning = false;
+      if (autoTimer !== null) {
+        clearTimeout(autoTimer);
+        autoTimer = null;
+      }
+      btnAuto.classList.remove("active");
+      btnAuto.textContent = "Αυτόματη εκτέλεση";
+    }
+
+    function resetSimulation() {
+      stopAuto();
+      resetAlgoGrid();
+      clearCodeHighlights();
+      clearAlgoScan();
+      clearCurrentCellHighlight();
+      initSim1();
+      initSim2();
+      const sim = currentSolution === 1 ? sim1 : sim2;
+      updateVars(sim);
+      setStatus(
+        "Πάτησε «Βήμα-βήμα» ή «Αυτόματη εκτέλεση» για να ξεκινήσει η εκτέλεση της επιλεγμένης λύσης."
+      );
+    }
+
+    /* ====== ΒΗΜΑ-ΒΗΜΑ ΛΥΣΗ 1 (μέσος όρος) ====== */
+    function stepSolution1() {
+      const sim = sim1;
+      if (sim.done) {
+        setStatus("Η Λύση 1 ολοκληρώθηκε. Πάτησε «Επαναφορά» για να ξαναρχίσεις.");
+        stopAuto();
+        return;
+      }
+
+      clearCurrentCellHighlight();
+
+      switch (sim.stage) {
+        case "start":
+          sim.sum = 0;
+          sim.i = 0;
+          sim.j = 0;
+          highlightCodeLine(1, 1);
+          setStatus("Εκχωρούμε αθρ ← 0.");
+          sim.stage = "after_line1";
+          break;
+
+        case "after_line1":
+          sim.i = 1;
+          highlightCodeLine(2, 1);
+          setStatus("Ξεκινά η εξωτερική επανάληψη: i από 1 μέχρι 5.");
+          sim.stage = "check_i";
+          break;
+
+        case "check_i":
+          if (sim.i > N) {
+            sim.avg = Math.round((sim.sum / N) * 100) / 100;
+            highlightCodeLine(9, 1);
+            setStatus("Υπολογίζουμε τον μέσο όρο μο = αθρ / 5.");
+            sim.done = true;
+          } else {
+            highlightCodeLine(3, 1);
+            sim.j = 1;
+            setStatus(`Νέα τιμή i = ${sim.i}. Ξεκινά η εσωτερική επανάληψη: j από 1 μέχρι 5.`);
+            sim.stage = "check_j";
+          }
+          break;
+
+        case "check_j":
+          if (sim.j > N) {
+            highlightCodeLine(7, 1);
+            setStatus(`Τέλος εσωτερικής επανάληψης για i = ${sim.i}. Προχωράμε στο επόμενο i.`);
+            sim.i++;
+            sim.stage = "check_i";
+          } else {
+            setAlgoScan(sim.i, sim.j);
+            highlightCodeLine(4, 1);
+            markCurrentCell(sim.i, sim.j);
+            if (sim.i === sim.j) {
+              setStatus(`Ελέγχουμε Αν i = j: (${sim.i},${sim.j}) – η συνθήκη είναι ΑΛΗΘΗΣ.`);
+              sim.stage = "do_sum";
+            } else {
+              setStatus(`Ελέγχουμε Αν i = j: (${sim.i},${sim.j}) – η συνθήκη είναι ΨΕΥΔΗΣ.`);
+              sim.j++;
+              sim.stage = "check_j";
+            }
+          }
+          break;
+
+        case "do_sum":
+          setAlgoScan(sim.i, sim.j);
+          highlightCodeLine(5, 1);
+          markCurrentCell(sim.i, sim.j);
+          const val1 = getMatrixValue(sim.i, sim.j);
+          sim.sum += val1;
+          setStatus(
+            `Προσθέτουμε Π[${sim.i},${sim.j}] = ${val1} στο άθροισμα. Νέο αθρ = ${sim.sum}.`
+          );
+          sim.j++;
+          sim.stage = "check_j";
+          break;
+      }
+
+      updateVars(sim);
+    }
+
+    /* ====== ΒΗΜΑ-ΒΗΜΑ ΛΥΣΗ 2 (μέσος όρος) ====== */
+    function stepSolution2() {
+      const sim = sim2;
+      if (sim.done) {
+        setStatus("Η Λύση 2 ολοκληρώθηκε. Πάτησε «Επαναφορά» για να ξαναρχίσεις.");
+        stopAuto();
+        return;
+      }
+
+      clearCurrentCellHighlight();
+
+      switch (sim.stage) {
+        case "start":
+          sim.sum = 0;
+          sim.i = 0;
+          highlightCodeLine(1, 2);
+          setStatus("Εκχωρούμε αθρ ← 0.");
+          sim.stage = "after_line1";
+          break;
+
+        case "after_line1":
+          sim.i = 1;
+          highlightCodeLine(2, 2);
+          setStatus("Ξεκινά η επανάληψη: i από 1 μέχρι 5.");
+          sim.stage = "check_i";
+          break;
+
+        case "check_i":
+          if (sim.i > N) {
+            highlightCodeLine(4, 2);
+            sim.avg = Math.round((sim.sum / N) * 100) / 100;
+            highlightCodeLine(5, 2);
+            setStatus("Τέλος επανάληψης. Υπολογίζουμε μο = αθρ / 5.");
+            sim.done = true;
+          } else {
+            setAlgoScan(sim.i, sim.i);
+            highlightCodeLine(3, 2);
+            markCurrentCell(sim.i, sim.i);
+            const val2 = getMatrixValue(sim.i, sim.i);
+            sim.sum += val2;
+            setStatus(
+              `Προσθέτουμε Π[${sim.i},${sim.i}] = ${val2} στο άθροισμα. Νέο αθρ = ${sim.sum}.`
+            );
+            sim.i++;
+            sim.stage = "check_i";
+          }
+          break;
+      }
+
+      updateVars(sim);
+    }
+
+    /* ====== Αυτόματη εκτέλεση (μέσος όρος) ====== */
+    function autoStepLoop() {
+      if (!autoRunning) return;
+
+      if (currentSolution === 1) {
+        stepSolution1();
+        if (sim1.done) {
+          stopAuto();
+          return;
+        }
+      } else {
+        stepSolution2();
+        if (sim2.done) {
+          stopAuto();
+          return;
+        }
+      }
+
+      autoTimer = setTimeout(autoStepLoop, getSpeedMs());
+    }
+
+    function switchSolution(sol) {
+      currentSolution = sol;
+
+      solutionButtons.forEach(btn => {
+        btn.classList.toggle("active", Number(btn.dataset.solution) === sol);
+      });
+
+      if (sol === 1) {
+        codeSol1.style.display = "block";
+        codeSol2.style.display = "none";
+      } else {
+        codeSol1.style.display = "none";
+        codeSol2.style.display = "block";
+      }
+
+      resetSimulation();
+    }
+
+    solutionButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const sol = Number(btn.dataset.solution);
+        switchSolution(sol);
+      });
+    });
+
+    btnReset.addEventListener("click", () => {
+      resetSimulation();
+    });
+
+    btnStep.addEventListener("click", () => {
+      stopAuto(); // αν έτρεχε αυτόματα, σταματάμε
+      if (currentSolution === 1) {
+        stepSolution1();
+      } else {
+        stepSolution2();
+      }
+    });
+
+    btnAuto.addEventListener("click", () => {
+      if (autoRunning) {
+        stopAuto();
+      } else {
+        autoRunning = true;
+        btnAuto.classList.add("active");
+        btnAuto.textContent = "Παύση";
+        autoStepLoop();
+      }
+    });
+
+    /* ======================= ΚΑΡΤΕΛΑ 3 – ΜΕΓΙΣΤΟ 2ΗΣ ΔΙΑΓΩΝΙΟΥ ======================= */
+
+    const matrix3El = document.getElementById("matrix3");
+    const maxVar = document.getElementById("max-var");
+    const maxI = document.getElementById("max-i");
+    const maxJ = document.getElementById("max-j");
+    const maxStatus = document.getElementById("max-status");
+
+    const solMaxBtns = document.querySelectorAll(".solution-btn-max");
+    const codeMax1 = document.getElementById("code-max-1");
+    const codeMax2 = document.getElementById("code-max-2");
+
+    const btnMaxReset = document.getElementById("btn-max-reset");
+    const btnMaxStep = document.getElementById("btn-max-step");
+    const btnMaxAuto = document.getElementById("btn-max-auto");
+
+    const speedRangeMax = document.getElementById("speed-range-max");
+    const speedLabelMax = document.getElementById("speed-label-max");
+
+    const maxCells = Array.from({ length: N + 1 }, () => Array(N + 1));
+    const maxValues = Array.from({ length: N + 1 }, () => Array(N + 1));
+
+    let currentMaxSolution = 1;
+    let maxAuto = false;
+    let maxTimer = null;
+    let maxSim1 = null;
+    let maxSim2 = null;
+
+    function buildMatrix3() {
+      for (let i = 1; i <= N; i++) {
+        for (let j = 1; j <= N; j++) {
+          const cell = document.createElement("div");
+          cell.classList.add("cell");
+          cell.dataset.i = i;
+          cell.dataset.j = j;
+
+          const value = Math.floor(Math.random() * 99) + 1;
+          cell.dataset.value = value;
+          maxCells[i][j] = cell;
+          maxValues[i][j] = value;
+
+          const valueSpan = document.createElement("span");
+          valueSpan.classList.add("cell-value");
+          valueSpan.textContent = value;
+
+          const addrSpan = document.createElement("span");
+          addrSpan.classList.add("cell-addr");
+          addrSpan.textContent = `${i},${j}`;
+
+          cell.appendChild(valueSpan);
+          cell.appendChild(addrSpan);
+
+          matrix3El.appendChild(cell);
+        }
+      }
+      // 2η διαγώνιος (i+j=6) με πράσινο περίγραμμα
+      for (let i = 1; i <= N; i++) {
+        const j = N + 1 - i;
+        if (maxCells[i][j]) {
+          maxCells[i][j].classList.add("secondary-diagonal");
+        }
+      }
+    }
+
+    function getMatrix3Value(i, j) {
+      return maxValues[i][j];
+    }
+
+    function clearMaxHighlights() {
+      for (let i = 1; i <= N; i++) {
+        for (let j = 1; j <= N; j++) {
+          if (maxCells[i][j]) {
+            maxCells[i][j].classList.remove("current-cell", "highlight");
+          }
+        }
+      }
+    }
+
+    function clearMaxScan() {
+      for (let i = 1; i <= N; i++) {
+        for (let j = 1; j <= N; j++) {
+          if (maxCells[i][j]) {
+            maxCells[i][j].classList.remove("row-scan", "col-scan");
+          }
+        }
+      }
+    }
+
+    function setMaxScan(i, j) {
+      clearMaxScan();
+      if (i >= 1 && i <= N) {
+        for (let c = 1; c <= N; c++) {
+          if (maxCells[i][c]) maxCells[i][c].classList.add("row-scan");
+        }
+      }
+      if (j >= 1 && j <= N) {
+        for (let r = 1; r <= N; r++) {
+          if (maxCells[r][j]) maxCells[r][j].classList.add("col-scan");
+        }
+      }
+    }
+
+    function resetMaxGrid() {
+      for (let i = 1; i <= N; i++) {
+        for (let j = 1; j <= N; j++) {
+          if (maxCells[i][j]) {
+            maxCells[i][j].classList.remove(
+              "current-cell",
+              "highlight",
+              "secondary-diagonal",
+              "row-scan",
+              "col-scan"
+            );
+          }
+        }
+      }
+      for (let i = 1; i <= N; i++) {
+        const j = N + 1 - i;
+        maxCells[i][j].classList.add("secondary-diagonal");
+      }
+    }
+
+    function maxSpeedMs() {
+      const v = Number(speedRangeMax.value);
+      return v === 1 ? 800 : v === 2 ? 400 : 180;
+    }
+
+    function updateMaxSpeedLabel() {
+      const v = Number(speedRangeMax.value);
+      speedLabelMax.textContent = v === 1 ? "Αργή" : v === 2 ? "Μεσαία" : "Γρήγορη";
+    }
+    speedRangeMax.addEventListener("input", updateMaxSpeedLabel);
+    updateMaxSpeedLabel();
+
+    function stopMaxAuto() {
+      maxAuto = false;
+      if (maxTimer) clearTimeout(maxTimer);
+      btnMaxAuto.classList.remove("active");
+      btnMaxAuto.textContent = "Αυτόματη εκτέλεση";
+    }
+
+    function resetMaxSim() {
+      maxSim1 = { i: 0, j: 0, max: null, stage: "start", done: false };
+      maxSim2 = { i: 0, max: null, stage: "start", done: false };
+      maxVar.textContent = "-";
+      maxI.textContent = "-";
+      maxJ.textContent = "-";
+      maxStatus.textContent = "Πάτησε «Βήμα-βήμα» ή «Αυτόματη εκτέλεση» για να ξεκινήσει.";
+      stopMaxAuto();
+      resetMaxGrid();
+      clearMaxCodeHighlights();
+      clearMaxScan();
+      clearMaxHighlights();
+    }
+
+    function clearMaxCodeHighlights() {
+      document.querySelectorAll(".code-line[data-solm]").forEach(e => e.classList.remove("active-line"));
+    }
+
+    function highlightMaxCode(line, sol) {
+      clearMaxCodeHighlights();
+      const el = document.querySelector(`.code-line[data-line="${line}"][data-solm="${sol}"]`);
+      if (el) el.classList.add("active-line");
+    }
+
+    function stepMax1() {
+      const sim = maxSim1;
+      if (sim.done) { stopMaxAuto(); return; }
+
+      clearMaxHighlights();
+
+      switch (sim.stage) {
+        case "start":
+          sim.max = getMatrix3Value(1, 5);
+          highlightMaxCode(1, 1);
+          maxVar.textContent = sim.max;
+          maxStatus.textContent = "max ← Π[1,5]";
+          sim.stage = "i-loop-start";
+          break;
+
+        case "i-loop-start":
+          sim.i = 1;
+          highlightMaxCode(2, 1);
+          maxStatus.textContent = "Ξεκινά η εξωτερική επανάληψη i από 1 μέχρι 5.";
+          sim.stage = "i-check";
+          break;
+
+        case "i-check":
+          if (sim.i > 5) {
+            highlightMaxCode(11, 1);
+            maxStatus.textContent = "Τέλος – μέγιστο = " + sim.max;
+            sim.done = true;
+            return;
+          }
+          sim.j = 1;
+          highlightMaxCode(3, 1);
+          maxStatus.textContent = "Εσωτερική επανάληψη j από 1 μέχρι 5 για i = " + sim.i;
+          sim.stage = "j-check";
+          break;
+
+        case "j-check":
+          if (sim.j > 5) {
+            highlightMaxCode(9, 1);
+            sim.i++;
+            sim.stage = "i-check";
+            break;
+          }
+          setMaxScan(sim.i, sim.j);
+          highlightMaxCode(4, 1);
+          maxCells[sim.i][sim.j].classList.add("current-cell", "highlight");
+          if (sim.i + sim.j === 6) {
+            maxStatus.textContent = `i + j = 6 → (${sim.i},${sim.j}) ανήκει στη 2η διαγώνιο.`;
+            sim.stage = "compare";
+          } else {
+            maxStatus.textContent = `i + j ≠ 6 για (${sim.i},${sim.j}). Συνεχίζουμε.`;
+            sim.j++;
+            sim.stage = "j-check";
+          }
+          break;
+
+        case "compare":
+          highlightMaxCode(5, 1);
+          setMaxScan(sim.i, sim.j);
+          maxCells[sim.i][sim.j].classList.add("current-cell", "highlight");
+          const value = getMatrix3Value(sim.i, sim.j);
+          if (value > sim.max) {
+            highlightMaxCode(6, 1);
+            sim.max = value;
+            maxStatus.textContent = `ΝΕΟ max: Π[${sim.i},${sim.j}] = ${value}.`;
+          } else {
+            maxStatus.textContent = `Π[${sim.i},${sim.j}] = ${value} ≤ max = ${sim.max}.`;
+          }
+          maxVar.textContent = sim.max;
+          maxI.textContent = sim.i;
+          maxJ.textContent = sim.j;
+          sim.j++;
+          sim.stage = "j-check";
+          break;
+      }
+    }
+
+    function stepMax2() {
+      const sim = maxSim2;
+      if (sim.done) { stopMaxAuto(); return; }
+
+      clearMaxHighlights();
+
+      switch (sim.stage) {
+        case "start":
+          sim.max = getMatrix3Value(1, 5);
+          highlightMaxCode(1, 2);
+          maxVar.textContent = sim.max;
+          maxStatus.textContent = "max ← Π[1,5]";
+          sim.i = 1;
+          sim.stage = "i-check";
+          break;
+
+        case "i-check":
+          if (sim.i > 5) {
+            highlightMaxCode(6, 2);
+            maxStatus.textContent = "Τέλος – μέγιστο = " + sim.max;
+            sim.done = true;
+            return;
+          }
+
+          const jj = 6 - sim.i;
+          setMaxScan(sim.i, jj);
+          highlightMaxCode(3, 2);
+          maxCells[sim.i][jj].classList.add("current-cell", "highlight");
+          const v = getMatrix3Value(sim.i, jj);
+          if (v > sim.max) {
+            highlightMaxCode(4, 2);
+            sim.max = v;
+            maxStatus.textContent = `ΝΕΟ max: Π[${sim.i},${jj}] = ${v}.`;
+          } else {
+            maxStatus.textContent = `Π[${sim.i},${jj}] = ${v} ≤ max = ${sim.max}.`;
+          }
+          maxVar.textContent = sim.max;
+          maxI.textContent = sim.i;
+          maxJ.textContent = jj;
+          sim.i++;
+          sim.stage = "i-check";
+          break;
+      }
+    }
+
+    function autoMaxLoop() {
+      if (!maxAuto) return;
+      currentMaxSolution === 1 ? stepMax1() : stepMax2();
+      maxTimer = setTimeout(autoMaxLoop, maxSpeedMs());
+    }
+
+    solMaxBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        currentMaxSolution = Number(btn.dataset.solution);
+        solMaxBtns.forEach(b => b.classList.toggle("active", b === btn));
+        codeMax1.style.display = currentMaxSolution === 1 ? "block" : "none";
+        codeMax2.style.display = currentMaxSolution === 2 ? "block" : "none";
+        resetMaxSim();
+      });
+    });
+
+    btnMaxReset.addEventListener("click", resetMaxSim);
+
+    btnMaxStep.addEventListener("click", () => {
+      stopMaxAuto();
+      currentMaxSolution === 1 ? stepMax1() : stepMax2();
+    });
+
+    btnMaxAuto.addEventListener("click", () => {
+      if (maxAuto) {
+        stopMaxAuto();
+      } else {
+        maxAuto = true;
+        btnMaxAuto.classList.add("active");
+        btnMaxAuto.textContent = "Παύση";
+        autoMaxLoop();
+      }
+    });
+
+    /* ==================== Tabs ==================== */
+    const tabButtons = document.querySelectorAll(".tab-btn");
+    const tabContents = document.querySelectorAll(".tab-content");
+
+    tabButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const tab = btn.dataset.tab;
+        tabButtons.forEach(b => b.classList.toggle("active", b === btn));
+        tabContents.forEach(content => {
+          content.classList.toggle("active", content.id === "tab-" + tab);
+        });
+      });
+    });
+
+    /* ==================== ΑΡΧΙΚΟΠΟΙΗΣΗ ==================== */
+    buildMatrix();    // καρτέλα 1
+    buildMatrix2();   // καρτέλα 2
+    buildMatrix3();   // καρτέλα 3
+    initSim1();
+    initSim2();
+    resetMaxSim();
+    updateVars(sim1); // αρχικά στη λύση 1 (μέσος όρος)
+  </script>
+</body>
+</html>

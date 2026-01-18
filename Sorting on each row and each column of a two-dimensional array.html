@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Β[4,5] – Ταξινόμηση ανά Γραμμή & ανά Στήλη (Διαδραστικό)</title>
+  <style>
+    :root{
+      --bg:#f6f7f9; --panel:#ffffff; --text:#111; --muted:#666; --border:#d8dde6;
+      --shadow:0 10px 30px rgba(0,0,0,0.06);
+      --btn:#f3f5f7; --btnHover:#e9edf2; --accent:#2b6de6;
+      --codeBg:#0f172a; --codeText:#e5e7eb; --hl:#ffe58a;
+      --cellHl:#d9f99d; --cellFrame:#22c55e;
+      --cellCmp:#bfdbfe; --cellCmpFrame:#3b82f6;
+      --bad:#ef4444;
+      --tab:#eef1f6; --tabActive:#ffffff;
+    }
+    body.night{
+      --bg:#0b1220; --panel:#0f1a2e; --text:#e5e7eb; --muted:#9ca3af; --border:#24324d;
+      --shadow:0 12px 34px rgba(0,0,0,0.35);
+      --btn:#132243; --btnHover:#192c56;
+      --codeBg:#0b1020; --codeText:#e5e7eb; --hl:#6b5b1f;
+      --cellHl:#274e2d; --cellFrame:#34d399;
+      --cellCmp:#1f2f57; --cellCmpFrame:#60a5fa;
+      --bad:#fb7185;
+      --tab:#0c1426; --tabActive:#0f1a2e;
+    }
+
+    *{ box-sizing:border-box; }
+    body{ margin:0; padding:24px; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:var(--bg); color:var(--text); }
+
+    .app{
+      max-width:1100px; margin:0 auto; background:var(--panel);
+      border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow);
+      padding:18px 18px 14px;
+    }
+    h1{ margin:0 0 10px; font-size:20px; letter-spacing:.2px; }
+
+    .prompt{
+      border:1px solid var(--border); border-radius:12px; padding:12px;
+      background:rgba(0,0,0,0.02);
+    }
+    body.night .prompt{ background:rgba(255,255,255,0.03); }
+    .prompt b{ color:var(--accent); }
+    .prompt p{ margin:6px 0; color:var(--muted); }
+
+    /* Tabs */
+    .tabs{
+      margin-top:12px;
+      display:flex; gap:10px; flex-wrap:wrap;
+      border-bottom:1px solid var(--border);
+      padding-bottom:10px;
+    }
+    .tabBtn{
+      border:1px solid var(--border);
+      background:var(--tab);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      font-weight:900;
+      cursor:pointer;
+      transition:.15s ease;
+      min-width:260px;
+      text-align:center;
+    }
+    .tabBtn:hover{ filter:brightness(0.98); }
+    .tabBtn.active{
+      background:var(--tabActive);
+      box-shadow:0 0 0 3px rgba(43,109,230,.12) inset;
+      border-color:rgba(43,109,230,.35);
+    }
+
+    /* Controls (shared) */
+    .controls{
+      margin-top:12px;
+      display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:flex-start;
+    }
+    button{
+      border:1px solid var(--border);
+      background:var(--btn);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:700;
+      transition:.15s ease;
+      min-width:170px;
+    }
+    button:hover{ background:var(--btnHover); }
+    button:disabled{ opacity:.55; cursor:not-allowed; }
+    .primary{
+      border-color:rgba(43,109,230,.35);
+      box-shadow:0 0 0 3px rgba(43,109,230,.12) inset;
+    }
+    .danger{
+      border-color:rgba(239,68,68,.35);
+      box-shadow:0 0 0 3px rgba(239,68,68,.10) inset;
+    }
+
+    /* Layout */
+    .tabPane{ display:none; margin-top:14px; }
+    .tabPane.active{ display:block; }
+
+    .grid{
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:14px;
+      align-items:start;
+    }
+    .panel{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px;
+      background:rgba(0,0,0,0.01);
+      position:relative;
+      overflow:hidden;
+    }
+    body.night .panel{ background:rgba(255,255,255,0.03); }
+
+    .panel h2{
+      margin:0 0 10px;
+      font-size:14px;
+      color:var(--muted);
+      font-weight:900;
+      letter-spacing:.25px;
+      text-transform:uppercase;
+    }
+
+    /* Excel-like table */
+    .sheetWrap{ display:flex; gap:12px; align-items:flex-start; }
+    table.sheet{
+      border-collapse:separate; border-spacing:0;
+      border:1px solid var(--border);
+      border-radius:12px;
+      overflow:hidden;
+      background:var(--panel);
+    }
+    .sheet th, .sheet td{
+      border-right:1px solid var(--border);
+      border-bottom:1px solid var(--border);
+      width:74px; height:44px; text-align:center; font-weight:900;
+      position:relative; background:rgba(0,0,0,0.00);
+      user-select:none;
+    }
+    .sheet th{
+      color:var(--muted);
+      background:rgba(0,0,0,0.03);
+    }
+    body.night .sheet th{ background:rgba(255,255,255,0.04); }
+    .sheet tr:last-child td, .sheet tr:last-child th{ border-bottom:0; }
+    .sheet td:last-child, .sheet th:last-child{ border-right:0; }
+
+    .cellCmp{ outline:2px solid var(--cellCmpFrame); outline-offset:-2px; background:var(--cellCmp); }
+    .cellSwap{ outline:2px solid var(--cellFrame); outline-offset:-2px; background:var(--cellHl); }
+    .cellActive{ box-shadow:0 0 0 3px rgba(43,109,230,.18) inset; }
+
+    .legend{
+      display:flex; flex-direction:column; gap:8px;
+      min-width:220px;
+      color:var(--muted);
+      font-weight:800;
+      font-size:13px;
+    }
+    .tag{ display:flex; align-items:center; gap:8px; }
+    .swatch{ width:18px; height:18px; border-radius:6px; border:1px solid var(--border); background:transparent; }
+    .swatch.cmp{ background:var(--cellCmp); border-color:var(--cellCmpFrame); }
+    .swatch.swp{ background:var(--cellHl); border-color:var(--cellFrame); }
+
+    .status{
+      margin-top:10px;
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap:10px;
+    }
+    .kv{
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:10px;
+      background:rgba(0,0,0,0.01);
+    }
+    body.night .kv{ background:rgba(255,255,255,0.03); }
+    .kv .k{ color:var(--muted); font-size:12px; font-weight:900; letter-spacing:.2px; }
+    .kv .v{ font-size:16px; font-weight:900; margin-top:3px; }
+
+    /* Code */
+    .codeWrap{
+      margin-top:12px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      overflow:hidden;
+      display:none;
+    }
+    .codeWrap.show{ display:block; }
+    .codeHead{
+      padding:10px 12px;
+      background:rgba(0,0,0,0.03);
+      color:var(--muted);
+      font-weight:900;
+      letter-spacing:.2px;
+      border-bottom:1px solid var(--border);
+    }
+    body.night .codeHead{ background:rgba(255,255,255,0.04); }
+
+    pre{
+      margin:0;
+      padding:10px 0;
+      background:var(--codeBg);
+      color:var(--codeText);
+      overflow:auto;
+      font-size:13px;
+      line-height:1.45;
+    }
+    .line{ display:flex; gap:10px; padding:2px 14px; }
+    .ln{ width:28px; color:rgba(229,231,235,.55); text-align:right; user-select:none; font-variant-numeric:tabular-nums; }
+    .txt{ white-space:pre; flex:1; font-variant-numeric:tabular-nums; }
+    .line.active{ background:rgba(255,255,255,0.08); box-shadow:inset 4px 0 0 0 var(--hl); }
+
+    /* Swap animation overlay */
+    .overlay{ position:absolute; inset:0; pointer-events:none; z-index:10; }
+    .fly{
+      position:absolute;
+      width:74px; height:44px;
+      display:flex; align-items:center; justify-content:center;
+      border-radius:10px;
+      font-weight:900;
+      border:2px solid var(--cellFrame);
+      background:var(--panel);
+      box-shadow:var(--shadow);
+      transform:translate3d(0,0,0);
+      transition: transform 420ms ease;
+    }
+
+    .foot{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:12px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .pill{
+      padding:6px 10px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      background:rgba(0,0,0,0.01);
+      font-weight:900;
+    }
+    body.night .pill{ background:rgba(255,255,255,0.03); }
+
+    @media (max-width:980px){
+      .grid{ grid-template-columns:1fr; }
+      button{ min-width:150px; }
+      .status{ grid-template-columns:repeat(2,1fr); }
+      .sheetWrap{ flex-direction:column; }
+      .legend{ min-width:unset; }
+      .tabBtn{ min-width:unset; flex:1; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app" id="app">
+    <h1>Ταξινόμηση γραμμών & στηλών στον πίνακα B[4,5]</h1>
+
+    <div class="prompt">
+      <div> Αναλυτική περιγραφή της λειτουργίας της φυσαλίδας σε κάθε γραμμή και σε κάθε στήλη ενός πίνακα δύο διαστάσεων</div>
+      
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Tabs">
+      <button class="tabBtn active" id="tabBtnRow" role="tab" aria-selected="true">1η καρτέλα: Αύξουσα ταξινόμηση ανά γραμμή</button>
+      <button class="tabBtn" id="tabBtnCol" role="tab" aria-selected="false">2η καρτέλα: Αύξουσα ταξινόμηση ανά στήλη</button>
+    </div>
+
+    <div class="controls">
+      <button id="btnTheme">Day / Night</button>
+      <button id="btnStep" class="primary">Βήμα-βήμα</button>
+      <button id="btnAuto" class="primary">Αυτόματη εκτέλεση</button>
+      <button id="btnReset" class="danger">Επαναφορά / Νέες τιμές</button>
+      <button id="btnCode">Εμφάνιση / Απόκρυψη κώδικα</button>
+    </div>
+
+    <!-- TAB 1: ROW SORT -->
+    <section class="tabPane active" id="tabRow" role="tabpanel" aria-labelledby="tabBtnRow">
+      <div class="grid">
+        <div class="panel" id="panelRowTable">
+          <h2>Πίνακας Β[4,5] (μορφή Excel) – ταξινόμηση ανά γραμμή</h2>
+
+          <div class="sheetWrap">
+            <div style="position:relative;">
+              <div class="overlay" id="overlayRow"></div>
+              <table class="sheet" id="sheetRow">
+                <thead>
+                  <tr><th></th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr>
+                </thead>
+                <tbody id="sheetBodyRow"></tbody>
+              </table>
+            </div>
+
+            <div class="legend">
+              <div class="tag"><span class="swatch cmp"></span> Σύγκριση (B[i,k] με B[i,k-1])</div>
+              <div class="tag"><span class="swatch swp"></span> Ανταλλαγή (swap)</div>
+              <div class="tag"><span class="swatch" style="box-shadow:0 0 0 2px rgba(43,109,230,.35) inset;"></span> Ενεργό κελί</div>
+            </div>
+          </div>
+
+          <div class="status">
+            <div class="kv"><div class="k">i (γραμμή)</div><div class="v" id="viRow">—</div></div>
+            <div class="kv"><div class="k">j</div><div class="v" id="vjRow">—</div></div>
+            <div class="kv"><div class="k">k</div><div class="v" id="vkRow">—</div></div>
+            <div class="kv"><div class="k">Κατάσταση</div><div class="v" id="vstateRow">Έτοιμο</div></div>
+          </div>
+
+          <div class="foot">
+            <div class="pill">Αύξουσα ταξινόμηση σε κάθε γραμμή (ανεξάρτητα)</div>
+            <div class="pill">Βήμα-βήμα: βλέπεις όλες τις συγκρίσεις και swaps</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Κώδικας & φωτισμός εντολής (Καρτέλα 1)</h2>
+
+          <div class="codeWrap" id="codeWrapRow">
+            <div class="codeHead">ΓΛΩΣΣΑ (Ταξινόμηση ανά γραμμή)</div>
+            <pre id="codeRow"></pre>
+          </div>
+
+          <div style="margin-top:10px; color:var(--muted); font-weight:800; line-height:1.55;">
+            <ul style="margin:0; padding-left:18px;">
+              <li>Η σύγκριση γίνεται <b>οριζόντια</b> (μέσα στην ίδια γραμμή).</li>
+              
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: COLUMN SORT -->
+    <section class="tabPane" id="tabCol" role="tabpanel" aria-labelledby="tabBtnCol">
+      <div class="grid">
+        <div class="panel" id="panelColTable">
+          <h2>Πίνακας Β[4,5] (μορφή Excel) – ταξινόμηση ανά στήλη</h2>
+
+          <div class="sheetWrap">
+            <div style="position:relative;">
+              <div class="overlay" id="overlayCol"></div>
+              <table class="sheet" id="sheetCol">
+                <thead>
+                  <tr><th></th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr>
+                </thead>
+                <tbody id="sheetBodyCol"></tbody>
+              </table>
+            </div>
+
+            <div class="legend">
+              <div class="tag"><span class="swatch cmp"></span> Σύγκριση (B[k-1,j] με B[k,j])</div>
+              <div class="tag"><span class="swatch swp"></span> Ανταλλαγή (swap)</div>
+              <div class="tag"><span class="swatch" style="box-shadow:0 0 0 2px rgba(43,109,230,.35) inset;"></span> Ενεργό κελί</div>
+            </div>
+          </div>
+
+          <div class="status">
+            <div class="kv"><div class="k">j (στήλη)</div><div class="v" id="vjCol">—</div></div>
+            <div class="kv"><div class="k">i</div><div class="v" id="viCol">—</div></div>
+            <div class="kv"><div class="k">k</div><div class="v" id="vkCol">—</div></div>
+            <div class="kv"><div class="k">Κατάσταση</div><div class="v" id="vstateCol">Έτοιμο</div></div>
+          </div>
+
+          <div class="foot">
+            <div class="pill">Αύξουσα ταξινόμηση σε κάθε στήλη (ανεξάρτητα)</div>
+            <div class="pill">Η σύγκριση είναι <b>κάθετη</b> μέσα στην ίδια στήλη</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Κώδικας & φωτισμός εντολής (Καρτέλα 2)</h2>
+
+          <div class="codeWrap" id="codeWrapCol">
+            <div class="codeHead">ΓΛΩΣΣΑ (Ταξινόμηση ανά στήλη)</div>
+            <pre id="codeCol"></pre>
+          </div>
+
+          <div style="margin-top:10px; color:var(--muted); font-weight:800; line-height:1.55;">
+            <div style="margin-bottom:8px;">
+              
+            </div>
+            <ul style="margin:0; padding-left:18px;">
+              <li>Η σύγκριση γίνεται κάθετα.</li>
+              
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+<script>
+(() => {
+  // ===== Shared constants =====
+  const ROWS = 4, COLS = 5;
+  const MINV = -99, MAXV = 99;
+
+  // ===== Shared DOM (global buttons) =====
+  const body = document.body;
+  const btnTheme = document.getElementById("btnTheme");
+  const btnStep  = document.getElementById("btnStep");
+  const btnAuto  = document.getElementById("btnAuto");
+  const btnReset = document.getElementById("btnReset");
+  const btnCode  = document.getElementById("btnCode");
+
+  // Tabs
+  const tabBtnRow = document.getElementById("tabBtnRow");
+  const tabBtnCol = document.getElementById("tabBtnCol");
+  const tabRow = document.getElementById("tabRow");
+  const tabCol = document.getElementById("tabCol");
+
+  // ===== Utility =====
+  const randInt = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+
+  // ===== Visualizer class (one per tab) =====
+  class Visualizer {
+    constructor(opts){
+      this.mode = opts.mode; // "row" or "col"
+
+      this.panelTable = opts.panelTable;
+      this.overlay = opts.overlay;
+      this.sheetBody = opts.sheetBody;
+
+      this.viEl = opts.viEl;
+      this.vjEl = opts.vjEl;
+      this.vkEl = opts.vkEl;
+      this.vstateEl = opts.vstateEl;
+
+      this.codeWrap = opts.codeWrap;
+      this.codePre = opts.codePre;
+      this.codeHeadText = opts.codeHeadText;
+
+      this.codeLines = opts.codeLines;
+
+      // internal state
+      this.B = [];
+      this.cells = [];
+      this.running = false;
+      this.autoTimer = null;
+      this.busyAnimating = false;
+      this.finished = false;
+
+      // variables (row-mode: i,j,k ; col-mode: j,i,k)
+      this.i = 1; this.j = 2; this.k = COLS;
+
+      this.pc = "INIT";
+      this.ifTrue = false;
+      this.temp = null;
+
+      // render static code
+      this.renderCode(0);
+      this.resetAll();
+    }
+
+    setButtonsEnabled(enabled){
+      // global buttons are shared; we manage enabling globally outside for active tab only
+      // so here we do nothing.
+    }
+
+    setAutoButtonText(activeTab){
+      if(!activeTab) return;
+      btnAuto.textContent = this.running ? "Παύση αυτόματης" : "Αυτόματη εκτέλεση";
+    }
+
+    setStatus(){
+      if(this.finished){
+        this.viEl.textContent = "—";
+        this.vjEl.textContent = "—";
+        this.vkEl.textContent = "—";
+        this.vstateEl.textContent = "Ολοκληρώθηκε";
+        return;
+      }
+
+      if(this.mode === "row"){
+        this.viEl.textContent = String(this.i);
+        this.vjEl.textContent = String(this.j);
+        this.vkEl.textContent = String(this.k);
+      }else{
+        // col: show j, i, k in the labels provided
+        this.vjEl.textContent = String(this.j);
+        this.viEl.textContent = String(this.i);
+        this.vkEl.textContent = String(this.k);
+      }
+      this.vstateEl.textContent = this.busyAnimating ? "Ανταλλαγή..." : "Σε εκτέλεση";
+    }
+
+    clearMarks(){
+      for(let r=1;r<=ROWS;r++){
+        for(let c=1;c<=COLS;c++){
+          this.cells[r][c].classList.remove("cellCmp","cellSwap","cellActive");
+        }
+      }
+    }
+
+    markCompare(r1,c1,r2,c2){
+      this.clearMarks();
+      this.cells[r1][c1].classList.add("cellCmp","cellActive");
+      this.cells[r2][c2].classList.add("cellCmp","cellActive");
+    }
+
+    markSwap(r1,c1,r2,c2){
+      this.clearMarks();
+      this.cells[r1][c1].classList.add("cellSwap","cellActive");
+      this.cells[r2][c2].classList.add("cellSwap","cellActive");
+    }
+
+    newMatrix(){
+      this.B = Array.from({length: ROWS+1}, () => Array(COLS+1).fill(0));
+      for(let r=1;r<=ROWS;r++){
+        for(let c=1;c<=COLS;c++){
+          this.B[r][c] = randInt(MINV, MAXV);
+        }
+      }
+    }
+
+    renderTable(){
+      this.sheetBody.innerHTML = "";
+      this.cells = Array.from({length: ROWS+1}, () => Array(COLS+1).fill(null));
+
+      for(let r=1;r<=ROWS;r++){
+        const tr = document.createElement("tr");
+        const th = document.createElement("th");
+        th.textContent = r;
+        tr.appendChild(th);
+
+        for(let c=1;c<=COLS;c++){
+          const td = document.createElement("td");
+          td.textContent = String(this.B[r][c]);
+          tr.appendChild(td);
+          this.cells[r][c] = td;
+        }
+        this.sheetBody.appendChild(tr);
+      }
+    }
+
+    updateCellText(r,c){
+      this.cells[r][c].textContent = String(this.B[r][c]);
+    }
+
+    renderCode(activeLineIndex){
+      this.codePre.innerHTML = "";
+      this.codeWrap.querySelector(".codeHead").textContent = this.codeHeadText;
+
+      for(let idx=0; idx<this.codeLines.length; idx++){
+        const line = document.createElement("div");
+        line.className = "line" + ((idx+1)===activeLineIndex ? " active" : "");
+        const ln = document.createElement("div");
+        ln.className = "ln";
+        ln.textContent = String(idx+1).padStart(2," ");
+        const txt = document.createElement("div");
+        txt.className = "txt";
+        txt.textContent = this.codeLines[idx];
+        line.appendChild(ln);
+        line.appendChild(txt);
+        this.codePre.appendChild(line);
+      }
+
+      if(activeLineIndex>0){
+        const active = this.codePre.querySelector(".line.active");
+        if(active){
+          const preRect = this.codePre.getBoundingClientRect();
+          const aRect = active.getBoundingClientRect();
+          if(aRect.top < preRect.top + 20 || aRect.bottom > preRect.bottom - 20){
+            active.scrollIntoView({block:"center", behavior:"smooth"});
+          }
+        }
+      }
+    }
+
+    showCode(show){
+      this.codeWrap.classList.toggle("show", show);
+    }
+
+    stopAuto(){
+      this.running = false;
+      if(this.autoTimer){ clearInterval(this.autoTimer); this.autoTimer = null; }
+    }
+
+    async swapAnimation(rA,cA,rB,cB){
+      return new Promise(resolve => {
+        const tdA = this.cells[rA][cA];
+        const tdB = this.cells[rB][cB];
+
+        const wrapRect = this.panelTable.getBoundingClientRect();
+        const a = tdA.getBoundingClientRect();
+        const b = tdB.getBoundingClientRect();
+
+        const startAX = a.left - wrapRect.left + this.panelTable.scrollLeft;
+        const startAY = a.top  - wrapRect.top  + this.panelTable.scrollTop;
+        const startBX = b.left - wrapRect.left + this.panelTable.scrollLeft;
+        const startBY = b.top  - wrapRect.top  + this.panelTable.scrollTop;
+
+        const flyA = document.createElement("div");
+        flyA.className = "fly";
+        flyA.textContent = tdA.textContent;
+        flyA.style.left = startAX + "px";
+        flyA.style.top  = startAY + "px";
+
+        const flyB = document.createElement("div");
+        flyB.className = "fly";
+        flyB.textContent = tdB.textContent;
+        flyB.style.left = startBX + "px";
+        flyB.style.top  = startBY + "px";
+
+        this.overlay.appendChild(flyA);
+        this.overlay.appendChild(flyB);
+
+        tdA.style.visibility = "hidden";
+        tdB.style.visibility = "hidden";
+
+        flyA.getBoundingClientRect(); // layout
+
+        const dxA = startBX - startAX, dyA = startBY - startAY;
+        const dxB = startAX - startBX, dyB = startAY - startBY;
+
+        flyA.style.transform = `translate3d(${dxA}px, ${dyA}px, 0)`;
+        flyB.style.transform = `translate3d(${dxB}px, ${dyB}px, 0)`;
+
+        let done = 0;
+        const finishOne = () => {
+          done++;
+          if(done<2) return;
+          this.overlay.removeChild(flyA);
+          this.overlay.removeChild(flyB);
+          tdA.style.visibility = "";
+          tdB.style.visibility = "";
+          resolve();
+        };
+        flyA.addEventListener("transitionend", finishOne, {once:true});
+        flyB.addEventListener("transitionend", finishOne, {once:true});
+      });
+    }
+
+    resetAll(){
+      this.stopAuto();
+      this.finished = false;
+      this.busyAnimating = false;
+      this.temp = null;
+      this.ifTrue = false;
+
+      // init loop vars depending on mode
+      if(this.mode === "row"){
+        this.i = 1; this.j = 2; this.k = COLS;
+      }else{
+        // col: j=1..COLS, i=2..ROWS, k=ROWS..i
+        this.j = 1; this.i = 2; this.k = ROWS;
+      }
+
+      this.pc = "INIT";
+
+      this.newMatrix();
+      this.renderTable();
+      this.clearMarks();
+      this.renderCode(0);
+
+      this.vstateEl.textContent = "Έτοιμο";
+      this.viEl.textContent = "—";
+      this.vjEl.textContent = "—";
+      this.vkEl.textContent = "—";
+    }
+
+    setFinished(){
+      this.finished = true;
+      this.stopAuto();
+      this.clearMarks();
+      this.renderCode(0);
+      this.setStatus();
+      this.vstateEl.textContent = "Ολοκληρώθηκε";
+    }
+
+    // ---- Loop progression helpers ----
+    nextAfterK_row(){
+      // after finishing k loop for current j
+      this.j++;
+      if(this.j<=COLS){
+        this.k = COLS;
+        this.pc = "LINE2";
+      }else{
+        this.i++;
+        if(this.i<=ROWS){
+          this.j = 2;
+          this.k = COLS;
+          this.pc = "LINE1";
+        }else{
+          this.pc = "DONE";
+        }
+      }
+    }
+
+    nextAfterK_col(){
+      // after finishing k loop for current i
+      this.i++;
+      if(this.i<=ROWS){
+        this.k = ROWS;
+        this.pc = "LINE2";
+      }else{
+        this.j++;
+        if(this.j<=COLS){
+          this.i = 2;
+          this.k = ROWS;
+          this.pc = "LINE1";
+        }else{
+          this.pc = "DONE";
+        }
+      }
+    }
+
+    // ---- One step (highlights exactly one statement line) ----
+    async stepOnce(){
+      if(this.busyAnimating || this.finished) return;
+
+      try{
+        if(this.mode === "row"){
+          // Pseudocode mapping (row)
+          // 1 For i
+          // 2 For j
+          // 3 For k
+          // 4 If B[i,k] < B[i,k-1]
+          // 5 temp <- B[i,k]
+          // 6 B[i,k] <- B[i,k-1]
+          // 7 B[i,k-1] <- temp
+          // 8 End if
+          // 9 End k
+          // 10 End j
+          // 11 End i
+
+          switch(this.pc){
+            case "INIT":
+              this.pc = "LINE1";
+              this.renderCode(1);
+              this.clearMarks();
+              break;
+
+            case "LINE1":
+              this.renderCode(1);
+              this.pc = "LINE2";
+              break;
+
+            case "LINE2":
+              this.renderCode(2);
+              this.pc = "LINE3";
+              break;
+
+            case "LINE3":
+              this.renderCode(3);
+              if(this.k < this.j){
+                this.pc = "LINE9";
+              }else{
+                this.pc = "LINE4";
+              }
+              break;
+
+            case "LINE4":
+              this.renderCode(4);
+              this.markCompare(this.i, this.k, this.i, this.k-1);
+              this.ifTrue = (this.B[this.i][this.k] < this.B[this.i][this.k-1]);
+              this.pc = this.ifTrue ? "LINE5" : "LINE8";
+              break;
+
+            case "LINE5":
+              this.renderCode(5);
+              this.temp = this.B[this.i][this.k];
+              this.pc = "LINE6";
+              break;
+
+            case "LINE6":
+              this.renderCode(6);
+              this.B[this.i][this.k] = this.B[this.i][this.k-1];
+              this.pc = "LINE7";
+              break;
+
+            case "LINE7":
+              this.renderCode(7);
+              this.B[this.i][this.k-1] = this.temp;
+
+              this.busyAnimating = true;
+              this.markSwap(this.i, this.k, this.i, this.k-1);
+              await this.swapAnimation(this.i, this.k, this.i, this.k-1);
+              this.updateCellText(this.i, this.k);
+              this.updateCellText(this.i, this.k-1);
+              this.busyAnimating = false;
+
+              this.pc = "LINE8";
+              break;
+
+            case "LINE8":
+              this.renderCode(8);
+              this.k--;
+              this.pc = "LINE3";
+              break;
+
+            case "LINE9":
+              this.renderCode(9);
+              this.nextAfterK_row();
+              break;
+
+            case "DONE":
+              this.setFinished();
+              break;
+
+            default:
+              this.setFinished();
+              break;
+          }
+
+          if(this.pc === "DONE") this.setFinished();
+          else this.setStatus();
+
+        } else {
+          // Column mode pseudocode mapping:
+          // 1 Για j από 1 μέχρι 5
+          // 2 Για i από 2 μέχρι 4
+          // 3 Για k από 4 μέχρι i, με βήμα -1
+          // 4 Αν B[k-1,j] > B[k,j] Τότε
+          // 5 temp ← B[k,j]
+          // 6 B[k,j] ← B[k-1,j]
+          // 7 B[k-1,j] ← temp
+          // 8 Τέλος_αν
+          // 9 Τέλος_επανάληψης (k)
+          // 10 Τέλος_επανάληψης (i)
+          // 11 Τέλος_επανάληψης (j)
+
+          switch(this.pc){
+            case "INIT":
+              this.pc = "LINE1";
+              this.renderCode(1);
+              this.clearMarks();
+              break;
+
+            case "LINE1":
+              this.renderCode(1);
+              this.pc = "LINE2";
+              break;
+
+            case "LINE2":
+              this.renderCode(2);
+              this.pc = "LINE3";
+              break;
+
+            case "LINE3":
+              this.renderCode(3);
+              if(this.k < this.i){
+                this.pc = "LINE9";
+              }else{
+                this.pc = "LINE4";
+              }
+              break;
+
+            case "LINE4":
+              this.renderCode(4);
+              // compare (k-1, j) with (k, j)
+              this.markCompare(this.k-1, this.j, this.k, this.j);
+              this.ifTrue = (this.B[this.k-1][this.j] > this.B[this.k][this.j]);
+              this.pc = this.ifTrue ? "LINE5" : "LINE8";
+              break;
+
+            case "LINE5":
+              this.renderCode(5);
+              this.temp = this.B[this.k][this.j];
+              this.pc = "LINE6";
+              break;
+
+            case "LINE6":
+              this.renderCode(6);
+              this.B[this.k][this.j] = this.B[this.k-1][this.j];
+              this.pc = "LINE7";
+              break;
+
+            case "LINE7":
+              this.renderCode(7);
+              this.B[this.k-1][this.j] = this.temp;
+
+              this.busyAnimating = true;
+              this.markSwap(this.k-1, this.j, this.k, this.j);
+              await this.swapAnimation(this.k-1, this.j, this.k, this.j);
+              this.updateCellText(this.k-1, this.j);
+              this.updateCellText(this.k, this.j);
+              this.busyAnimating = false;
+
+              this.pc = "LINE8";
+              break;
+
+            case "LINE8":
+              this.renderCode(8);
+              this.k--;
+              this.pc = "LINE3";
+              break;
+
+            case "LINE9":
+              this.renderCode(9);
+              // after k loop ends, advance i (then possibly j)
+              this.nextAfterK_col();
+              break;
+
+            case "DONE":
+              this.setFinished();
+              break;
+
+            default:
+              this.setFinished();
+              break;
+          }
+
+          if(this.pc === "DONE") this.setFinished();
+          else this.setStatus();
+        }
+
+      } catch(e){
+        // safety stop
+        this.stopAuto();
+        this.busyAnimating = false;
+        this.setFinished();
+      }
+    }
+
+    startAuto(activeTab){
+      if(this.running) return;
+      this.running = true;
+      this.setAutoButtonText(activeTab);
+
+      this.autoTimer = setInterval(async () => {
+        if(!this.running) return;
+        if(this.busyAnimating) return;
+        if(this.finished){
+          this.stopAuto();
+          this.setAutoButtonText(activeTab);
+          return;
+        }
+        await this.stepOnce();
+      }, 520);
+    }
+  }
+
+  // ===== Build code lines (exactly as needed per tab) =====
+  const ROW_CODE = [
+    "Για i από 1 μέχρι 4",
+    "  Για j από 2 μέχρι 5",
+    "    Για k από 5 μέχρι j, με βήμα -1",
+    "      Αν B[i,k] < B[i,k-1] Τότε",
+    "        temp ← B[i,k]",
+    "        B[i,k] ← B[i,k-1]",
+    "        B[i,k-1] ← temp",
+    "      Τέλος_αν",
+    "    Τέλος_επανάληψης",
+    "  Τέλος_επανάληψης",
+    "Τέλος_επανάληψης"
+  ];
+
+  const COL_CODE = [
+    "Για j από 1 μέχρι 5",
+    "  Για i από 2 μέχρι 4",
+    "    Για k από 4 μέχρι i, με βήμα -1",
+    "      Αν B[k-1,j] > B[k,j] Τότε",
+    "        temp ← B[k,j]",
+    "        B[k,j] ← B[k-1,j]",
+    "        B[k-1,j] ← temp",
+    "      Τέλος_αν",
+    "    Τέλος_επανάληψης",
+    "  Τέλος_επανάληψης",
+    "Τέλος_επανάληψης"
+  ];
+
+  // ===== Instantiate both tabs =====
+  const vizRow = new Visualizer({
+    mode:"row",
+    panelTable: document.getElementById("panelRowTable"),
+    overlay: document.getElementById("overlayRow"),
+    sheetBody: document.getElementById("sheetBodyRow"),
+    viEl: document.getElementById("viRow"),
+    vjEl: document.getElementById("vjRow"),
+    vkEl: document.getElementById("vkRow"),
+    vstateEl: document.getElementById("vstateRow"),
+    codeWrap: document.getElementById("codeWrapRow"),
+    codePre: document.getElementById("codeRow"),
+    codeHeadText: "ΓΛΩΣΣΑ (Ταξινόμηση ανά γραμμή)",
+    codeLines: ROW_CODE
+  });
+
+  const vizCol = new Visualizer({
+    mode:"col",
+    panelTable: document.getElementById("panelColTable"),
+    overlay: document.getElementById("overlayCol"),
+    sheetBody: document.getElementById("sheetBodyCol"),
+    // Προσοχή: εδώ τα labels είναι j/i/k όπως ορίστηκαν στο DOM
+    vjEl: document.getElementById("vjCol"),
+    viEl: document.getElementById("viCol"),
+    vkEl: document.getElementById("vkCol"),
+    vstateEl: document.getElementById("vstateCol"),
+    codeWrap: document.getElementById("codeWrapCol"),
+    codePre: document.getElementById("codeCol"),
+    codeHeadText: "ΓΛΩΣΣΑ (Ταξινόμηση ανά στήλη)",
+    codeLines: COL_CODE
+  });
+
+  // ===== Active tab handling =====
+  let active = "row";
+  const getActiveViz = () => (active==="row" ? vizRow : vizCol);
+
+  function setActiveTab(which){
+    // stop auto on both when switching (ώστε να μη τρέχουν παράλληλα)
+    vizRow.stopAuto();
+    vizCol.stopAuto();
+
+    active = which;
+
+    tabBtnRow.classList.toggle("active", which==="row");
+    tabBtnCol.classList.toggle("active", which==="col");
+    tabBtnRow.setAttribute("aria-selected", which==="row" ? "true" : "false");
+    tabBtnCol.setAttribute("aria-selected", which==="col" ? "true" : "false");
+
+    tabRow.classList.toggle("active", which==="row");
+    tabCol.classList.toggle("active", which==="col");
+
+    // update auto button label based on active viz
+    getActiveViz().setAutoButtonText(true);
+  }
+
+  tabBtnRow.addEventListener("click", () => setActiveTab("row"));
+  tabBtnCol.addEventListener("click", () => setActiveTab("col"));
+
+  // ===== Global buttons (operate on active tab) =====
+  btnTheme.addEventListener("click", () => {
+    body.classList.toggle("night");
+  });
+
+  btnCode.addEventListener("click", () => {
+    const v = getActiveViz();
+    v.showCode(!v.codeWrap.classList.contains("show"));
+  });
+
+  btnReset.addEventListener("click", () => {
+    const v = getActiveViz();
+    v.resetAll();
+    v.setAutoButtonText(true);
+  });
+
+  btnStep.addEventListener("click", async () => {
+    const v = getActiveViz();
+    await v.stepOnce();
+  });
+
+  btnAuto.addEventListener("click", () => {
+    const v = getActiveViz();
+    if(v.running){
+      v.stopAuto();
+      v.setAutoButtonText(true);
+      return;
+    }
+    v.startAuto(true);
+  });
+
+})();
+</script>
+</body>
+</html>
