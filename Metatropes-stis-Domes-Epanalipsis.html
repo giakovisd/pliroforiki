@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Δομές Επανάληψης - Student App</title>
+<style>
+  :root {
+    --primary: #6366f1; /* Indigo */
+    --primary-dark: #4338ca;
+    --secondary: #ec4899; /* Pink */
+    --bg-app: #f8fafc;
+    --text: #334155;
+    --header-bg: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  }
+
+  * { box-sizing: border-box; }
+  
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--bg-app);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--header-bg);
+    color: #fff;
+    padding: 15px 25px;
+    box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2);
+    z-index: 20;
+    flex-shrink: 0;
+  }
+
+  header h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .subtitle {
+    font-size: 14px;
+    opacity: 0.95;
+    margin-top: 4px;
+    font-weight: 400;
+  }
+
+  /* NAVIGATION TABS */
+  .nav-container {
+    background: #fff;
+    padding: 10px 20px 0 20px;
+    border-bottom: 1px solid #e2e8f0;
+    flex-shrink: 0;
+    overflow-x: auto;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 10px;
+  }
+
+  .tab-btn {
+    appearance: none;
+    border: none;
+    background: transparent;
+    padding: 12px 18px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    color: #64748b;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .tab-btn:hover {
+    color: var(--primary);
+    background: #f1f5f9;
+    border-radius: 8px 8px 0 0;
+  }
+
+  .tab-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+  }
+
+  /* MAIN AREA */
+  .panel-container {
+    flex: 1;
+    position: relative;
+    background: #f1f5f9;
+  }
+  
+  .panel {
+    display: none;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0; left: 0;
+  }
+  
+  .panel.active {
+    display: block;
+    animation: fadeIn 0.4s ease-out;
+  }
+
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+    background: #fff;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Hidden Textareas for Code Storage */
+  .code-store { display: none; }
+</style>
+</head>
+<body onload="init()">
+
+<header>
+  <h1>🔂 Μετατροπές Δομών Επανάληψης</h1>
+  <div class="subtitle">Διαδραστική Εφαρμογή για Μαθητές</div>
+</header>
+
+<div class="nav-container">
+  <div class="tabs" role="tablist">
+    <button class="tab-btn active" onclick="openPanel(0)">1. ΜΕΧΡΙΣ_ΟΤΟΥ → ΟΣΟ</button>
+    <button class="tab-btn" onclick="openPanel(1)">2. ΓΙΑ → ΟΣΟ</button>
+    <button class="tab-btn" onclick="openPanel(2)">3. ΟΣΟ → ΓΙΑ</button>
+    <button class="tab-btn" onclick="openPanel(3)">4. ΟΣΟ → ΜΕΧΡΙΣ_ΟΤΟΥ</button>
+  </div>
+</div>
+
+<div class="panel-container">
+  <div class="panel active" id="panel0"><iframe id="frame0"></iframe></div>
+  <div class="panel" id="panel1"><iframe id="frame1"></iframe></div>
+  <div class="panel" id="panel2"><iframe id="frame2"></iframe></div>
+  <div class="panel" id="panel3"><iframe id="frame3"></iframe></div>
+</div>
+
+<textarea id="code0" class="code-store">
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8"><title>App1</title>
+<style>
+  :root { --bg:#ecfdf5; --card:#fff; --text:#064e3b; --accent:#10b981; }
+  body { font-family:'Segoe UI',sans-serif; margin:0; padding:20px; background:var(--bg); color:var(--text); }
+  h1 { font-size:20px; margin:0 0 10px; color:#047857; }
+  .topbar { background:#fff; padding:10px; border-radius:12px; box-shadow:0 2px 5px rgba(0,0,0,0.05); display:flex; gap:10px; margin-bottom:15px; }
+  .btn { border:none; padding:8px 16px; border-radius:20px; font-weight:600; cursor:pointer; color:#fff; transition:transform 0.1s; box-shadow:0 3px 6px rgba(0,0,0,0.1); }
+  .btn:active { transform:scale(0.96); }
+  .btn:disabled { opacity:0.5; cursor:default; transform:none; }
+  .btn-toggle { background:#6b7280; }
+  .btn-play { background:linear-gradient(to bottom right, #10b981, #059669); }
+  .btn-step { background:#3b82f6; }
+  .btn-reset { background:#f59e0b; }
+  
+  .note { background:#d1fae5; color:#065f46; padding:12px; border-radius:8px; margin-bottom:20px; border-left:4px solid #10b981; }
+  
+  .grid { display:grid; grid-template-columns:35% 1fr; gap:20px; }
+  .card { background:var(--card); border-radius:16px; padding:20px; box-shadow:0 4px 15px rgba(0,0,0,0.05); min-height:240px; }
+  .label { font-size:12px; font-weight:bold; text-transform:uppercase; color:#9ca3af; margin-bottom:10px; letter-spacing:1px; }
+  pre { font-family:'Consolas',monospace; font-size:18px; margin:0; line-height:1.6; color:#333; }
+  
+  .line { display:block; border-radius:4px; }
+  .slot { display:inline-block; opacity:0; transition:opacity 0.5s; border-bottom:2px dashed #cbd5e1; }
+  .slot.reveal { opacity:1; border-bottom:none; }
+  .emph { background:#fef3c7; color:#b45309; font-weight:bold; padding:0 4px; border-radius:4px; }
+  
+  .fly { position:fixed; left:0; top:0; z-index:99; background:#fff; padding:4px 8px; border:2px solid #10b981; border-radius:6px; color:#064e3b; font-weight:bold; pointer-events:none; box-shadow:0 4px 12px rgba(0,0,0,0.2); }
+  
+  .tab { display:none; animation:fadeIn 0.3s; }
+  .tab.active { display:block; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+</style>
+</head>
+<body onload="init()">
+  <h1>Μετατροπή <span style="color:#10b981">ΜΕΧΡΙΣ_ΟΤΟΥ</span> σε <span style="color:#10b981">ΟΣΟ</span></h1>
+  
+  <div class="topbar">
+    <button class="btn btn-toggle" onclick="toggleTab()">Εναλλαγή Περίπτωσης</button>
+    <span id="tabLabel" style="align-self:center; font-weight:bold; margin-left:10px;">1. Απλή Περίπτωση</span>
+  </div>
+
+  <div id="note1" class="note"><strong>Κανόνας:</strong> Αν η συνθήκη είναι <u>σίγουρα αληθής</u> την 1η φορά, απλά την αντιστρέφουμε («τούμπα») και τη βάζουμε στην ΟΣΟ.</div>
+  <div id="note2" class="note" style="display:none"><strong>Κανόνας:</strong> Αν η συνθήκη <u>δεν είναι σίγουρα αληθής</u>, αντιγράφουμε τις εντολές <strong>μια φορά πριν</strong> την ΟΣΟ.</div>
+
+  <section id="tab1" class="tab active">
+    <div class="grid">
+      <div class="card">
+        <div class="label">Αρχικός Κώδικας</div>
+        <pre><span class="line">ω ← 10</span>
+<span class="line">Αρχή_επανάληψης</span>
+<span class="line">    Γράψε ω</span>
+<span class="line">    ω ← ω + 1</span>
+<span class="line">μέχρις_ότου <span class="emph" id="m1_until">ω > 20</span></span></pre>
+      </div>
+      <div class="card">
+        <div class="label">Μετατροπή</div>
+        <pre><span class="line">ω ← 10</span>
+<span class="line">Όσο <span id="o1_while" class="slot">ω ≤ 20</span> επανάλαβε</span>
+<span class="line slot" id="o1_b1">    Γράψε ω</span>
+<span class="line slot" id="o1_b2">    ω ← ω + 1</span>
+<span class="line">Τέλος_επανάληψης</span></pre>
+      </div>
+    </div>
+    <div style="margin-top:20px; text-align:center;">
+      <button id="p1" class="btn btn-play" onclick="play1()">▶ Play</button>
+      <button id="s1" class="btn btn-step" onclick="step1func()">👣 Step</button>
+      <button id="r1" class="btn btn-reset" onclick="reset1()" style="display:none">↺ Reset</button>
+    </div>
+  </section>
+
+  <section id="tab2" class="tab">
+    <div class="grid">
+      <div class="card">
+        <div class="label">Αρχικός Κώδικας</div>
+        <pre><span class="line">Διάβασε ω</span>
+<span class="line">Αρχή_επανάληψης</span>
+<span class="line" id="m2_b1">    Γράψε ω</span>
+<span class="line" id="m2_b2">    ω ← ω + 1</span>
+<span class="line">μέχρις_ότου <span class="emph" id="m2_until">ω > 20</span></span></pre>
+      </div>
+      <div class="card">
+        <div class="label">Μετατροπή (Πρόθεμα + ΟΣΟ)</div>
+        <pre><span class="line">Διάβασε ω</span>
+<span class="line slot" id="o2_p1" style="color:#059669">Γράψε ω</span>
+<span class="line slot" id="o2_p2" style="color:#059669">ω ← ω + 1</span>
+
+<span class="line">Όσο <span id="o2_while" class="slot">ω ≤ 20</span> επανάλαβε</span>
+<span class="line slot" id="o2_b1">    Γράψε ω</span>
+<span class="line slot" id="o2_b2">    ω ← ω + 1</span>
+<span class="line">Τέλος_επανάληψης</span></pre>
+      </div>
+    </div>
+    <div style="margin-top:20px; text-align:center;">
+      <button id="p2" class="btn btn-play" onclick="play2()">▶ Play</button>
+      <button id="s2" class="btn btn-step" onclick="step2func()">👣 Step</button>
+      <button id="r2" class="btn btn-reset" onclick="reset2()" style="display:none">↺ Reset</button>
+    </div>
+  </section>
+
+<script>
+function $(id){return document.getElementById(id)}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+function forceReflow(el){if(el)void el.offsetWidth}
+
+function fly(src,dst,opts){
+  return new Promise(resolve=>{
+    if(!src||!dst){resolve();return}
+    var s=src.getBoundingClientRect(), t=dst.getBoundingClientRect();
+    var c=src.cloneNode(true);
+    c.className='fly'; c.style.left=s.left+'px'; c.style.top=s.top+'px';
+    c.style.width=s.width+'px'; c.style.height=s.height+'px';
+    c.style.margin=0; c.style.transform='translate(0,0)'; c.style.transition='none';
+    document.body.appendChild(c);
+    forceReflow(c);
+    var dx=t.left-s.left, dy=t.top-s.top+(opts?opts.yOff||0:0);
+    setTimeout(()=>{
+       c.style.transition='transform 3.5s cubic-bezier(.4,0,.2,1)';
+       c.style.transform='translate('+dx+'px,'+dy+'px)';
+    },50);
+    setTimeout(()=>{
+      dst.classList.add('reveal'); dst.style.opacity=1;
+      src.style.transition='opacity 2s'; src.style.opacity=0.5;
+      setTimeout(()=>{ if(c.parentNode)c.parentNode.removeChild(c); resolve(); },1000);
+    },3600);
+  });
+}
+
+/* Logic 1 */
+var st1=0;
+function reset1(){
+  ['o1_while','o1_b1','o1_b2'].forEach(id=>{$(id).classList.remove('reveal');$(id).style.opacity=0});
+  $('m1_until').style.opacity=1; $('m1_until').className='emph';
+  st1=0; $('p1').disabled=false; $('s1').disabled=false; $('r1').style.display='none';
+}
+async function step1func(){
+  st1++; $('p1').disabled=true;
+  if(st1===1) await fly($('m1_until'), $('o1_while'));
+  else if(st1===2) { $('o1_b1').classList.add('reveal'); $('o1_b1').style.opacity=1; await sleep(600); }
+  else if(st1===3) { $('o1_b2').classList.add('reveal'); $('o1_b2').style.opacity=1; $('r1').style.display='inline-block'; $('s1').disabled=true; }
+}
+async function play1(){ $('p1').disabled=true; $('s1').disabled=true;
+  await step1func(); await sleep(600); await step1func(); await sleep(600); await step1func();
+}
+
+/* Logic 2 */
+var st2=0, ph2=1;
+function reset2(){
+  ['o2_p1','o2_p2','o2_while','o2_b1','o2_b2'].forEach(id=>{$(id).classList.remove('reveal');$(id).style.opacity=0});
+  ['m2_until','m2_b1','m2_b2'].forEach(id=>{$(id).style.opacity=1;});
+  st2=0; ph2=1; $('p2').disabled=false; $('s2').disabled=false; $('r2').style.display='none';
+}
+async function step2func(){
+  st2++; $('p2').disabled=true;
+  if(ph2===1){
+    if(st2===1) await fly($('m2_until'), $('o2_while'));
+    else if(st2===2) { $('o2_b1').classList.add('reveal'); $('o2_b1').style.opacity=1; await sleep(600); }
+    else if(st2===3) { $('o2_b2').classList.add('reveal'); $('o2_b2').style.opacity=1; ph2=2; st2=0; $('p2').disabled=false; $('s2').disabled=false; }
+  } else {
+    if(st2===1) await fly($('m2_b1'), $('o2_p1'));
+    else if(st2===2) await fly($('m2_b2'), $('o2_p2'));
+    else if(st2===3) { $('r2').style.display='inline-block'; $('s2').disabled=true; $('p2').disabled=true; }
+  }
+}
+async function play2(){ $('p2').disabled=true; $('s2').disabled=true;
+  if(ph2===1){ await step2func(); await sleep(500); await step2func(); await sleep(500); await step2func(); }
+  else { await step2func(); await sleep(500); await step2func(); await sleep(500); await step2func(); }
+}
+
+var cur=1;
+function toggleTab(){
+  cur=cur===1?2:1;
+  $('tab1').className=cur===1?'tab active':'tab';
+  $('tab2').className=cur===2?'tab active':'tab';
+  $('note1').style.display=cur===1?'block':'none';
+  $('note2').style.display=cur===2?'block':'none';
+  $('tabLabel').innerText=cur===1?'1. Απλή Περίπτωση':'2. Γενική Περίπτωση';
+  reset1(); reset2();
+}
+
+function init(){ reset1(); reset2(); }
+</script></body></html>
+</textarea>
+
+<textarea id="code1" class="code-store">
+<!DOCTYPE html>
+<html lang="el">
+<head><meta charset="UTF-8"><title>App2</title>
+<style>
+  :root { --bg:#eff6ff; --card:#fff; --text:#1e3a8a; --accent:#3b82f6; }
+  body { font-family:'Segoe UI',sans-serif; margin:0; padding:20px; background:var(--bg); color:var(--text); }
+  h1 { font-size:20px; margin:0 0 10px; color:#1e40af; }
+  .topbar { background:#fff; padding:10px; border-radius:12px; box-shadow:0 2px 5px rgba(0,0,0,0.05); display:flex; gap:10px; margin-bottom:15px; }
+  .btn { border:none; padding:8px 16px; border-radius:20px; font-weight:600; cursor:pointer; color:#fff; transition:transform 0.1s; box-shadow:0 3px 6px rgba(0,0,0,0.1); }
+  .btn:active { transform:scale(0.96); }
+  .btn:disabled { opacity:0.5; cursor:default; transform:none; }
+  .btn-toggle { background:#64748b; }
+  .btn-play { background:linear-gradient(to bottom right, #10b981, #059669); }
+  .btn-step { background:#3b82f6; }
+  .btn-reset { background:#f59e0b; }
+  
+  .note { background:#dbeafe; color:#1e3a8a; padding:12px; border-radius:8px; margin-bottom:20px; border-left:4px solid #3b82f6; }
+  
+  .grid { display:grid; grid-template-columns:35% 1fr; gap:20px; }
+  .card { background:var(--card); border-radius:16px; padding:20px; box-shadow:0 4px 15px rgba(0,0,0,0.05); min-height:240px; }
+  .label { font-size:12px; font-weight:bold; text-transform:uppercase; color:#94a3b8; margin-bottom:10px; letter-spacing:1px; }
+  pre { font-family:'Consolas',monospace; font-size:18px; margin:0; line-height:1.6; color:#333; }
+  
+  .line { display:block; }
+  .piece { display:inline-block; padding:0 4px; border-radius:4px; }
+  .slot { display:inline-block; opacity:0; transition:opacity 0.5s; border-bottom:2px dashed #93c5fd; color:#2563eb; font-weight:bold; }
+  .slot.reveal { opacity:1; border-bottom:none; }
+  .reveal-blk { opacity:0; transition:opacity 0.9s; }
+  .reveal-blk.show { opacity:1; }
+  .emph { background:#bfdbfe; color:#1d4ed8; font-weight:bold; border-radius:4px; }
+  
+  .fly { position:fixed; left:0; top:0; z-index:99; background:#fff; padding:4px 8px; border:2px solid #3b82f6; border-radius:6px; color:#1e3a8a; font-weight:bold; pointer-events:none; box-shadow:0 4px 12px rgba(0,0,0,0.2); }
+  
+  .tab { display:none; animation:fadeIn 0.3s; }
+  .tab.active { display:block; }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+</style>
+</head>
+<body onload="init()">
+  <h1>Μετατροπή <span style="color:#3b82f6">ΓΙΑ</span> σε <span style="color:#3b82f6">ΟΣΟ</span></h1>
+  
+  <div class="topbar">
+    <button class="btn btn-toggle" onclick="toggleTab()">Εναλλαγή Βήματος (+/-)</button>
+    <span id="tabLabel" style="align-self:center; font-weight:bold; margin-left:10px;">1. Θετικό Βήμα</span>
+  </div>
+
+  <div id="note1" class="note">Η <strong>ΓΙΑ</strong> «σπάει» σε 3 μέρη: 1) Αρχική τιμή, 2) Συνθήκη, 3) Βήμα.</div>
+  <div id="note2" class="note" style="display:none"><strong>Προσοχή:</strong> Όταν το βήμα είναι αρνητικό, η συνθήκη αλλάζει φορά (από ≤ γίνεται ≥).</div>
+
+  <section id="tab1" class="tab active">
+    <div class="grid">
+      <div class="card">
+        <div class="label">ΓΙΑ (Βήμα +2)</div>
+        <pre><span class="line">Για <span class="piece" id="p1_var">χ</span> <span class="piece" id="p1_apo">από 1</span> <span class="piece" id="p1_mexri">μέχρι 20</span> <span class="piece" id="p1_vima">με_βήμα 2</span></span>
+<span class="line">    Γράψε χ</span>
+<span class="line">Τέλος_επαναληψης</span></pre>
+      </div>
+      <div class="card">
+        <div class="label">ΟΣΟ</div>
+        <pre><span class="line">χ ← <span id="r1_init" class="slot">1</span></span>
+<span class="line">Όσο <span id="r1_while" class="slot">χ ≤ 20</span> επανάλαβε</span>
+<span class="line reveal-blk" id="r1_body">    Γράψε χ</span>
+<span class="line">    χ ← χ + <span id="r1_step" class="slot">2</span></span>
+<span class="line">Τέλος_επαναληψης</span></pre>
+      </div>
+    </div>
+    <div style="margin-top:20px; text-align:center;">
+      <button id="b1_p" class="btn btn-play" onclick="play1()">▶ Play</button>
+      <button id="b1_s" class="btn btn-step" onclick="step1()">👣 Step</button>
+      <button id="b1_r" class="btn btn-reset" onclick="reset1()" style="display:none">↺ Reset</button>
+    </div>
+  </section>
+
+  <section id="tab2" class="tab">
+    <div class="grid">
+      <div class="card">
+        <div class="label">ΓΙΑ (Βήμα -1)</div>
+        <pre><span class="line">Για <span class="piece" id="p2_var">κ</span> <span class="piece" id="p2_apo">από 20</span> <span class="piece" id="p2_mexri">μέχρι 1</span> <span class="piece" id="p2_vima">με_βήμα -1</span></span>
+<span class="line">    Γράψε κ</span>
+<span class="line">Τέλος_επαναληψης</span></pre>
+      </div>
+      <div class="card">
+        <div class="label">ΟΣΟ</div>
+        <pre><span class="line">κ ← <span id="r2_init" class="slot">20</span></span>
+<span class="line">Όσο <span id="r2_while" class="slot">κ ≥ 1</span> επανάλαβε</span>
+<span class="line reveal-blk" id="r2_body">    Γράψε κ</span>
+<span class="line">    κ ← κ - <span id="r2_step" class="slot">1</span></span>
+<span class="line">Τέλος_επαναληψης</span></pre>
+      </div>
+    </div>
+    <div style="margin-top:20px; text-align:center;">
+      <button id="b2_p" class="btn btn-play" onclick="play2()">▶ Play</button>
+      <button id="b2_s" class="btn btn-step" onclick="step2()">👣 Step</button>
+      <button id="b2_r" class="btn btn-reset" onclick="reset2()" style="display:none">↺ Reset</button>
+    </div>
+  </section>
+  
+<script>
+function $(id){return document.getElementById(id)}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+function forceReflow(el){if(el)void el.offsetWidth}
+function fly(src,dst,opts){
+  return new Promise(res=>{
+    if(!src||!dst){res();return}
+    var s=src.getBoundingClientRect(), t=dst.getBoundingClientRect();
+    var c=src.cloneNode(true);
+    c.className='fly'; c.style.left=s.left+'px'; c.style.top=s.top+'px';
+    c.style.width=s.width+'px'; c.style.height=s.height+'px';
+    c.style.margin=0; c.style.transform='translate(0,0)'; c.style.transition='none';
+    document.body.appendChild(c); forceReflow(c);
+    var yOff=opts?opts.yOff||0:0;
+    setTimeout(()=>{
+      c.style.transition='transform 3.5s cubic-bezier(.4,0,.2,1)';
+      c.style.transform='translate('+(t.left-s.left)+'px,'+(t.top-s.top+yOff)+'px)';
+    },50);
+    setTimeout(()=>{
+      dst.classList.add('reveal'); dst.style.opacity=1;
+      src.style.transition='opacity 2s'; src.style.opacity=0.5;
+      setTimeout(()=>{ if(c.parentNode)c.parentNode.removeChild(c); res(); },1000);
+    },3600);
+  });
+}
+
+var s1=0;
+function reset1(){
+  ['r1_init','r1_while','r1_step'].forEach(id=>{$(id).classList.remove('reveal');$(id).style.opacity=0});
+  $('r1_body').classList.remove('show'); $('r1_body').style.opacity=0;
+  ['p1_apo','p1_mexri','p1_vima'].forEach(id=>{$(id).style.opacity=1});
+  s1=0; $('b1_p').disabled=false; $('b1_s').disabled=false; $('b1_r').style.display='none';
+}
+async function step1(){
+  s1++; $('b1_p').disabled=true;
+  if(s1===1) await fly($('p1_apo'),$('r1_init'));
+  else if(s1===2) await fly($('p1_mexri'),$('r1_while'));
+  else if(s1===3) await fly($('p1_vima'),$('r1_step'),{yOff:-2});
+  else if(s1===4) { $('r1_body').classList.add('show'); $('b1_r').style.display='inline-block'; $('b1_s').disabled=true; }
+}
+async function play1(){ $('b1_p').disabled=true; $('b1_s').disabled=true;
+  await step1(); await sleep(500); await step1(); await sleep(500); await step1(); await sleep(500); await step1();
+}
+
+var s2=0;
+function reset2(){
+  ['r2_init','r2_while','r2_step'].forEach(id=>{$(id).classList.remove('reveal');$(id).style.opacity=0});
+  $('r2_body').classList.remove('show'); $('r2_body').style.opacity=0;
+  ['p2_apo','p2_mexri','p2_vima'].forEach(id=>{$(id).style.opacity=1});
+  s2=0; $('b2_p').disabled=false; $('b2_s').disabled=false; $('b2_r').style.display='none';
+}
+async function step2(){
+  s2++; $('b2_p').disabled=true;
+  if(s2===1) await fly($('p2_apo'),$('r2_init'));
+  else if(s2===2) await fly($('p2_mexri'),$('r2_while'));
+  else if(s2===3) await fly($('p2_vima'),$('r2_step'),{yOff:-2});
+  else if(s2===4) { $('r2_body').classList.add('show'); $('b2_r').style.display='inline-block'; $('b2_s').disabled=true; }
+}
+async function play2(){ $('b2_p').disabled=true; $('b2_s').disabled=true;
+  await step2(); await sleep(500); await step2(); await sleep(500); await step2(); await sleep(500); await step2();
+}
+
+var cur=1;
+function toggleTab(){
+  cur=cur===1?2:1;
+  $('tab1').className=cur===1?'tab active':'tab'; $('tab2').className=cur===2?'tab active':'tab';
+  $('note1').style.display=cur===1?'block':'none'; $('note2').style.display=cur===2?'block':'none';
+  $('tabLabel').innerText=cur===1?'1. Θετικό Βήμα':'2. Αρνητικό Βήμα';
+  reset1(); reset2();
+}
+function init(){ reset1(); reset2(); }
+</script></body></html>
+</textarea>
+
+<textarea id="code2" class="code-store">
+<!DOCTYPE html>
+<html lang="el">
+<head><meta charset="UTF-8"><title>App3</title>
+<style>
+  :root { --bg:#f5f3ff; --card:#fff; --text:#4c1d95; --accent:#7c3aed; }
+  body { font-family:'Segoe UI',sans-serif; margin:0; padding:20px; background:var(--bg); color:var(--text); }
+  h1 { font-size:20px; margin:0 0 10px; color:#5b21b6; }
+  .topbar { background:#fff; padding:10px; border-radius:12px; box-shadow:0 2px 5px rgba(0,0,0,0.05); display:flex; gap:10px; margin-bottom:15px; }
+  .btn { border:none; padding:8px 16px; border-radius:20px; font-weight:600; cursor:pointer; color:#fff; transition:transform 0.1s; box-shadow:0 3px 6px rgba(0,0,0,0.1); }
+  .btn:active { transform:scale(0.96); }
+  .btn:disabled { opacity:0.5; cursor:default; transform:none; }
+  .btn-toggle { background:#8b5cf6; }
+  .btn-play { background:linear-gradient(to bottom right, #10b981, #059669); }
+  .btn-step { background:#3b82f6; }
+  .btn-reset { background:#f59e0b; }
+  
+  .note { background:#ede9fe; color:#4c1d95; padding:12px; border-radius:8px; margin-bottom:20px; border-left:4px solid #8b5cf6; }
+  
+  .grid { display:grid; grid-template-columns:35% 1fr; gap:20px; }
+  .card { background:var(--card); border-radius:16px; padding:20px; box-shadow:0 4px 15px rgba(0,0,0,0.05); min-height:240px; }
+  .label { font-size:12px; font-weight:bold; text-transform:uppercase; color:#a78bfa; margin-bottom:10px; letter-spacing:1px; }
+  pre { font-family:'Consolas',monospace; font-size:18px; margin:0; line-height:1.6; color:#333; }
+  
+  .line { display:block; }
+  .piece { display:inline-block; padding:0 4px; border-radius:4px; }
+  .slot { display:inline-block; opacity:0; transition:opacity 0.5s; color:#7c3aed; font-weight:bold; border-bottom:2px dashed #ddd; }
+  .slot.show { opacity:1; border-bottom:none; }
+  .late { opacity:0; transition:opacity 0.5s; }
+  .late.show { opacity:1; }
+  .hiY{background:#fef08a}.hiG{background:#bbf7d0}.hiB{background:#bfdbfe}
+  
+  .fly { position:fixed; left:0; top:0; z-index:99; background:#fff; padding:4px 8px; border:2px solid #8b5cf6; border-radius:6px; color:#5b21b6; font-weight:bold; pointer-events:none; box-shadow:0 4px 12px rgba(0,0,0,0.2); }
+  
+  .tab { display:none; animation:fadeIn 0.3s; }
+  .tab.active { display:block; }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+</style>
+</head>
+<body onload="init()">
+  <h1>Μετατροπή <span style="color:#7c3aed">ΟΣΟ</span> σε <span style="color:#7c3aed">ΓΙΑ</span></h1>
+  
+  <div class="topbar">
+    <button class="btn btn-toggle" onclick="toggleTab()">Εναλλαγή Καρτέλας</button>
+    <span id="tabLabel" style="align-self:center; font-weight:bold; margin-left:10px;">Καρτέλα 1 / 3</span>
+  </div>
+
+  <div id="note1" class="note">Εντοπίζω τη μεταβλητή-μετρητή (αρχικοποίηση πριν, συνθήκη μέσα, βήμα μέσα).</div>
+  <div id="note2" class="note" style="display:none">Προσοχή στις ανισότητες (&lt;, &gt;)! Το «ΜΕΧΡΙ» πρέπει να προσαρμοστεί.</div>
+  <div id="note3" class="note" style="display:none">Αν η εντολή αλλαγής (βήμα) είναι πριν από άλλες εντολές, συγχωνεύονται.</div>
+
+  <section id="tab1" class="tab active">
+    <div class="grid">
+      <div class="card">
+        <div class="label">ΟΣΟ</div>
+        <pre>ω ← <span class="piece hiY" id="s1_apo">1</span>
+ΟΣΟ <span class="hiG">ω ≤ <span id="s1_bound">20</span></span> επανάλαβε
+    Γράψε ω
+    <span class="hiB">ω ← ω + <span id="s1_step">2</span></span>
+Τέλος_επαναληψης</pre>
+      </div>
+      <div class="card">
+        <div class="label">ΓΙΑ</div>
+        <pre><span style="white-space:nowrap">Για ω
+  από <span class="slot" id="d1_apo">1</span>
+  μέχρι <span class="slot" id="d1_mexri">20</span>
+  με_βήμα <span class="slot" id="d1_vima">2</span></span>
+<span class="line late" id="d1_body">    Γράψε ω</span>
+<span class="line">Τέλος_επαναληψης</span></pre>
+      </div>
+    </div>
+    <div style="margin-top:20px; text-align:center;">
+      <button id="p1" class="btn btn-play" onclick="play1()">▶ Play</button>
+      <button id="s1" class="btn btn-step" onclick="step1()">👣 Step</button>
+      <button id="r1" class="btn btn-reset" onclick="reset1()" style="display:none">↺ Reset</button>
+    </div>
+  </section>
+
+  <section id="tab2" class="tab">
+    <div class="grid">
+      <div class="card">
+        <div class="label">Περίπτωση Α (&lt;)</div>
+        <pre>ω ← <span class="piece hiY" id="s2a_apo">1</span>
+ΟΣΟ <span class="hiG">ω &lt; <span id="s2a_bound">10</span></span> επανάλαβε
+    Γράψε ω
+    <span class="hiB">ω ← ω + <span id="s2a_step">2</span></span>
+...</pre>
+        <hr style="border:0; border-top:1px dashed #ccc; margin:15px 0">
+        <div class="label">Περίπτωση Β (&gt;)</div>
+        <pre>ω ← <span class="piece hiY" id="s2b_apo">10</span>
+ΟΣΟ <span class="hiG">ω &gt; <span id="s2b_bound">1</span></span> επανάλαβε
+    Γράψε ω
+    <span class="hiB">ω ← ω - <span id="s2b_step">2</span></span>
+...</pre>
+      </div>
+      <div class="card">
+        <div class="label">ΓΙΑ</div>
+        <pre><span style="white-space:nowrap">Για ω
+  από <span class="slot" id="d2a_apo">1</span>
+  μέχρι <span class="slot" id="d2a_mexri">9</span>
+  με_βήμα <span class="slot" id="d2a_vima">2</span></span>
+<span class="line late" id="d2a_body">    Γράψε ω</span>
+...
+<br>
+<span style="white-space:nowrap">Για ω
+  από <span class="slot" id="d2b_apo">10</span>
+  μέχρι <span class="slot" id="d2b_mexri">2</span>
+  με_βήμα <span class="slot" id="d2b_vima">-2</span></span>
+<span class="line late" id="d2b_body">    Γράψε ω</span>
+...</pre>
+      </div>
+    </div>
+    <div style="margin-top:20px; text-align:center;">
+      <button id="p2" class="btn btn-play" onclick="play2()">▶ Play</button>
+      <button id="s2" class="btn btn-step" onclick="step2()">👣 Step</button>
+      <button id="r2" class="btn btn-reset" onclick="reset2()" style="display:none">↺ Reset</button>
+    </div>
+  </section>
+
+  <section id="tab3" class="tab">
+    <div class="grid">
+      <div class="card">
+        <div class="label">ΟΣΟ (Βήμα στην αρχή)</div>
+        <pre>ω ← <span class="piece hiY" id="s3_apo">1</span>
+ΟΣΟ <span class="hiG">ω ≤ <span id="s3_bound">10</span></span> επανάλαβε
+    <span class="hiB" id="s3_step">ω ← ω + 2</span>
+    Γράψε ω
+Τέλος_επαναληψης</pre>
+      </div>
+      <div class="card">
+        <div class="label">ΓΙΑ</div>
+        <pre><span style="white-space:nowrap">Για ω
+  από <span class="slot" id="d3_apo">1</span>
+  μέχρι <span class="slot" id="d3_mexri">10</span>
+  με_βήμα <span class="slot" id="d3_vima">2</span></span>
+<span class="line late" id="d3_body">    Γράψε <span style="background:#bfdbfe;padding:0 2px;border-radius:2px">ω+2</span></span>
+<span class="line">Τέλος_επαναληψης</span></pre>
+      </div>
+    </div>
+    <div style="margin-top:20px; text-align:center;">
+      <button id="p3" class="btn btn-play" onclick="play3()">▶ Play</button>
+      <button id="s3" class="btn btn-step" onclick="step3()">👣 Step</button>
+      <button id="r3" class="btn btn-reset" onclick="reset3()" style="display:none">↺ Reset</button>
+    </div>
+  </section>
+  
+<script>
+function $(id){return document.getElementById(id)}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+function forceReflow(el){if(el)void el.offsetWidth}
+function fly(src,dst,txt){
+  return new Promise(res=>{
+    if(!src||!dst){res();return}
+    var s=src.getBoundingClientRect(), t=dst.getBoundingClientRect();
+    var c=src.cloneNode(true);
+    if(txt) c.textContent=txt;
+    c.className='fly'; c.style.left=s.left+'px'; c.style.top=s.top+'px';
+    c.style.margin=0; c.style.transform='translate(0,0)'; c.style.transition='none';
+    document.body.appendChild(c); forceReflow(c);
+    var dx=t.left-s.left, dy=t.top-s.top;
+    setTimeout(()=>{
+      c.style.transition='transform 3s cubic-bezier(.4,0,.2,1)';
+      c.style.transform='translate('+dx+'px,'+dy+'px)';
+    },50);
+    setTimeout(()=>{
+      dst.classList.add('show'); dst.style.opacity=1; if(txt) dst.textContent=txt;
+      src.style.transition='opacity 2s'; src.style.opacity=0.6;
+      setTimeout(()=>{ if(c.parentNode)c.parentNode.removeChild(c); res(); },1000);
+    },3100);
+  });
+}
+
+var st1=0;
+function reset1(){
+  ['d1_apo','d1_mexri','d1_vima'].forEach(id=>{$(id).classList.remove('show')});
+  $('d1_body').classList.remove('show');
+  ['s1_apo','s1_bound','s1_step'].forEach(id=>{$(id).style.opacity=1});
+  st1=0; $('p1').disabled=false; $('s1').disabled=false; $('r1').style.display='none';
+}
+async function step1(){
+  st1++; $('p1').disabled=true;
+  if(st1===1) await fly($('s1_apo'),$('d1_apo'));
+  else if(st1===2) await fly($('s1_bound'),$('d1_mexri'));
+  else if(st1===3) await fly($('s1_step'),$('d1_vima'));
+  else if(st1===4) { $('d1_body').classList.add('show'); $('r1').style.display='inline-block'; $('s1').disabled=true; }
+}
+async function play1(){ $('p1').disabled=true; $('s1').disabled=true;
+  await step1(); await sleep(500); await step1(); await sleep(500); await step1(); await sleep(500); await step1();
+}
+
+var st2=0, ph2=1;
+function reset2(){
+  ['d2a_apo','d2a_mexri','d2a_vima','d2b_apo','d2b_mexri','d2b_vima'].forEach(id=>{$(id).classList.remove('show')});
+  $('d2a_body').classList.remove('show'); $('d2b_body').classList.remove('show');
+  ['s2a_apo','s2a_bound','s2a_step','s2b_apo','s2b_bound','s2b_step'].forEach(id=>{$(id).style.opacity=1});
+  st2=0; ph2=1; $('p2').disabled=false; $('s2').disabled=false; $('r2').style.display='none';
+}
+async function step2(){
+  st2++; $('p2').disabled=true;
+  if(ph2===1){
+    if(st2===1) await fly($('s2a_apo'),$('d2a_apo'));
+    else if(st2===2) await fly($('s2a_bound'),$('d2a_mexri'));
+    else if(st2===3) await fly($('s2a_step'),$('d2a_vima'));
+    else if(st2===4) { $('d2a_body').classList.add('show'); ph2=2; st2=0; $('p2').disabled=false; $('s2').disabled=false; }
+  } else {
+    if(st2===1) await fly($('s2b_apo'),$('d2b_apo'));
+    else if(st2===2) {
+       // logic for bound calculation
+       var v = parseInt($('s2b_bound').textContent);
+       await fly($('s2b_bound'),$('d2b_mexri'), v+1);
+    }
+    else if(st2===3) await fly($('s2b_step'),$('d2b_vima'));
+    else if(st2===4) { $('d2b_body').classList.add('show'); $('r2').style.display='inline-block'; $('s2').disabled=true; $('p2').disabled=true; }
+  }
+}
+async function play2(){ $('p2').disabled=true; $('s2').disabled=true;
+  if(ph2===1){ await step2(); await sleep(500); await step2(); await sleep(500); await step2(); await sleep(500); await step2(); }
+  else { await step2(); await sleep(500); await step2(); await sleep(500); await step2(); await sleep(500); await step2(); }
+}
+
+var st3=0;
+function reset3(){
+  ['d3_apo','d3_mexri','d3_vima'].forEach(id=>{$(id).classList.remove('show')});
+  $('d3_body').classList.remove('show');
+  ['s3_apo','s3_bound','s3_step'].forEach(id=>{$(id).style.opacity=1});
+  st3=0; $('p3').disabled=false; $('s3').disabled=false; $('r3').style.display='none';
+}
+async function step3(){
+  st3++; $('p3').disabled=true;
+  if(st3===1) await fly($('s3_apo'),$('d3_apo'));
+  else if(st3===2) await fly($('s3_bound'),$('d3_mexri'));
+  else if(st3===3) await fly($('s3_step'),$('d3_vima'));
+  else if(st3===4) { $('d3_body').classList.add('show'); $('r3').style.display='inline-block'; $('s3').disabled=true; }
+}
+async function play3(){ $('p3').disabled=true; $('s3').disabled=true;
+  await step3(); await sleep(500); await step3(); await sleep(500); await step3(); await sleep(500); await step3();
+}
+
+var cur=1;
+function toggleTab(){
+  cur=cur===1?2:(cur===2?3:1);
+  [1,2,3].forEach(i=>{
+    $('tab'+i).className=i===cur?'tab active':'tab';
+    $('note'+i).style.display=i===cur?'block':'none';
+  });
+  $('tabLabel').innerText='Καρτέλα '+cur+' / 3';
+  reset1(); reset2(); reset3();
+}
+function init(){ reset1(); reset2(); reset3(); }
+</script></body></html>
+</textarea>
+
+<textarea id="code3" class="code-store">
+<!DOCTYPE html>
+<html lang="el">
+<head><meta charset="UTF-8"><title>App4</title>
+<style>
+  :root { --bg:#fff7ed; --card:#fff; --text:#9a3412; --accent:#ea580c; }
+  body { font-family:'Segoe UI',sans-serif; margin:0; padding:20px; background:var(--bg); color:var(--text); }
+  h1 { font-size:20px; margin:0 0 10px; color:#c2410c; }
+  .topbar { background:#fff; padding:10px; border-radius:12px; box-shadow:0 2px 5px rgba(0,0,0,0.05); display:flex; gap:10px; margin-bottom:15px; }
+  .btn { border:none; padding:8px 16px; border-radius:20px; font-weight:600; cursor:pointer; color:#fff; transition:transform 0.1s; box-shadow:0 3px 6px rgba(0,0,0,0.1); }
+  .btn:active { transform:scale(0.96); }
+  .btn:disabled { opacity:0.5; cursor:default; transform:none; }
+  .btn-toggle { background:#f97316; }
+  .btn-play { background:linear-gradient(to bottom right, #10b981, #059669); }
+  .btn-step { background:#3b82f6; }
+  .btn-reset { background:#f59e0b; }
+  
+  .note { background:#ffedd5; color:#9a3412; padding:12px; border-radius:8px; margin-bottom:20px; border-left:4px solid #f97316; }
+  
+  .grid { display:grid; grid-template-columns:35% 1fr; gap:20px; }
+  .card { background:var(--card); border-radius:16px; padding:20px; box-shadow:0 4px 15px rgba(0,0,0,0.05); min-height:240px; }
+  .label { font-size:12px; font-weight:bold; text-transform:uppercase; color:#fb923c; margin-bottom:10px; letter-spacing:1px; }
+  pre { font-family:'Consolas',monospace; font-size:18px; margin:0; line-height:1.6; color:#333; }
+  
+  .line { display:block; }
+  .slot { display:inline-block; opacity:0; transition:opacity 0.5s; border-bottom:2px dashed #fdba74; color:#ea580c; }
+  .slot.reveal { opacity:1; border-bottom:none; }
+  .emph { background:#ffedd5; color:#c2410c; font-weight:bold; padding:0 2px; border-radius:4px; }
+  
+  .fly { position:fixed; left:0; top:0; z-index:99; background:#fff; padding:4px 8px; border:2px solid #ea580c; border-radius:6px; color:#c2410c; font-weight:bold; pointer-events:none; box-shadow:0 4px 12px rgba(0,0,0,0.2); }
+  
+  .tab { display:none; animation:fadeIn 0.3s; }
+  .tab.active { display:block; }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+</style>
+</head>
+<body onload="init()">
+  <h1>Μετατροπή <span style="color:#ea580c">ΟΣΟ</span> σε <span style="color:#ea580c">ΜΕΧΡΙΣ_ΟΤΟΥ</span></h1>
+  
+  <div class="topbar">
+    <button class="btn btn-toggle" onclick="toggleTab()">Εναλλαγή Περίπτωσης</button>
+    <span id="tabLabel" style="align-self:center; font-weight:bold; margin-left:10px;">1. Απλή Περίπτωση</span>
+  </div>
+
+  <div id="note1" class="note"><strong>Κανόνας:</strong> Αν η συνθήκη είναι <u>σίγουρα αληθής</u> την 1η φορά, κάνουμε απλά την <strong>«τούμπα»</strong> (αντιστροφή).</div>
+  <div id="note2" class="note" style="display:none"><strong>Κανόνας:</strong> Αν η συνθήκη <u>μπορεί να είναι ψευδής</u>, βάζουμε την επανάληψη μέσα σε μια <strong>ΑΝ</strong>.</div>
+
+  <section id="tab1" class="tab active">
+    <div class="grid">
+      <div class="card">
+        <div class="label">ΟΣΟ</div>
+        <pre><span class="line">ω ← 10</span>
+<span class="line">Όσο <span class="emph" id="w1">ω ≤ 20</span> επανάλαβε</span>
+<span class="line">    Γράψε ω</span>
+<span class="line">    ω ← ω + 1</span>
+<span class="line">Τέλος_επανάληψης</span></pre>
+      </div>
+      <div class="card">
+        <div class="label">ΜΕΧΡΙΣ_ΟΤΟΥ</div>
+        <pre><span class="line">ω ← 10</span>
+<span class="line">Αρχή_επανάληψης</span>
+<span class="line slot" id="b1_1">    Γράψε ω</span>
+<span class="line slot" id="b1_2">    ω ← ω + 1</span>
+<span class="line">μέχρις_ότου <span id="u1" class="slot">ω > 20</span></span></pre>
+      </div>
+    </div>
+    <div style="margin-top:20px; text-align:center;">
+      <button id="p1" class="btn btn-play" onclick="play1()">▶ Play</button>
+      <button id="s1" class="btn btn-step" onclick="step1()">👣 Step</button>
+      <button id="r1" class="btn btn-reset" onclick="reset1()" style="display:none">↺ Reset</button>
+    </div>
+  </section>
+
+  <section id="tab2" class="tab">
+    <div class="grid">
+      <div class="card">
+        <div class="label">ΟΣΟ</div>
+        <pre><span class="line">Διάβασε ω</span>
+<span class="line">Όσο <span class="emph" id="w2">ω ≤ 20</span> επανάλαβε</span>
+<span class="line">    Γράψε ω</span>
+<span class="line">    ω ← ω + 1</span>
+<span class="line">Τέλος_επανάληψης</span></pre>
+      </div>
+      <div class="card">
+        <div class="label">ΑΝ + ΜΕΧΡΙΣ_ΟΤΟΥ</div>
+        <pre><span class="line">Διάβασε ω</span>
+<span class="line">Αν <span id="if2" class="slot">ω ≤ 20</span> τότε</span>
+<span class="line">    Αρχή_επανάληψης</span>
+<span class="line slot" id="b2_1">        Γράψε ω</span>
+<span class="line slot" id="b2_2">        ω ← ω + 1</span>
+<span class="line">    μέχρις_ότου <span id="u2" class="slot">ω > 20</span></span>
+<span class="line">Τέλος_αν</span></pre>
+      </div>
+    </div>
+    <div style="margin-top:20px; text-align:center;">
+      <button id="p2" class="btn btn-play" onclick="play2()">▶ Play</button>
+      <button id="s2" class="btn btn-step" onclick="step2()">👣 Step</button>
+      <button id="r2" class="btn btn-reset" onclick="reset2()" style="display:none">↺ Reset</button>
+    </div>
+  </section>
+
+<script>
+function $(id){return document.getElementById(id)}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+function forceReflow(el){if(el)void el.offsetWidth}
+function fly(src,dst,opts){
+  return new Promise(res=>{
+    if(!src||!dst){res();return}
+    var s=src.getBoundingClientRect(), t=dst.getBoundingClientRect();
+    var c=src.cloneNode(true);
+    c.className='fly'; c.style.left=s.left+'px'; c.style.top=s.top+'px';
+    c.style.width=s.width+'px'; c.style.height=s.height+'px';
+    c.style.margin=0; c.style.transform='translate(0,0)'; c.style.transition='none';
+    document.body.appendChild(c); forceReflow(c);
+    var yOff=opts?opts.yOff||0:0;
+    setTimeout(()=>{
+      c.style.transition='transform 3.5s cubic-bezier(.4,0,.2,1)';
+      c.style.transform='translate('+(t.left-s.left)+'px,'+(t.top-s.top+yOff)+'px)';
+    },50);
+    setTimeout(()=>{
+      dst.classList.add('reveal'); dst.style.opacity=1;
+      src.style.transition='opacity 2s'; src.style.opacity=0.5;
+      setTimeout(()=>{ if(c.parentNode)c.parentNode.removeChild(c); res(); },1000);
+    },3600);
+  });
+}
+
+var st1=0;
+function reset1(){
+  ['b1_1','b1_2','u1'].forEach(id=>{$(id).classList.remove('reveal');$(id).style.opacity=0});
+  $('w1').style.opacity=1;
+  st1=0; $('p1').disabled=false; $('s1').disabled=false; $('r1').style.display='none';
+}
+async function step1(){
+  st1++; $('p1').disabled=true;
+  if(st1===1) await fly($('w1'),$('u1'));
+  else if(st1===2) { $('b1_1').classList.add('reveal'); $('b1_1').style.opacity=1; await sleep(600); }
+  else if(st1===3) { $('b1_2').classList.add('reveal'); $('b1_2').style.opacity=1; $('r1').style.display='inline-block'; $('s1').disabled=true; }
+}
+async function play1(){ $('p1').disabled=true; $('s1').disabled=true;
+  await step1(); await sleep(600); await step1(); await sleep(600); await step1();
+}
+
+var st2=0;
+function reset2(){
+  ['if2','b2_1','b2_2','u2'].forEach(id=>{$(id).classList.remove('reveal');$(id).style.opacity=0});
+  $('w2').style.opacity=1;
+  st2=0; $('p2').disabled=false; $('s2').disabled=false; $('r2').style.display='none';
+}
+async function step2(){
+  st2++; $('p2').disabled=true;
+  if(st2===1) await fly($('w2'),$('if2'));
+  else if(st2===2) await fly($('w2'),$('u2'));
+  else if(st2===3) { $('b2_1').classList.add('reveal'); $('b2_1').style.opacity=1; await sleep(600); }
+  else if(st2===4) { $('b2_2').classList.add('reveal'); $('b2_2').style.opacity=1; $('r2').style.display='inline-block'; $('s2').disabled=true; }
+}
+async function play2(){ $('p2').disabled=true; $('s2').disabled=true;
+  await step2(); await sleep(600); await step2(); await sleep(600); await step2(); await sleep(600); await step2();
+}
+
+var cur=1;
+function toggleTab(){
+  cur=cur===1?2:1;
+  $('tab1').className=cur===1?'tab active':'tab'; $('tab2').className=cur===2?'tab active':'tab';
+  $('note1').style.display=cur===1?'block':'none'; $('note2').style.display=cur===2?'block':'none';
+  $('tabLabel').innerText=cur===1?'1. Απλή Περίπτωση':'2. Γενική Περίπτωση';
+  reset1(); reset2();
+}
+function init(){ reset1(); reset2(); }
+</script></body></html>
+</textarea>
+
+<script>
+function openPanel(n){
+  // Update Buttons
+  const btns = document.querySelectorAll('.tab-btn');
+  btns.forEach((b,i) => b.classList.toggle('active', i===n));
+  
+  // Update Panels
+  const panels = document.querySelectorAll('.panel');
+  panels.forEach((p,i) => {
+    p.classList.toggle('active', i===n);
+    if(i===n) loadContentIfNeeded(i);
+  });
+}
+
+function loadContentIfNeeded(n){
+  const frame = document.getElementById('frame'+n);
+  // Αν το iframe είναι άδειο (δεν έχει φορτώσει ακόμα), το γεμίζουμε
+  if(!frame.srcdoc && !frame.getAttribute('srcdoc')){
+    const code = document.getElementById('code'+n).value;
+    frame.srcdoc = code;
+  }
+}
+
+function init(){
+  // Άνοιγμα της πρώτης καρτέλας κατά την εκκίνηση
+  openPanel(0);
+}
+</script>
+
+</body>
+</html>
