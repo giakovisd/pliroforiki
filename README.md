@@ -18,19 +18,16 @@
 ## Παιχνίδια – Quiz
 
 - 2-player question game on True/False questions  
-  https://giakovisd.github.io/pliroforiki/2-player question game on TrueFalse questions.html
-
-- 2-player question game on True/False questions (from National Exams)  
-  https://giakovisd.github.io/pliroforiki/2-player question game on TrueFalse questions from National Exams.html
+  <https://giakovisd.github.io/pliroforiki/2-player question game on TrueFalse questions.html>
 
 - Fill in the blank with RAM  
-  https://giakovisd.github.io/pliroforiki/Fill in the blank with RAM.html
+  <https://giakovisd.github.io/pliroforiki/Fill in the blank with RAM.html>
 
 - For statement – filling in the blanks  
-  https://giakovisd.github.io/pliroforiki/For statement-filling in the blanks.html
+  <https://giakovisd.github.io/pliroforiki/For statement-filling in the blanks.html>
 
 - Repetition structure – filling in the blanks  
-  https://giakovisd.github.io/pliroforiki/repetition structure-filling in the blanks.html
+  <https://giakovisd.github.io/pliroforiki/repetition structure-filling in the blanks.html>
 
 ---
 
