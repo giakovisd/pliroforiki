@@ -1,0 +1,836 @@
+<!doctype html>
+<html lang="el">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ταξινόμηση Βαθμών (Παράλληλοι Πίνακες ΟΝ & B) — Animation</title>
+  <style>
+    :root{
+      --bg: #f4f5f7;
+      --panel: #ffffff;
+      --text: #121417;
+      --muted: #5b616a;
+      --border: #d7dbe0;
+      --btn: #f6f7f9;
+      --btnHover:#eceff3;
+      --accent:#2f6fed;
+      --ok:#1f8a5b;
+      --warn:#b85c00;
+
+      --cellBg:#ffffff;
+      --cellBorder:#d7dbe0;
+      --cellHi:#eaf1ff;
+      --cellCompare:#fff4e6;
+      --cellSwap:#e8fff1;
+
+      --codeBg:#0f172a;
+      --codeText:#e5e7eb;
+      --codeMuted:#94a3b8;
+      --codeHi:#1d4ed8;
+    }
+
+    [data-theme="dark"]{
+      --bg:#0b0f15;
+      --panel:#0f1520;
+      --text:#e8edf4;
+      --muted:#9aa4b2;
+      --border:#243244;
+      --btn:#121a27;
+      --btnHover:#182338;
+
+      --cellBg:#0f1520;
+      --cellBorder:#243244;
+      --cellHi:#142744;
+      --cellCompare:#3a2a11;
+      --cellSwap:#12341f;
+
+      --codeBg:#0b1220;
+      --codeText:#e8edf4;
+      --codeMuted:#93a4b8;
+      --codeHi:#2563eb;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    .app{
+      max-width:1100px;
+      margin:24px auto;
+      padding:16px;
+    }
+
+    .header{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      justify-content:space-between;
+      margin-bottom:12px;
+    }
+    .title h1{
+      margin:0 0 6px 0;
+      font-size:18px;
+      font-weight:700;
+      letter-spacing:.2px;
+    }
+    .title p{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.3;
+    }
+
+    .controls{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      align-items:center;
+    }
+    button, .toggle{
+      border:1px solid var(--border);
+      background:var(--btn);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      font-size:13px;
+      font-weight:600;
+      cursor:pointer;
+      transition: background .15s ease, transform .02s ease;
+      user-select:none;
+    }
+    button:hover, .toggle:hover{ background:var(--btnHover); }
+    button:active{ transform: translateY(1px); }
+    button[disabled]{ opacity:.55; cursor:not-allowed; }
+
+    .pill{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      border:1px solid var(--border);
+      background:var(--panel);
+      padding:10px 12px;
+      border-radius:14px;
+      min-width:240px;
+    }
+    .pill label{
+      font-size:12px;
+      color:var(--muted);
+      font-weight:700;
+      letter-spacing:.2px;
+      white-space:nowrap;
+    }
+    input[type="range"]{ width:150px; }
+
+    /* ΜΟΝΟ προσθήκη για να είναι τα κουμπιά κάτω από την εκφώνηση */
+    .title .controls{
+      margin-top: 12px;
+      justify-content: flex-start;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap:12px;
+      margin-top:10px;
+    }
+
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:14px;
+      box-shadow: 0 6px 18px rgba(0,0,0,.06);
+    }
+
+    .arraysWrap{
+      display:flex;
+      gap:14px;
+      align-items:flex-start;
+      justify-content:space-between;
+    }
+
+    .arrayCol{
+      flex:1;
+      min-width:0;
+    }
+
+    .arrayHead{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      margin-bottom:8px;
+      gap:10px;
+    }
+    .arrayHead .name{
+      font-weight:900;
+      letter-spacing:.5px;
+      font-size:13px;
+    }
+    .arrayHead .hint{
+      color:var(--muted);
+      font-size:12px;
+      white-space:nowrap;
+    }
+
+    .list{
+      border:1px solid var(--border);
+      border-radius:14px;
+      overflow:hidden;
+    }
+
+    .cell{
+      display:grid;
+      grid-template-columns: 44px 1fr;
+      gap:8px;
+      padding:10px 10px;
+      align-items:center;
+      background:var(--cellBg);
+      border-bottom:1px solid var(--cellBorder);
+      position:relative;
+      transition: background .2s ease, transform .2s ease;
+    }
+    .cell:last-child{ border-bottom:none; }
+    .idx{
+      color:var(--muted);
+      font-weight:800;
+      font-size:12px;
+      text-align:right;
+      padding-right:6px;
+    }
+    .val{
+      font-weight:700;
+      font-size:13px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+
+    .hi{ background:var(--cellHi); }
+    .cmp{ background:var(--cellCompare); }
+    .swp{ background:var(--cellSwap); }
+
+    .status{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      margin-top:10px;
+      padding:10px 12px;
+      border:1px dashed var(--border);
+      border-radius:14px;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .status strong{ color:var(--text); }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      border:1px solid var(--border);
+      padding:6px 10px;
+      border-radius:999px;
+      background:var(--panel);
+      font-weight:800;
+      color:var(--text);
+    }
+    .badge small{ color:var(--muted); font-weight:800; }
+
+    /* Code panel */
+    .codePanel{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .codeTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .codeTop .meta{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.35;
+    }
+
+    .codeBox{
+      background:var(--codeBg);
+      color:var(--codeText);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:14px;
+      overflow:hidden;
+      display:none; /* initially hidden */
+    }
+    .codeBox.show{ display:block; }
+
+    pre{
+      margin:0;
+      padding:12px 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size:12.5px;
+      line-height:1.45;
+      overflow:auto;
+    }
+    .line{
+      display:block;
+      padding:2px 8px;
+      border-radius:10px;
+      color:var(--codeText);
+    }
+    .line .ln{
+      display:inline-block;
+      width:28px;
+      color:var(--codeMuted);
+      user-select:none;
+    }
+    .line.active{
+      background: rgba(37, 99, 235, .22);
+      outline: 1px solid rgba(37, 99, 235, .45);
+    }
+
+    /* Watermark */
+    .wm{
+      position:fixed;
+      right:16px;
+      bottom:12px;
+      font-size:12px;
+      color:rgba(120,120,120,.45);
+      pointer-events:none;
+      user-select:none;
+      letter-spacing:.2px;
+      font-weight:700;
+    }
+    [data-theme="dark"] .wm{
+      color:rgba(180,190,210,.30);
+    }
+
+    /* Small screen */
+    @media (max-width: 980px){
+      .layout{ grid-template-columns:1fr; }
+      .controls{ justify-content:flex-start; }
+    }
+  </style>
+</head>
+
+<body data-theme="light">
+  <div class="app">
+    <div class="header">
+      <div class="title">
+        <h1>Ταξινόμηση Βαθμών (B[15]) με Παράλληλο Πίνακα Ονομάτων (ΟΝ[15])</h1>
+        <p>Bubble-sort παραλλαγή: φθίνουσα κατά βαθμό και σε ισοβαθμία αλφαβητικά κατά επώνυμο. Εμφάνιση ανταλλαγών με animation.</p>
+
+        <!-- controls κάτω από την εκφώνηση -->
+        <div class="controls">
+          <button id="btnAuto">Αυτόματη Εκτέλεση</button>
+          <button id="btnStep">Βήμα-βήμα</button>
+          <button id="btnReset">Νέα Δεδομένα</button>
+
+          <div class="pill" title="Ταχύτητα animation / εκτέλεσης">
+            <label>Ταχύτητα</label>
+            <input id="speed" type="range" min="0.35" max="2.5" step="0.05" value="1.00">
+            <span id="speedVal" style="font-weight:900; font-size:12px;">1.00x</span>
+          </div>
+
+          <button id="btnTheme" class="toggle">Night</button>
+          <button id="btnCode" class="toggle">Εμφάνιση Κώδικα</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <!-- Left: arrays -->
+      <div class="panel">
+        <div class="arraysWrap">
+          <div class="arrayCol">
+            <div class="arrayHead">
+              <div class="name">ΟΝ[15]</div>
+              <div class="hint">Επώνυμα</div>
+            </div>
+            <div class="list" id="listON"></div>
+          </div>
+
+          <div class="arrayCol">
+            <div class="arrayHead">
+              <div class="name">B[15]</div>
+              <div class="hint">Βαθμοί (0–20)</div>
+            </div>
+            <div class="list" id="listB"></div>
+          </div>
+        </div>
+
+        <div class="status">
+          <div class="badge"><small>i</small> <span id="iVal">—</span></div>
+          <div class="badge"><small>j</small> <span id="jVal">—</span></div>
+          <div style="flex:1; min-width:240px;">
+            <strong>Κατάσταση:</strong> <span id="stateText">Έτοιμο. Ο κώδικας είναι κρυφός (όπως ζητήθηκε).</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: code -->
+      <div class="panel codePanel">
+        <div class="codeTop">
+          <div class="meta">
+            <div><strong>Εκτελούμενος ψευδοκώδικας</strong> (highlight στην εντολή που εκτελείται)</div>
+            <div style="margin-top:4px;">Σημείωση: Σε ισοβαθμία γίνεται ανταλλαγή <strong>μόνο</strong> των ονομάτων, όπως στη λύση που δόθηκε.</div>
+          </div>
+        </div>
+
+        <div class="codeBox" id="codeBox">
+          <pre id="codePre"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wm">Ιδέα + Δημιουργία: Δημήτρης Γιακοβής, Ευτυχία Δουφέκα</div>
+
+<script>
+(() => {
+  // ---------- Data ----------
+  const SURNAMES = [
+    "Παπαδόπουλος","Οικονόμου","Γεωργίου","Νικολάου","Δημητρίου",
+    "Ιωάννου","Χριστοδούλου","Αθανασίου","Κωνσταντίνου","Σταυρόπουλος",
+    "Αλεξίου","Παππάς","Βασιλείου","Σπυρόπουλος","Μακρής",
+    "Καραγιάννης","Καλογερόπουλος","Μητρόπουλος","Ζαφειρίου","Τριανταφύλλου",
+    "Κουτσούμπας","Κοσμάς","Κυριακίδης","Λαμπρόπουλος","Σαμαράς",
+    "Ράπτης","Παναγιώτου","Περικλής","Χατζής","Γαλανός",
+    "Δεληγιάννης","Μουζάκης","Τσάκος","Σιδέρης","Κανελλόπουλος"
+  ];
+
+ function makeGrades15(repeatRate = 0.75){
+  // repeatRate: 0..1 (όσο μεγαλύτερο, τόσο περισσότερες επαναλήψεις)
+  const pool = [20,19,18,17,16,15,14,13,12,11,10,9,8,7,6];
+  const g = [];
+  // ξεκινάμε με 5-6 "άγκυρες" που θα επαναλαμβάνονται
+  const anchorsCount = 6;
+  const anchors = [];
+  for (let i=0;i<anchorsCount;i++){
+    anchors.push(pool[Math.floor(Math.random()*pool.length)]);
+  }
+
+  for (let i=0;i<15;i++){
+    if (Math.random() < repeatRate){
+      g.push(anchors[Math.floor(Math.random()*anchors.length)]);
+    } else {
+      g.push(pool[Math.floor(Math.random()*pool.length)]);
+    }
+  }
+
+  // shuffle για να μην έρχονται ήδη "ομαδοποιημένα"
+  for (let i=g.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [g[i], g[j]] = [g[j], g[i]];
+  }
+  return g;
+}
+
+
+  function pickUniqueSurnames(n){
+    const pool = SURNAMES.slice();
+    for (let i=pool.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [pool[i],pool[j]]=[pool[j],pool[i]];
+    }
+    return pool.slice(0,n);
+  }
+
+  // ---------- DOM ----------
+  const listON = document.getElementById("listON");
+  const listB  = document.getElementById("listB");
+  const btnAuto = document.getElementById("btnAuto");
+  const btnStep = document.getElementById("btnStep");
+  const btnReset = document.getElementById("btnReset");
+  const speed = document.getElementById("speed");
+  const speedVal = document.getElementById("speedVal");
+  const btnTheme = document.getElementById("btnTheme");
+  const btnCode = document.getElementById("btnCode");
+  const codeBox = document.getElementById("codeBox");
+  const codePre = document.getElementById("codePre");
+  const iVal = document.getElementById("iVal");
+  const jVal = document.getElementById("jVal");
+  const stateText = document.getElementById("stateText");
+  const body = document.body;
+
+  // ---------- Code lines (for highlighting) ----------
+  const CODE_LINES = [
+    "Για i από 2 μέχρι 15",
+    "    Για j από 15 μέχρι i με_βήμα -1",
+    "         Αν B[j - 1] < B[j] τότε",
+    "             temp ← B[j - 1]",
+    "             B[j - 1] ← B[j]",
+    "             B[j] ← temp",
+    "             temp1 ← ΟΝ[j - 1]",
+    "             ΟΝ[j - 1] ← ΟΝ[j]",
+    "             ΟΝ[j] ← temp1",
+    "    αλλιώς_αν B[j - 1] = B[j] τότε",
+    "         Αν ΟΝ[j - 1] > ΟΝ[j] τότε",
+    "             temp1 ← ΟΝ[j - 1]",
+    "             ΟΝ[j - 1] ← ΟΝ[j]",
+    "             ΟΝ[j] ← temp1",
+    "        Τέλος_αν",
+    "    Τέλος_αν",
+    "  Τέλος_επανάληψης",
+    "Τέλος_επανάληψης"
+  ];
+
+  function escapeHtml(str){
+    return str.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+  }
+
+  function renderCode(){
+    codePre.innerHTML = "";
+    CODE_LINES.forEach((t, idx) => {
+      const line = document.createElement("span");
+      line.className = "line";
+      line.dataset.line = String(idx+1);
+      line.innerHTML = `<span class="ln">${String(idx+1).padStart(2,"0")}</span>${escapeHtml(t)}`;
+      codePre.appendChild(line);
+    });
+  }
+
+  function setActiveLine(n){
+    [...codePre.querySelectorAll(".line")].forEach(el => el.classList.remove("active"));
+    if (!n) return;
+    const el = codePre.querySelector(`.line[data-line="${n}"]`);
+    if (el){
+      el.classList.add("active");
+      if (codeBox.classList.contains("show")){
+        el.scrollIntoView({block:"nearest", inline:"nearest"});
+      }
+    }
+  }
+
+  // ---------- UI render arrays ----------
+  function makeCell(index, value, which, pos0){
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    cell.dataset.which = which;
+    cell.dataset.pos = String(pos0);
+    cell.innerHTML = `
+      <div class="idx">${index}</div>
+      <div class="val">${escapeHtml(String(value))}</div>
+    `;
+    return cell;
+  }
+
+  function renderArrays(ON, B){
+    listON.innerHTML = "";
+    listB.innerHTML = "";
+    for (let i=0;i<15;i++){
+      listON.appendChild(makeCell(i+1, ON[i], "ON", i));
+      listB.appendChild(makeCell(i+1, B[i], "B", i));
+    }
+  }
+
+  function getCell(which, pos0){
+    const container = which==="ON" ? listON : listB;
+    return container.querySelector(`.cell[data-pos="${pos0}"]`);
+  }
+
+  function clearHighlights(){
+    [...document.querySelectorAll(".cell")].forEach(c => c.classList.remove("hi","cmp","swp"));
+  }
+
+  // ---------- Animation helpers ----------
+  function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+  function durationMs(){
+    const s = parseFloat(speed.value || "1");
+    return Math.max(120, Math.round(380 / s));
+  }
+
+  async function animateSwap(which, a, b){
+    const A = getCell(which, a);
+    const Bc = getCell(which, b);
+    if (!A || !Bc) return;
+
+    const rectA = A.getBoundingClientRect();
+    const rectB = Bc.getBoundingClientRect();
+    const dy = rectB.top - rectA.top;
+
+    A.classList.add("swp");
+    Bc.classList.add("swp");
+
+    A.style.transition = `transform ${durationMs()}ms ease`;
+    Bc.style.transition = `transform ${durationMs()}ms ease`;
+    A.style.transform = `translateY(${dy}px)`;
+    Bc.style.transform = `translateY(${-dy}px)`;
+
+    await sleep(durationMs()+20);
+
+    A.style.transition = "";
+    Bc.style.transition = "";
+    A.style.transform = "";
+    Bc.style.transform = "";
+
+    const container = which==="ON" ? listON : listB;
+    const nodes = [...container.querySelectorAll(".cell")];
+
+    const nodeA = nodes[a];
+    const nodeB = nodes[b];
+
+    if (nodeA && nodeB){
+      const placeholder = document.createElement("div");
+      container.replaceChild(placeholder, nodeA);
+      container.replaceChild(nodeA, nodeB);
+      container.replaceChild(nodeB, placeholder);
+    }
+
+    [...container.querySelectorAll(".cell")].forEach((el, idx) => el.dataset.pos = String(idx));
+    await sleep(40);
+  }
+
+  function markCompare(posA, posB){
+    clearHighlights();
+    const onA = getCell("ON", posA), onB = getCell("ON", posB);
+    const bA = getCell("B", posA), bB = getCell("B", posB);
+    [onA,onB,bA,bB].forEach(x => x && x.classList.add("cmp"));
+  }
+
+  function markFocus(posA, posB){
+    clearHighlights();
+    const onA = getCell("ON", posA), onB = getCell("ON", posB);
+    const bA = getCell("B", posA), bB = getCell("B", posB);
+    [onA,onB,bA,bB].forEach(x => x && x.classList.add("hi"));
+  }
+
+  // ---------- Algorithm step planning ----------
+  function buildSteps(ON, B){
+    const steps = [];
+    const on = ON.slice();
+    const b = B.slice();
+    const N = 15;
+
+    for (let i=2; i<=N; i++){
+      steps.push({ line: 1, i, j: null, type:"loop_i" });
+
+      for (let j=N; j>=i; j--){
+        steps.push({ line: 2, i, j, type:"loop_j" });
+
+        const a = j-2, c = j-1;
+        steps.push({ line: 3, i, j, type:"compare_grades", a, c });
+
+        if (b[a] < b[c]){
+          steps.push({ line: 4, i, j, type:"assign" });
+          steps.push({ line: 5, i, j, type:"assign" });
+          steps.push({ line: 6, i, j, type:"swapB", a, c });
+
+          steps.push({ line: 7, i, j, type:"assign" });
+          steps.push({ line: 8, i, j, type:"assign" });
+          steps.push({ line: 9, i, j, type:"swapON", a, c });
+
+          [b[a], b[c]] = [b[c], b[a]];
+          [on[a], on[c]] = [on[c], on[a]];
+        } else if (b[a] === b[c]){
+          steps.push({ line: 10, i, j, type:"else_if_equal", a, c });
+          steps.push({ line: 11, i, j, type:"compare_names", a, c });
+
+          if (on[a].localeCompare(on[c], "el") > 0){
+            steps.push({ line: 12, i, j, type:"assign" });
+            steps.push({ line: 13, i, j, type:"assign" });
+            steps.push({ line: 14, i, j, type:"swapON_only", a, c });
+            [on[a], on[c]] = [on[c], on[a]];
+          } else {
+            steps.push({ line: 15, i, j, type:"end_if_name" });
+          }
+
+          steps.push({ line: 16, i, j, type:"end_if" });
+        } else {
+          steps.push({ line: 16, i, j, type:"end_if" });
+        }
+
+        steps.push({ line: 17, i, j, type:"end_loop_j" });
+      }
+
+      steps.push({ line: 18, i, j: null, type:"end_loop_i" });
+    }
+
+    steps.push({ line: null, i:null, j:null, type:"done" });
+    return steps;
+  }
+
+  // ---------- Runtime state ----------
+  let ON = [];
+  let B = [];
+  let steps = [];
+  let k = 0;
+  let running = false;
+  let stopRequested = false;
+
+  function updateIJ(step){
+    iVal.textContent = step?.i ?? "—";
+    jVal.textContent = step?.j ?? "—";
+  }
+
+  function setState(msg){
+    stateText.textContent = msg;
+  }
+
+  function lockControls(isLocked){
+    btnStep.disabled = isLocked;
+    btnReset.disabled = isLocked;
+  }
+
+  async function execOneStep(){
+    if (k >= steps.length) return;
+
+    const step = steps[k];
+    updateIJ(step);
+
+    if (step.type === "done"){
+      clearHighlights();
+      setActiveLine(null);
+      setState("Ολοκληρώθηκε η ταξινόμηση.");
+      running = false;
+      btnAuto.textContent = "Αυτόματη Εκτέλεση";
+      lockControls(false);
+      return;
+    }
+
+    setActiveLine(step.line);
+
+    if (step.type === "loop_i" || step.type === "loop_j"){
+      clearHighlights();
+      setState(`Βρόχοι: i=${step.i}${step.j?`, j=${step.j}`:""}`);
+      await sleep(Math.round(durationMs()*0.35));
+    }
+    else if (step.type === "compare_grades"){
+      markCompare(step.a, step.c);
+      setState(`Σύγκριση βαθμών: B[${step.a+1}] και B[${step.c+1}]`);
+      await sleep(Math.round(durationMs()*0.65));
+    }
+    else if (step.type === "compare_names"){
+      markCompare(step.a, step.c);
+      setState(`Ισοβαθμία: σύγκριση ονομάτων ΟΝ[${step.a+1}] και ΟΝ[${step.c+1}]`);
+      await sleep(Math.round(durationMs()*0.65));
+    }
+    else if (step.type === "else_if_equal"){
+      markFocus(step.a, step.c);
+      setState("Οι βαθμοί είναι ίσοι → έλεγχος αλφαβητικής σειράς ονομάτων.");
+      await sleep(Math.round(durationMs()*0.45));
+    }
+    else if (step.type === "swapB"){
+      setState(`Ανταλλαγή βαθμών B[${step.a+1}] ↔ B[${step.c+1}]`);
+      [B[step.a], B[step.c]] = [B[step.c], B[step.a]];
+      await animateSwap("B", step.a, step.c);
+    }
+    else if (step.type === "swapON"){
+      setState(`Ανταλλαγή ονομάτων ΟΝ[${step.a+1}] ↔ ΟΝ[${step.c+1}] (παραλληλία με τους βαθμούς)`);
+      [ON[step.a], ON[step.c]] = [ON[step.c], ON[step.a]];
+      await animateSwap("ON", step.a, step.c);
+    }
+    else if (step.type === "swapON_only"){
+      setState(`Ισοβαθμία: ανταλλαγή μόνο ονομάτων ΟΝ[${step.a+1}] ↔ ΟΝ[${step.c+1}] (αλφαβητική διάταξη)`);
+      [ON[step.a], ON[step.c]] = [ON[step.c], ON[step.a]];
+      await animateSwap("ON", step.a, step.c);
+    }
+    else if (step.type === "assign"){
+      clearHighlights();
+      setState("Εκτέλεση εντολής ανάθεσης (temp / temp1).");
+      await sleep(Math.round(durationMs()*0.25));
+    }
+    else if (step.type === "end_if" || step.type === "end_if_name" || step.type === "end_loop_j" || step.type === "end_loop_i"){
+      clearHighlights();
+      setState("Τέλος δομής ελέγχου / επανάληψης.");
+      await sleep(Math.round(durationMs()*0.22));
+    }
+
+    k++;
+  }
+
+  async function runLoop(){
+    if (running) return;
+    running = true;
+    stopRequested = false;
+    btnAuto.textContent = "Παύση";
+    lockControls(true);
+
+    while (running && !stopRequested){
+      await execOneStep();
+      const step = steps[k] || {};
+      if (step.type === "done") break;
+      await sleep(Math.round(durationMs()*0.08));
+    }
+
+    running = false;
+    btnAuto.textContent = "Αυτόματη Εκτέλεση";
+    lockControls(false);
+  }
+
+  function pause(){
+    stopRequested = true;
+    running = false;
+    btnAuto.textContent = "Αυτόματη Εκτέλεση";
+    lockControls(false);
+    setState("Παύση.");
+  }
+
+  function initNewData(){
+    pause();
+    setActiveLine(null);
+    clearHighlights();
+    k = 0;
+
+    ON = pickUniqueSurnames(15);
+    B  = makeGrades15(0.85);
+
+    renderArrays(ON, B);
+    steps = buildSteps(ON, B);
+
+    updateIJ({i:null,j:null});
+    setState("Έτοιμο. Πατήστε «Βήμα-βήμα» ή «Αυτόματη Εκτέλεση».");
+  }
+
+  // ---------- Events ----------
+  btnAuto.addEventListener("click", async () => {
+    if (running){ pause(); return; }
+    if (steps[k]?.type === "done"){
+      initNewData();
+    }
+    await runLoop();
+  });
+
+  btnStep.addEventListener("click", async () => {
+    if (running) return;
+    if (steps[k]?.type === "done"){
+      initNewData();
+      return;
+    }
+    await execOneStep();
+  });
+
+  btnReset.addEventListener("click", () => initNewData());
+
+  speed.addEventListener("input", () => {
+    speedVal.textContent = `${parseFloat(speed.value).toFixed(2)}x`;
+  });
+
+  btnTheme.addEventListener("click", () => {
+    const now = body.getAttribute("data-theme");
+    const next = (now === "dark") ? "light" : "dark";
+    body.setAttribute("data-theme", next);
+    btnTheme.textContent = (next === "dark") ? "Day" : "Night";
+  });
+
+  btnCode.addEventListener("click", () => {
+    const show = !codeBox.classList.contains("show");
+    codeBox.classList.toggle("show", show);
+    btnCode.textContent = show ? "Απόκρυψη Κώδικα" : "Εμφάνιση Κώδικα";
+  });
+
+  // ---------- Boot ----------
+  renderCode();
+  speedVal.textContent = `${parseFloat(speed.value).toFixed(2)}x`;
+  initNewData();
+
+})();
+</script>
+</body>
+</html>

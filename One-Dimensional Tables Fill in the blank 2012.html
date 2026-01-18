@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <title>Α3 – Διαδραστικός πίνακας & αλγόριθμος</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #e5e7eb;
+      font-size: 17px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 26px 36px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      color: #111827;
+    }
+
+    .subtitle {
+      font-size: 17px;
+      color: #4b5563;
+      margin-bottom: 20px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      border-radius: 999px;
+      border: none;
+      padding: 9px 18px;
+      font-size: 16px;
+      cursor: pointer;
+      background: #e5e7eb;
+      color: #111827;
+      transition: background 0.15s ease, transform 0.06s ease;
+    }
+
+    .tab-btn.active {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
+    }
+
+    .tab-btn:active {
+      transform: translateY(1px);
+      box-shadow: none;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .panel {
+      background: #f9fafb;
+      border-radius: 16px;
+      border: 1px solid #e5e7eb;
+      padding: 16px 18px 18px;
+      margin-bottom: 18px;
+    }
+
+    .panel h2 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      color: #111827;
+    }
+
+    .statement {
+      font-size: 16px;
+      color: #4b5563;
+      margin-bottom: 12px;
+    }
+
+    /* Οριζόντιος πίνακας */
+    .array-horizontal {
+      display: inline-block;
+      border: 1px solid #111827;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #f3f4f6;
+      margin-bottom: 14px;
+    }
+
+    .array-row {
+      display: grid;
+      grid-template-columns: repeat(10, 54px);
+      position: relative;
+    }
+
+    .array-cell,
+    .array-index {
+      border-right: 1px solid #111827;
+      border-bottom: 1px solid #111827;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .array-row .array-cell:last-child,
+    .array-row .array-index:last-child {
+      border-right: none;
+    }
+
+    .array-index {
+      background: #e5e7eb;
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .array-cell {
+      background: #f9fafb;
+      font-weight: 600;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .cell-highlight {
+      background: #fee2e2 !important;
+      transform: scale(1.05);
+    }
+
+    .cell-swap {
+      background: #f97316 !important;
+      color: #ffffff;
+      transform: scale(1.05);
+    }
+
+    /* για τα "ιπτάμενα" κουτιά στο animation */
+    .moving-cell {
+      position: absolute;
+      top: 0;
+      width: 54px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      border: 1px solid #111827;
+      background: #f97316;
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 18px;
+      z-index: 5;
+      pointer-events: none;
+      transition: transform 2s ease;
+    }
+
+    /* Γραμμές εντολών στην (α) */
+    .eq-list {
+      font-size: 17px;
+      color: #111827;
+      margin-bottom: 10px;
+    }
+
+    .eq-row {
+      margin-bottom: 6px;
+      white-space: nowrap;
+    }
+
+    .eq-row code {
+      font-family: "Fira Code", ui-monospace, Menlo, Monaco, Consolas, "Courier New", monospace;
+      background: #e5e7eb;
+      padding: 3px 8px;
+      border-radius: 8px;
+      line-height: 1.7;
+      font-size: 17px;
+    }
+
+    .eq-input {
+      width: 36px;
+      padding: 3px 2px;
+      font-size: 16px;
+      text-align: center;
+      border-radius: 4px;
+      border: 1px solid #d1d5db;
+      margin: 0 2px;
+    }
+
+    .eq-input.correct {
+      border-color: #16a34a;
+      background: #dcfce7;
+    }
+
+    .eq-input.wrong {
+      border-color: #dc2626;
+      background: #fee2e2;
+    }
+
+    .btn-action {
+      border-radius: 999px;
+      border: none;
+      padding: 9px 18px;
+      font-size: 16px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.06s ease, box-shadow 0.06s ease, background 0.15s ease;
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
+      margin-top: 8px;
+    }
+
+    .btn-action:active {
+      transform: translateY(1px);
+      box-shadow: none;
+    }
+
+    .feedback {
+      margin-top: 8px;
+      font-size: 16px;
+      color: #111827;
+    }
+
+    .feedback span.ok {
+      color: #15803d;
+      font-weight: 600;
+    }
+
+    .feedback span.bad {
+      color: #b91c1c;
+      font-weight: 600;
+    }
+
+    .solution-box {
+      margin-top: 8px;
+      font-size: 16px;
+      padding: 7px 9px;
+      border-radius: 10px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+    }
+
+    .solution-box code {
+      font-family: "Fira Code", ui-monospace, Menlo, Monaco, Consolas, "Courier New", monospace;
+      font-size: 16px;
+    }
+
+    /* Κώδικας στην (β) – άσπρο φόντο, μεγάλος, αραιός */
+    .code-block {
+      font-family: "Fira Code", ui-monospace, Menlo, Monaco, Consolas, "Courier New", monospace;
+      font-size: 18px;
+      background: #ffffff;
+      color: #111827;
+      border-radius: 12px;
+      padding: 12px 14px;
+      border: 1px solid #d1d5db;
+      margin-top: 8px;
+      white-space: pre;
+      line-height: 1.9;
+    }
+
+    .code-input {
+      width: 46px;
+      text-align: center;
+      padding: 3px 4px;
+      font-size: 16px;
+      border-radius: 4px;
+      border: 1px solid #9ca3af;
+      margin: 0 4px;
+    }
+
+    .code-input.correct {
+      border-color: #16a34a;
+      background: #14532d33;
+    }
+
+    .code-input.wrong {
+      border-color: #dc2626;
+      background: #7f1d1d33;
+    }
+
+    .credit-signature {
+      position: fixed;
+      right: 10px;
+      bottom: 6px;
+      font-size: 10px;
+      color: #6b7280;
+      opacity: 0.6;
+      pointer-events: none;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Θέμα Α3 – Διαδραστική εκφώνηση</h1>
+  <div class="subtitle">
+    Πίνακας A[10] με τους αριθμούς από 10 μέχρι 1, με βάση την εκφώνηση των Πανελλαδικών.
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="tab1">Καρτέλα 1 – Μέρος (α)</button>
+    <button class="tab-btn" data-tab="tab2">Καρτέλα 2 – Μέρος (β)</button>
+  </div>
+
+  <!-- TAB 1 -->
+  <div id="tab1" class="tab-content active">
+    <div class="panel">
+      <h2>Μέρος (α) – Συμπλήρωση εντολών εκχώρησης</h2>
+      <div class="statement">
+        Δίνεται ο πίνακας <strong>A[10]</strong>, στον οποίο θέλουμε να αποθηκεύσουμε όλους
+        τους ακεραίους αριθμούς από το <strong>10</strong> μέχρι το <strong>1</strong> σε
+        φθίνουσα σειρά. Στον πίνακα έχουν ήδη εισαχθεί ορισμένοι αριθμοί όπως στο σχήμα.
+        Να συμπληρώσετε τις εντολές εκχώρησης, ώστε τα κενά κελιά να πάρουν τις σωστές τιμές.
+      </div>
+
+      <!-- Πίνακας -->
+      <div class="array-horizontal">
+        <div class="array-row">
+          <!-- indices 1..10 -->
+          <div class="array-index">1</div>
+          <div class="array-index">2</div>
+          <div class="array-index">3</div>
+          <div class="array-index">4</div>
+          <div class="array-index">5</div>
+          <div class="array-index">6</div>
+          <div class="array-index">7</div>
+          <div class="array-index">8</div>
+          <div class="array-index">9</div>
+          <div class="array-index">10</div>
+        </div>
+        <div class="array-row" id="tab1-array">
+          <!-- values go here -->
+        </div>
+      </div>
+
+      <div class="eq-list">
+        <div class="eq-row">
+          <code>Α[3] ← 3 + Α[<input id="t1-a3" class="eq-input" maxlength="2">]</code>
+        </div>
+        <div class="eq-row">
+          <code>Α[9] ← Α[<input id="t1-a9" class="eq-input" maxlength="2">] − 2</code>
+        </div>
+        <div class="eq-row">
+          <code>Α[8] ← Α[<input id="t1-a8" class="eq-input" maxlength="2">] − 5</code>
+        </div>
+        <div class="eq-row">
+          <code>Α[4] ← 5 + Α[<input id="t1-a4" class="eq-input" maxlength="2">]</code>
+        </div>
+        <div class="eq-row">
+          <code>Α[5] ← (Α[<input id="t1-a5" class="eq-input" maxlength="2">] + Α[7]) div 2</code>
+        </div>
+      </div>
+
+      <button id="t1-check" class="btn-action">✅ Αξιολόγηση & εμφάνιση λύσης</button>
+
+      <div id="t1-feedback" class="feedback"></div>
+      <div id="t1-solution" class="solution-box" style="display:none;">
+        <strong>Σωστή συμπλήρωση:</strong><br>
+        <code>Α[3] ← 3 + Α[6]</code><br>
+        <code>Α[9] ← Α[7] − 2</code><br>
+        <code>Α[8] ← Α[3] − 5</code><br>
+        <code>Α[4] ← 5 + Α[9]</code><br>
+        <code>Α[5] ← (Α[3] + Α[7]) div 2</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2 -->
+  <div id="tab2" class="tab-content">
+    <div class="panel">
+      <h2>Μέρος (β) – Τμήμα αλγορίθμου</h2>
+      <div class="statement">
+        Αφού ο πίνακας A έχει τώρα τις τιμές <strong>10, 9, …, 1</strong>,
+        να συμπληρώσετε το παρακάτω τμήμα αλγορίθμου που
+        αντιμεταθέτει τις τιμές των κελιών του πίνακα, ώστε η τελική διάταξη
+        των αριθμών να είναι από <strong>1</strong> μέχρι <strong>10</strong>.
+      </div>
+
+      <!-- Πίνακας πλήρης -->
+      <div class="array-horizontal">
+        <div class="array-row">
+          <div class="array-index">1</div>
+          <div class="array-index">2</div>
+          <div class="array-index">3</div>
+          <div class="array-index">4</div>
+          <div class="array-index">5</div>
+          <div class="array-index">6</div>
+          <div class="array-index">7</div>
+          <div class="array-index">8</div>
+          <div class="array-index">9</div>
+          <div class="array-index">10</div>
+        </div>
+        <div class="array-row" id="tab2-array">
+          <!-- values go here -->
+        </div>
+      </div>
+
+      <div class="code-block">
+Για i από <input id="t2-from" class="code-input" maxlength="2"> μέχρι <input id="t2-to" class="code-input" maxlength="2">
+  αντιμετάθεσε Α[<input id="t2-left" class="code-input" maxlength="5">], Α[<input id="t2-right" class="code-input" maxlength="6">]
+Τέλος_επανάληψης
+      </div>
+
+      <button id="t2-check" class="btn-action">
+        ✅ Αξιολόγηση & λύση + animation
+      </button>
+
+      <div id="t2-feedback" class="feedback"></div>
+      <div id="t2-solution" class="solution-box" style="display:none;">
+        <strong>Σωστή λύση:</strong><br>
+        <code>Για i από 1 μέχρι 5</code><br>
+        <code>&nbsp;&nbsp;αντιμετάθεσε Α[i], Α[11−i]</code><br>
+        <code>Τέλος_επανάληψης</code>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="credit-signature">
+  Ιδέα + Δημιουργία: Ευτυχία Δουφέκα, Δημήτρης Γιακοβής
+</div>
+
+<script>
+  // Αρχικές τιμές πίνακα (όπως στο σχήμα, με null στα κενά)
+  const initialA_part1 = [10, 9, null, null, null, 5, 4, null, null, 1];
+
+  const finalDescending = [10,9,8,7,6,5,4,3,2,1]; // για την καρτέλα 2 & σωστή λύση
+
+  // ----- ΒΟΗΘΗΤΙΚΟ: φτιάχνει οριζόντιο πίνακα -----
+  function renderArray(containerId, values) {
+    const cont = document.getElementById(containerId);
+    cont.innerHTML = '';
+    values.forEach((v, idx) => {
+      const cell = document.createElement('div');
+      cell.className = 'array-cell';
+      cell.dataset.index = idx + 1;
+      cell.textContent = (v === null || v === undefined) ? '' : v;
+      cont.appendChild(cell);
+    });
+  }
+
+  // -------------------------------------------------------------------
+  // TAB SWITCH
+  // -------------------------------------------------------------------
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // -------------------------------------------------------------------
+  // TAB 1 – μέρος (α)
+  // -------------------------------------------------------------------
+  let currentA_tab1 = initialA_part1.slice();
+
+  function recalcTab1Array() {
+    // ξεκινάμε από το αρχικό
+    currentA_tab1 = initialA_part1.slice();
+
+    const readIndex = (id) => {
+      const v = document.getElementById(id).value.trim();
+      const n = parseInt(v, 10);
+      if (!Number.isInteger(n) || n < 1 || n > 10) return null;
+      return n;
+    };
+
+    // Α[3] ← 3 + Α[...]
+    let idx = readIndex('t1-a3');
+    if (idx !== null && currentA_tab1[idx-1] != null) {
+      currentA_tab1[2] = 3 + currentA_tab1[idx-1];
+    }
+
+    // Α[9] ← Α[...] − 2
+    idx = readIndex('t1-a9');
+    if (idx !== null && currentA_tab1[idx-1] != null) {
+      currentA_tab1[8] = currentA_tab1[idx-1] - 2;
+    }
+
+    // Α[8] ← Α[...] − 5
+    idx = readIndex('t1-a8');
+    if (idx !== null && currentA_tab1[idx-1] != null) {
+      currentA_tab1[7] = currentA_tab1[idx-1] - 5;
+    }
+
+    // Α[4] ← 5 + Α[...]
+    idx = readIndex('t1-a4');
+    if (idx !== null && currentA_tab1[idx-1] != null) {
+      currentA_tab1[3] = 5 + currentA_tab1[idx-1];
+    }
+
+    // Α[5] ← (Α[...] + Α[7]) div 2
+    idx = readIndex('t1-a5');
+    if (idx !== null && currentA_tab1[idx-1] != null && currentA_tab1[6] != null) {
+      currentA_tab1[4] = Math.floor((currentA_tab1[idx-1] + currentA_tab1[6]) / 2);
+    }
+
+    renderArray('tab1-array', currentA_tab1);
+  }
+
+  // αρχική εμφάνιση
+  renderArray('tab1-array', currentA_tab1);
+
+  // ανανέωση κάθε φορά που αλλάζει ένα input
+  ['t1-a3','t1-a9','t1-a8','t1-a4','t1-a5'].forEach(id => {
+    document.getElementById(id).addEventListener('input', recalcTab1Array);
+  });
+
+  document.getElementById('t1-check').addEventListener('click', () => {
+    const correct = { 't1-a3': 6, 't1-a9': 7, 't1-a8': 3, 't1-a4': 9, 't1-a5': 3 };
+    let allCorrect = true;
+
+    Object.keys(correct).forEach(id => {
+      const inp = document.getElementById(id);
+      const val = parseInt(inp.value.trim(), 10);
+      inp.classList.remove('correct', 'wrong');
+      if (val === correct[id]) {
+        inp.classList.add('correct');
+      } else {
+        inp.classList.add('wrong');
+        allCorrect = false;
+      }
+    });
+
+    const fb = document.getElementById('t1-feedback');
+    if (allCorrect) {
+      fb.innerHTML = '<span class="ok">Μπράβο! Όλα τα κενά είναι σωστά.</span>';
+    } else {
+      fb.innerHTML = '<span class="bad">Κάποια κενά είναι λάθος. Δες τη σωστή λύση παρακάτω.</span>';
+    }
+
+    document.getElementById('t1-solution').style.display = 'block';
+
+    // Τελικά, δείξε στον πίνακα την πραγματική σωστή φθίνουσα μορφή
+    renderArray('tab1-array', finalDescending);
+  });
+
+  // -------------------------------------------------------------------
+  // TAB 2 – μέρος (β)
+  // -------------------------------------------------------------------
+  let currentA_tab2 = finalDescending.slice();
+  renderArray('tab2-array', currentA_tab2);
+
+  function animateTab2Swaps() {
+    const row = document.getElementById('tab2-array');
+    const cells = Array.from(row.children);
+    let i = 1;
+
+    function step() {
+      if (i > 5) return;
+
+      const left = i - 1;
+      const right = 10 - i;
+
+      const leftCell = cells[left];
+      const rightCell = cells[right];
+
+      const rowRect = row.getBoundingClientRect();
+      const leftRect = leftCell.getBoundingClientRect();
+      const rightRect = rightCell.getBoundingClientRect();
+
+      const leftX = leftRect.left - rowRect.left;
+      const rightX = rightRect.left - rowRect.left;
+
+      // δημιουργούμε τα "ιπτάμενα" κουτιά
+      const movingLeft = document.createElement('div');
+      movingLeft.className = 'moving-cell';
+      movingLeft.style.left = leftX + 'px';
+      movingLeft.textContent = currentA_tab2[left];
+
+      const movingRight = document.createElement('div');
+      movingRight.className = 'moving-cell';
+      movingRight.style.left = rightX + 'px';
+      movingRight.textContent = currentA_tab2[right];
+
+      row.appendChild(movingLeft);
+      row.appendChild(movingRight);
+
+      // κάνουμε τους κανονικούς αριθμούς λίγο πιο "ήσυχους"
+      leftCell.classList.add('cell-swap');
+      rightCell.classList.add('cell-swap');
+
+      // μικρή καθυστέρηση πριν ξεκινήσει η κίνηση
+      setTimeout(() => {
+        const deltaLR = rightX - leftX;
+        const deltaRL = leftX - rightX;
+        movingLeft.style.transform = 'translateX(' + deltaLR + 'px)';
+        movingRight.style.transform = 'translateX(' + deltaRL + 'px)';
+      }, 40);
+
+      // μετά από ~1.3s ολοκληρώνεται η κίνηση
+      setTimeout(() => {
+        // ενημέρωση πραγματικού πίνακα
+        const temp = currentA_tab2[left];
+        currentA_tab2[left] = currentA_tab2[right];
+        currentA_tab2[right] = temp;
+
+        leftCell.textContent = currentA_tab2[left];
+        rightCell.textContent = currentA_tab2[right];
+
+        leftCell.classList.remove('cell-swap');
+        rightCell.classList.remove('cell-swap');
+
+        movingLeft.remove();
+        movingRight.remove();
+
+        i++;
+        setTimeout(step, 250); // μικρή παύση πριν το επόμενο swap
+      }, 2200);
+    }
+
+    step();
+  }
+
+  function normalizeExpr(s) {
+    return s.toLowerCase().replace(/[\s]/g, '')
+              .replace('ι', 'i'); // αν γράψει το ελληνικό ι
+  }
+
+  document.getElementById('t2-check').addEventListener('click', () => {
+    const fromInp = document.getElementById('t2-from');
+    const toInp   = document.getElementById('t2-to');
+    const leftInp = document.getElementById('t2-left');
+    const rightInp= document.getElementById('t2-right');
+
+    [fromInp,toInp,leftInp,rightInp].forEach(i => i.classList.remove('correct','wrong'));
+
+    const fromOk = parseInt(fromInp.value.trim(),10) === 1;
+    const toOk   = parseInt(toInp.value.trim(),10) === 5;
+
+    const leftExpr  = normalizeExpr(leftInp.value.trim());
+    const rightExpr = normalizeExpr(rightInp.value.trim());
+
+    const leftOk  = (leftExpr === 'i');
+    const rightOk = (rightExpr === '11-i');
+
+    if (fromOk) fromInp.classList.add('correct'); else fromInp.classList.add('wrong');
+    if (toOk)   toInp.classList.add('correct');   else toInp.classList.add('wrong');
+    if (leftOk) leftInp.classList.add('correct'); else leftInp.classList.add('wrong');
+    if (rightOk)rightInp.classList.add('correct');else rightInp.classList.add('wrong');
+
+    const fb = document.getElementById('t2-feedback');
+    const allCorrect = fromOk && toOk && leftOk && rightOk;
+
+    if (allCorrect) {
+      fb.innerHTML = '<span class="ok">Σωστός αλγόριθμος! Δες τώρα πώς αλλάζει ο πίνακας.</span>';
+    } else {
+      fb.innerHTML = '<span class="bad">Υπάρχουν λάθη. Δες τη σωστή λύση και το animation του πίνακα.</span>';
+    }
+
+    document.getElementById('t2-solution').style.display = 'block';
+
+    // επαναφέρω τον πίνακα στην φθίνουσα μορφή πριν το animation
+    currentA_tab2 = finalDescending.slice();
+    renderArray('tab2-array', currentA_tab2);
+
+    // και ξεκινώ το animation αντιμεταθέσεων
+    animateTab2Swaps();
+  });
+
+</script>
+</body>
+</html>

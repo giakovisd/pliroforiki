@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ταξινόμηση με επιλογή – Animation</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #e5e7eb;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px 24px 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 28px;
+      color: #111827;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: #4b5563;
+      margin-bottom: 18px;
+    }
+
+    .top-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 7px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.06s ease, box-shadow 0.06s ease, background 0.15s ease;
+      white-space: nowrap;
+    }
+
+    button:active {
+      transform: translateY(1px);
+      box-shadow: none;
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
+    }
+
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #d1d5db;
+      color: #374151;
+    }
+
+    .btn-primary:disabled {
+      background: #9ca3af;
+      box-shadow: none;
+      cursor: default;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .panel {
+      background: #f9fafb;
+      border-radius: 14px;
+      border: 1px solid #e5e7eb;
+      padding: 12px 14px 14px;
+    }
+
+    .panel h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      color: #111827;
+    }
+
+    /* Πίνακας Π – κάθετος */
+    .array-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-top: 6px;
+      margin-bottom: 10px;
+      position: relative;
+    }
+
+    .array-column {
+      position: relative;
+      width: 80px;
+      border: 2px solid #111827;
+      background: #f3f4f6;
+    }
+
+    .cell {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 46px;
+      border-bottom: 1px solid #111827;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 600;
+      background: #e5e7eb;
+      transition: top 0.7s ease-in-out, background 0.2s ease, transform 0.2s ease;
+    }
+
+    .cell-current {
+      background: #fee2e2;
+      transform: scale(1.03);
+    }
+
+    .cell-max {
+      background: #dcfce7;
+      border: 2px solid #16a34a;
+      box-sizing: border-box;
+    }
+
+    .cell-compare {
+      outline: 3px solid #f97316;
+      z-index: 2;
+    }
+
+    .cell-swapping {
+      background: #f97316 !important;
+      color: #fff;
+    }
+
+    .index-column {
+      margin-right: 10px;
+      text-align: center;
+      position: relative;
+    }
+
+    .index-cell {
+      height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      border-bottom: 1px solid #9ca3af;
+    }
+
+    .index-label {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 0;
+      position: absolute;
+      top: -22px;
+      left: 0;
+      right: 0;
+    }
+
+    /* μπλε “στάθμη νερού” */
+    .water-line {
+      position: absolute;
+      left: -6px;
+      width: calc(100% + 12px);
+      height: 4px;
+      background: #2563eb;
+      border-radius: 999px;
+      opacity: 0.9;
+      transition: top 0.6s ease;
+      z-index: 1;
+    }
+
+    .var-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+      margin-bottom: 8px;
+    }
+
+    .var-card {
+      background: #ffffff;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      padding: 7px 9px;
+    }
+
+    .var-label {
+      font-size: 11px;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 2px;
+    }
+
+    .var-value {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .explanation {
+      background: #eff6ff;
+      border-radius: 10px;
+      border: 1px solid #bfdbfe;
+      padding: 8px 9px;
+      font-size: 14px;
+      min-height: 60px;
+      color: #1f2933;
+    }
+
+    .status-bar {
+      margin-top: 5px;
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .status-bar span.ok {
+      color: #15803d;
+      font-weight: 600;
+    }
+    .status-bar span.done {
+      color: #1d4ed8;
+      font-weight: 600;
+    }
+
+    /* panel κώδικα */
+    .code-panel {
+      background: #020617;
+      border-radius: 12px;
+      padding: 10px 12px 12px;
+      color: #e5e7eb;
+      font-family: "Fira Code", ui-monospace, Menlo, Monaco, Consolas, "Courier New", monospace;
+      font-size: 15px;
+      border: 1px solid #111827;
+      margin-bottom: 10px;
+    }
+
+    .code-panel.hidden {
+      display: none;
+    }
+
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    ol.code {
+      list-style: none;
+      margin: 0;
+      padding-left: 0;
+    }
+
+    .code-line {
+      padding: 3px 5px;
+      border-radius: 6px;
+      margin-bottom: 2px;
+      position: relative;
+      line-height: 1.5;
+    }
+
+    .code-line span.num {
+      display: inline-block;
+      width: 32px;
+      color: #6b7280;
+    }
+
+    .code-line.active {
+      background: rgba(37, 99, 235, 0.35);
+    }
+
+    .code-line.init { color: #22c55e; }
+    .code-line.loop { color: #60a5fa; }
+    .code-line.cond { color: #facc15; }
+    .code-line.assign { color: #f97316; }
+    .code-line.end { color: #e5e7eb; }
+
+    .credits {
+      margin-top: 14px;
+      text-align: right;
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .credit-signature {
+      position: fixed;
+      right: 12px;
+      bottom: 8px;
+      font-size: 11px;
+      color: #9ca3af;
+      opacity: 0.8;
+      pointer-events: none;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+  </style>
+</head>
+<body>
+<div class="container" id="root">
+  <h1>Ταξινόμηση με επιλογή (Selection Sort)</h1>
+  <div class="subtitle">
+    Ταξινόμηση των στοιχείων του πίνακα <strong>Π[6]</strong> σε <strong>φθίνουσα</strong> σειρά
+    με τη μέθοδο της επιλογής (selection sort).
+  </div>
+
+  <div class="top-controls">
+    <button id="toggleSol1Btn" class="btn-outline">👁 Εμφάνιση Λύσης 1</button>
+    <button id="toggleSol2Btn" class="btn-outline">👁 Εμφάνιση Λύσης 2</button>
+    <button id="nextStepBtn" class="btn-primary">▶ Επόμενο βήμα</button>
+    <button id="autoBtn" class="btn-secondary">⏵ Αυτόματη εκτέλεση</button>
+    <button id="randomBtn" class="btn-secondary">🎲 Τυχαίες τιμές</button>
+    <button id="resetBtn" class="btn-secondary">⟲ Επαναφορά</button>
+  </div>
+
+  <div class="layout">
+    <!-- Αριστερά: πίνακας + μεταβλητές -->
+    <div class="panel">
+      <h2>Πίνακας Π</h2>
+
+      <div class="array-wrapper">
+        <div class="index-column" id="indexColumn">
+          <div class="index-label">Θέση</div>
+        </div>
+        <div class="array-column" id="arrayColumn"></div>
+      </div>
+
+      <div class="var-grid">
+        <div class="var-card">
+          <div class="var-label">Πέρασμα (ι)</div>
+          <div id="passVal" class="var-value">-</div>
+        </div>
+        <div class="var-card">
+          <div class="var-label">j (σάρωση)</div>
+          <div id="jVal" class="var-value">-</div>
+        </div>
+        <div class="var-card">
+          <div class="var-label">θ (θέση μέγιστου)</div>
+          <div id="thetaVal" class="var-value">-</div>
+        </div>
+        <div class="var-card">
+          <div class="var-label">μαχ (μέγιστο)</div>
+          <div id="maxVal" class="var-value">-</div>
+        </div>
+      </div>
+
+      <div id="explanation" class="explanation">
+        Πάτησε <strong>«Επόμενο βήμα»</strong> ή «Αυτόματη εκτέλεση» για να ξεκινήσει η ταξινόμηση.
+      </div>
+
+      <div id="statusBar" class="status-bar">
+        Κατάσταση: πριν την έναρξη.
+      </div>
+    </div>
+
+    <!-- Δεξιά: δύο λύσεις κώδικα -->
+    <div>
+      <!-- Λύση 1 -->
+      <div id="codePanel1" class="code-panel hidden">
+        <div class="code-header">
+          <span>Λύση 1 – με μαχ, θ, temp</span>
+          <span>Αυτή χρησιμοποιείται στο animation.</span>
+        </div>
+        <ol class="code">
+          <li class="code-line loop" data-line="1">
+            <span class="num">(1)</span> Για ι από 1 μέχρι Ν-1
+          </li>
+          <li class="code-line assign" data-line="2">
+            <span class="num">(2)</span> &nbsp;&nbsp;μαχ &larr; Π[ι]
+          </li>
+          <li class="code-line assign" data-line="3">
+            <span class="num">(3)</span> &nbsp;&nbsp;θ &larr; ι
+          </li>
+          <li class="code-line loop" data-line="4">
+            <span class="num">(4)</span> &nbsp;&nbsp;Για j από ι+1 μέχρι Ν
+          </li>
+          <li class="code-line cond" data-line="5">
+            <span class="num">(5)</span> &nbsp;&nbsp;&nbsp;&nbsp;Αν Π[j] &gt; Π[θ] τότε
+          </li>
+          <li class="code-line assign" data-line="6">
+            <span class="num">(6)</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;μαχ &larr; Π[j]
+          </li>
+          <li class="code-line assign" data-line="7">
+            <span class="num">(7)</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;θ &larr; j
+          </li>
+          <li class="code-line end" data-line="8">
+            <span class="num">(8)</span> &nbsp;&nbsp;&nbsp;&nbsp;Τέλος_αν
+          </li>
+          <li class="code-line end" data-line="9">
+            <span class="num">(9)</span> &nbsp;&nbsp;Τέλος_επανάληψης
+          </li>
+          <li class="code-line assign" data-line="10">
+            <span class="num">(10)</span> &nbsp;&nbsp;temp &larr; Π[ι]
+          </li>
+          <li class="code-line assign" data-line="11">
+            <span class="num">(11)</span> &nbsp;&nbsp;Π[ι] &larr; Π[θ]
+          </li>
+          <li class="code-line assign" data-line="12">
+            <span class="num">(12)</span> &nbsp;&nbsp;Π[θ] &larr; temp
+          </li>
+          <li class="code-line end" data-line="13">
+            <span class="num">(13)</span> Τέλος_επανάληψης
+          </li>
+        </ol>
+      </div>
+
+      <!-- Λύση 2 -->
+      <div id="codePanel2" class="code-panel hidden">
+        <div class="code-header">
+          <span>Λύση 2 – με αντιμετάθεσε Π[ι], Π[θ]</span>
+          <span>Ισοδύναμος κώδικας.</span>
+        </div>
+        <ol class="code">
+          <li class="code-line loop">
+            <span class="num">(1)</span> Για ι από 1 μέχρι Ν-1
+          </li>
+          <li class="code-line assign">
+            <span class="num">(2)</span> &nbsp;&nbsp;θ &larr; ι
+          </li>
+          <li class="code-line loop">
+            <span class="num">(3)</span> &nbsp;&nbsp;Για j από ι+1 μέχρι Ν
+          </li>
+          <li class="code-line cond">
+            <span class="num">(4)</span> &nbsp;&nbsp;&nbsp;&nbsp;Αν Π[j] &gt; Π[θ] τότε
+          </li>
+          <li class="code-line assign">
+            <span class="num">(5)</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;θ &larr; j
+          </li>
+          <li class="code-line end">
+            <span class="num">(6)</span> &nbsp;&nbsp;&nbsp;&nbsp;Τέλος_αν
+          </li>
+          <li class="code-line end">
+            <span class="num">(7)</span> &nbsp;&nbsp;Τέλος_επανάληψης
+          </li>
+          <li class="code-line assign">
+            <span class="num">(8)</span> &nbsp;&nbsp;αντιμετάθεσε Π[ι], Π[θ]
+          </li>
+          <li class="code-line end">
+            <span class="num">(9)</span> Τέλος_επανάληψης
+          </li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <div class="credits">
+    Σε κάθε πέρασμα, το μεγαλύτερο από τα «υπόλοιπα» στοιχεία τοποθετείται στη σωστή θέση.
+  </div>
+</div>
+
+<div class="credit-signature">
+  Ιδέα + Δημιουργία: Ευτυχία Δουφέκα, Δημήτρης Γιακοβής
+</div>
+
+<script>
+  const initialP = [4, 7, 9, 6, 2, 1];
+  const N = initialP.length;
+
+  const arrayColumn = document.getElementById("arrayColumn");
+  const indexColumn = document.getElementById("indexColumn");
+
+  const passVal = document.getElementById("passVal");
+  const jVal = document.getElementById("jVal");
+  const thetaVal = document.getElementById("thetaVal");
+  const maxVal = document.getElementById("maxVal");
+  const explanation = document.getElementById("explanation");
+  const statusBar = document.getElementById("statusBar");
+
+  const nextStepBtn = document.getElementById("nextStepBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const autoBtn = document.getElementById("autoBtn");
+  const randomBtn = document.getElementById("randomBtn");
+  const toggleSol1Btn = document.getElementById("toggleSol1Btn");
+  const toggleSol2Btn = document.getElementById("toggleSol2Btn");
+  const codePanel1 = document.getElementById("codePanel1");
+  const codePanel2 = document.getElementById("codePanel2");
+
+  let cells = [];
+  let P = [];
+  let steps = [];
+  let currentStep = 0;
+  let isAnimating = false;
+  let autoTimeout = null;
+
+  let currentOuter = null;
+  let currentTheta = null;
+  let currentMax = null;
+
+  const CELL_HEIGHT = 46;
+  let waterLine = null;
+
+  function ensureWaterLine() {
+    if (!waterLine) {
+      waterLine = document.createElement("div");
+      waterLine.id = "waterLine";
+      waterLine.className = "water-line";
+      arrayColumn.appendChild(waterLine);
+    }
+  }
+
+  function setWaterLine(levelIndex) {
+    ensureWaterLine();
+    if (levelIndex < 1) levelIndex = 1;
+    if (levelIndex > N) levelIndex = N;
+    const top = (levelIndex - 1) * CELL_HEIGHT - 3;
+    waterLine.style.top = top + "px";
+  }
+
+  function buildArrayView() {
+    arrayColumn.innerHTML = "";
+    waterLine = null;
+
+    indexColumn.querySelectorAll(".index-cell").forEach(el => el.remove());
+    arrayColumn.style.height = (CELL_HEIGHT * N) + "px";
+
+    for (let i = 1; i <= N; i++) {
+      const idx = document.createElement("div");
+      idx.className = "index-cell";
+      idx.textContent = i;
+      indexColumn.appendChild(idx);
+    }
+
+    cells = [];
+    for (let idx = 0; idx < N; idx++) {
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      cell.style.top = (idx * CELL_HEIGHT) + "px";
+      cell.textContent = P[idx];
+      arrayColumn.appendChild(cell);
+      cells.push(cell);
+    }
+
+    setWaterLine(1);
+  }
+
+  function clearCellClasses() {
+    cells.forEach(c => {
+      c.classList.remove("cell-current", "cell-max", "cell-compare", "cell-swapping");
+    });
+  }
+
+  function updateCellPositions() {
+    for (let idx = 0; idx < cells.length; idx++) {
+      cells[idx].style.top = (idx * CELL_HEIGHT) + "px";
+    }
+  }
+
+  function clearCodeHighlight() {
+    codePanel1.querySelectorAll(".code-line").forEach(li => li.classList.remove("active"));
+  }
+
+  function highlightLine(num) {
+    clearCodeHighlight();
+    const el = codePanel1.querySelector('.code-line[data-line="' + num + '"]');
+    if (el) el.classList.add("active");
+  }
+
+  function setStatus(text, kind) {
+    if (kind === "ok") {
+      statusBar.innerHTML = 'Κατάσταση: <span class="ok">' + text + '</span>';
+    } else if (kind === "done") {
+      statusBar.innerHTML = 'Κατάσταση: <span class="done">' + text + '</span>';
+    } else {
+      statusBar.textContent = "Κατάσταση: " + text;
+    }
+  }
+
+  function resetAll() {
+    P = initialP.slice();
+    steps = buildSteps(P);
+    currentStep = 0;
+    isAnimating = false;
+    currentOuter = null;
+    currentTheta = null;
+    currentMax = null;
+
+    if (autoTimeout) {
+      clearTimeout(autoTimeout);
+      autoTimeout = null;
+    }
+    autoBtn.textContent = "⏵ Αυτόματη εκτέλεση";
+
+    buildArrayView();
+    clearCodeHighlight();
+    clearCellClasses();
+    passVal.textContent = "-";
+    jVal.textContent = "-";
+    thetaVal.textContent = "-";
+    maxVal.textContent = "-";
+    explanation.innerHTML =
+      'Πάτησε <strong>«Επόμενο βήμα»</strong> ή «Αυτόματη εκτέλεση» για να ξεκινήσει η ταξινόμηση.';
+    setStatus("πριν την έναρξη.", null);
+    nextStepBtn.disabled = false;
+  }
+
+  // ΝΕΟ: γέμισμα με τυχαίες τιμές 1–99
+  function randomizeArray() {
+    if (autoTimeout) {
+      clearTimeout(autoTimeout);
+      autoTimeout = null;
+      autoBtn.textContent = "⏵ Αυτόματη εκτέλεση";
+    }
+    isAnimating = false;
+    currentStep = 0;
+    currentOuter = null;
+    currentTheta = null;
+    currentMax = null;
+
+    P = Array.from({ length: N }, () => Math.floor(Math.random() * 99) + 1);
+    steps = buildSteps(P);
+
+    buildArrayView();
+    clearCodeHighlight();
+    clearCellClasses();
+    passVal.textContent = "-";
+    jVal.textContent = "-";
+    thetaVal.textContent = "-";
+    maxVal.textContent = "-";
+    explanation.innerHTML =
+      "Ο πίνακας Π γέμισε με τυχαίες τιμές (1–99). Ξεκίνα πάλι την ταξινόμηση βήμα-βήμα ή αυτόματα.";
+    setStatus("νέες τυχαίες τιμές έχουν τοποθετηθεί.", "ok");
+    nextStepBtn.disabled = false;
+  }
+
+  // Δημιουργία βημάτων selection sort (φθίνουσα)
+  function buildSteps(Pinit) {
+    const arr = [null, ...Pinit];
+    const result = [];
+    const n = Pinit.length;
+
+    for (let i = 1; i <= n - 1; i++) {
+      result.push({ type: "startOuter", i });
+
+      let max = arr[i];
+      let theta = i;
+      result.push({ type: "initMax", i, theta, max });
+
+      for (let j = i + 1; j <= n; j++) {
+        result.push({ type: "startInner", i, j, theta, max });
+        result.push({ type: "compare", i, j, theta, max });
+
+        if (arr[j] > arr[theta]) {
+          max = arr[j];
+          theta = j;
+          result.push({ type: "newMax", i, j, theta, max });
+        }
+      }
+
+      result.push({ type: "endInner", i, theta, max });
+
+      if (theta !== i) {
+        result.push({ type: "swap", i, theta });
+        const temp = arr[i];
+        arr[i] = arr[theta];
+        arr[theta] = temp;
+      } else {
+        result.push({ type: "noSwap", i, theta });
+      }
+    }
+
+    result.push({ type: "finished" });
+    return result;
+  }
+
+  function animateSwap(indexA1, indexB1, callback) {
+    const a = indexA1 - 1;
+    const b = indexB1 - 1;
+
+    const cellA = cells[a];
+    const cellB = cells[b];
+
+    cellA.classList.add("cell-swapping");
+    cellB.classList.add("cell-swapping");
+
+    const tempVal = P[a];
+    P[a] = P[b];
+    P[b] = tempVal;
+
+    const tempCell = cells[a];
+    cells[a] = cells[b];
+    cells[b] = tempCell;
+
+    cells[a].textContent = P[a];
+    cells[b].textContent = P[b];
+
+    updateCellPositions();
+
+    const onEnd = () => {
+      cellA.classList.remove("cell-swapping");
+      cellB.classList.remove("cell-swapping");
+      callback && callback();
+    };
+
+    setTimeout(onEnd, 800);
+  }
+
+  function updateVarsDisplay(i, j, theta, max) {
+    passVal.textContent = i == null ? "-" : i;
+    jVal.textContent = j == null ? "-" : j;
+    thetaVal.textContent = theta == null ? "-" : theta;
+    maxVal.textContent = max == null ? "-" : max;
+  }
+
+  function stepOnce() {
+    if (isAnimating) return;
+    if (currentStep >= steps.length) return;
+
+    const step = steps[currentStep];
+
+    switch (step.type) {
+      case "startOuter":
+        clearCellClasses();
+        highlightLine(1);
+        currentOuter = step.i;
+        currentTheta = null;
+        currentMax = null;
+        updateVarsDisplay(step.i, null, null, null);
+
+        setWaterLine(step.i);
+
+        explanation.innerHTML =
+          "Γραμμή <strong>(1)</strong>: Ξεκινά το <strong>" + step.i +
+          "ο πέρασμα</strong>. Θα βρούμε το μέγιστο από τις θέσεις " +
+          step.i + " έως " + N + ".";
+        setStatus("αρχή " + step.i + "ου περάσματος.", "ok");
+        break;
+
+      case "initMax":
+        highlightLine(2);
+        currentTheta = step.theta;
+        currentMax = step.max;
+        clearCellClasses();
+        cells[step.theta - 1].classList.add("cell-max");
+        updateVarsDisplay(step.i, null, currentTheta, currentMax);
+        explanation.innerHTML =
+          "Γραμμές <strong>(2)-(3)</strong>: Αρχικό μέγιστο μαχ = Π[" + step.i +
+          "] = <strong>" + step.max + "</strong> και θ = " + step.theta + ".";
+        break;
+
+      case "startInner":
+        highlightLine(4);
+        clearCellClasses();
+        if (currentTheta != null) {
+          cells[currentTheta - 1].classList.add("cell-max");
+        }
+        cells[step.j - 1].classList.add("cell-current");
+        updateVarsDisplay(step.i, step.j, currentTheta, currentMax);
+        explanation.innerHTML =
+          "Γραμμή <strong>(4)</strong>: Εξετάζουμε τη θέση j = " + step.j +
+          " (από " + (step.i + 1) + " μέχρι " + N + ").";
+        break;
+
+      case "compare":
+        highlightLine(5);
+        clearCellClasses();
+        if (currentTheta != null) {
+          cells[currentTheta - 1].classList.add("cell-max");
+        }
+        cells[step.j - 1].classList.add("cell-compare");
+        updateVarsDisplay(step.i, step.j, currentTheta, currentMax);
+        explanation.innerHTML =
+          "Γραμμή <strong>(5)</strong>: Συγκρίνουμε Π[" + step.j +
+          "] = <strong>" + P[step.j - 1] + "</strong> με Π[θ] = <strong>" +
+          (currentTheta ? P[currentTheta - 1] : "?") + "</strong>.";
+        break;
+
+      case "newMax":
+        highlightLine(6);
+        currentTheta = step.theta;
+        currentMax = step.max;
+        clearCellClasses();
+        cells[currentTheta - 1].classList.add("cell-max");
+        updateVarsDisplay(step.i, step.j, currentTheta, currentMax);
+        explanation.innerHTML =
+          "Γραμμές <strong>(6)-(7)</strong>: Βρήκαμε νέο μεγαλύτερο: μαχ = " +
+          "<strong>" + step.max + "</strong> στη θέση θ = " + step.theta + ".";
+        break;
+
+      case "endInner":
+        highlightLine(9);
+        clearCellClasses();
+        if (step.theta) {
+          cells[step.theta - 1].classList.add("cell-max");
+        }
+        updateVarsDisplay(step.i, null, step.theta, step.max);
+        explanation.innerHTML =
+          "Γραμμή <strong>(9)</strong>: Τέλος σάρωσης. Το μέγιστο του " +
+          step.i + "ου περάσματος είναι το Π[" + step.theta + "] = <strong>" +
+          step.max + "</strong>.";
+        break;
+
+      case "swap":
+        highlightLine(10);
+        explanation.innerHTML =
+          "Γραμμές <strong>(10)-(12)</strong>: Ανταλλάσσουμε Π[" + step.i +
+          "] με Π[" + step.theta + "]. Το μέγιστο πηγαίνει στη θέση " + step.i + ".";
+        setStatus("αντιμετάθεση στοιχείων.", "ok");
+        isAnimating = true;
+        clearCellClasses();
+        cells[step.i - 1].classList.add("cell-swapping");
+        cells[step.theta - 1].classList.add("cell-swapping");
+        animateSwap(step.i, step.theta, () => {
+          isAnimating = false;
+          updateVarsDisplay(step.i, null, null, null);
+        });
+        break;
+
+      case "noSwap":
+        highlightLine(10);
+        explanation.innerHTML =
+          "Δεν χρειάζεται αντιμετάθεση, το μέγιστο είναι ήδη στη θέση " +
+          step.i + ".";
+        setStatus("χωρίς αντιμετάθεση.", "ok");
+        break;
+
+      case "finished":
+        clearCellClasses();
+        clearCodeHighlight();
+        explanation.innerHTML =
+          "Ο πίνακας Π ταξινομήθηκε σε <strong>φθίνουσα</strong> σειρά.";
+        setStatus("η ταξινόμηση ολοκληρώθηκε.", "done");
+        nextStepBtn.disabled = true;
+        if (autoTimeout) {
+          clearTimeout(autoTimeout);
+          autoTimeout = null;
+          autoBtn.textContent = "⏵ Αυτόματη εκτέλεση";
+        }
+        break;
+    }
+
+    currentStep++;
+  }
+
+  function scheduleNextAutoStep() {
+    if (currentStep >= steps.length) {
+      autoBtn.textContent = "⏵ Αυτόματη εκτέλεση";
+      autoTimeout = null;
+      return;
+    }
+    autoTimeout = setTimeout(() => {
+      stepOnce();
+      scheduleNextAutoStep();
+    }, 1300);
+  }
+
+  function toggleAuto() {
+    if (autoTimeout) {
+      clearTimeout(autoTimeout);
+      autoTimeout = null;
+      autoBtn.textContent = "⏵ Αυτόματη εκτέλεση";
+      return;
+    }
+    autoBtn.textContent = "⏸ Παύση";
+    stepOnce();
+    scheduleNextAutoStep();
+  }
+
+  nextStepBtn.addEventListener("click", stepOnce);
+  resetBtn.addEventListener("click", resetAll);
+  autoBtn.addEventListener("click", toggleAuto);
+  randomBtn.addEventListener("click", randomizeArray);
+
+  toggleSol1Btn.addEventListener("click", () => {
+    codePanel1.classList.toggle("hidden");
+    const hidden = codePanel1.classList.contains("hidden");
+    toggleSol1Btn.textContent = hidden ? "👁 Εμφάνιση Λύσης 1" : "🙈 Απόκρυψη Λύσης 1";
+  });
+
+  toggleSol2Btn.addEventListener("click", () => {
+    codePanel2.classList.toggle("hidden");
+    const hidden = codePanel2.classList.contains("hidden");
+    toggleSol2Btn.textContent = hidden ? "👁 Εμφάνιση Λύσης 2" : "🙈 Απόκρυψη Λύσης 2";
+  });
+
+  resetAll();
+</script>
+</body>
+</html>

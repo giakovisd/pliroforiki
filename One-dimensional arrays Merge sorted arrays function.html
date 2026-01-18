@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Λειτουργία: Συγχώνευση Ταξινομημένων Πινάκων</title>
+<style>
+  :root{
+    --bg:#0f172a; --card:#111827f0; --muted:#94a3b8; --text:#e5e7eb; --accent:#38bdf8; --accent2:#f59e0b;
+  }
+  html,body{height:100%}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Noto Sans",Cantarell,Arial;background:#0f172a;color:var(--text)}
+  .wrap{max-width:1100px;margin:32px auto;padding:0 16px}
+  h1{font-size:clamp(22px,2.6vw,34px);margin:0 0 14px;color:#38bdf8}
+  .prompt{background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:12px;margin:8px 0 16px}
+  .board{display:grid;grid-template-columns:1.2fr 1fr;gap:16px}
+  @media(max-width:900px){.board{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid #1f2937;border-radius:18px}
+  .card h2{font-size:18px;margin:0;padding:14px 16px;border-bottom:1px solid #1f2937;color:#cbd5e1}
+  .card .body{padding:16px}
+  .cols{display:grid;grid-template-columns:repeat(3,minmax(140px,1fr));gap:14px;align-items:start}
+  .col{position:relative;background:#0b1220;border:1px solid #1f2937;border-radius:14px;overflow:hidden}
+  .col h3{margin:0;font-size:14px;font-weight:700;color:#cbd5e1;padding:10px 12px;border-bottom:1px solid #1f2937}
+  .cells{position:relative;display:grid;grid-template-rows:repeat(13,48px)}
+  .cell{position:relative;display:flex;align-items:center;justify-content:center;margin:6px 8px;background:#0a1222;border:1px solid #1f2937;border-radius:10px;font-weight:600}
+  .cell small{position:absolute;left:8px;top:4px;font-size:11px;color:#64748b}
+  .i-active{box-shadow:0 0 0 2px var(--accent) inset,0 0 16px rgba(56,189,248,.35)}
+  .scan-pulse{outline:2px dashed #3b82f6;animation:pulse 1.2s infinite}
+  @keyframes pulse{0%{outline-offset:6px;opacity:.9}100%{outline-offset:0;opacity:.6}}
+  .k-spot{outline:2px dashed var(--accent2);box-shadow:0 0 8px rgba(245,158,11,.6)}
+  .copy-fx{position:fixed;left:0;top:0;transform:translate(-50%,-50%);padding:6px 10px;background:#052e1a;color:#a7f3d0;border:1px solid #064e3b;border-radius:999px;font-weight:700;pointer-events:none;transition:left .5s ease,top .5s ease}
+  .controls{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+  .btn{background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:10px 14px;font-weight:600;color:#e2e8f0;cursor:pointer}
+  .btn:hover{border-color:#334155}
+  .btn[disabled]{opacity:.5;cursor:not-allowed}
+  .k-badge{display:inline-flex;align-items:center;gap:6px;background:#052e1a;color:#a7f3d0;border:1px solid #064e3b;padding:4px 8px;border-radius:999px;font-size:13px}
+  .badge{border:1px solid #25324b;background:#0b1220;color:#cbd5e1;border-radius:10px;padding:6px 10px;display:inline-flex;gap:8px;align-items:center}
+  code#code{background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:16px;font-size:17px;display:block;white-space:pre;overflow:auto;line-height:1.4}
+  .hl-line{background:linear-gradient(90deg,rgba(245,158,11,.28),rgba(245,158,11,.08));border-left:3px solid var(--accent2);padding-left:8px;}
+  .hidden{display:none !important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Λειτουργία: Συγχώνευση Ταξινομημένων Πινάκων</h1>
+  <p class="prompt"><strong>Εκφώνηση:</strong> Με δεδομένους τους πίνακες Α[8] και Β[5] (αύξουσα διάταξη), να γραφεί τμήμα αλγορίθμου που δημιουργεί τον πίνακα Γ[13], ο οποίος περιέχει όλα τα στοιχεία των Α και Β επίσης σε αύξουσα διάταξη.</p>
+
+  <div class="board">
+    <section class="card">
+      <h2>Πίνακες (Κάθετη διάταξη)</h2>
+      <div class="body">
+        <div class="cols">
+          <div class="col"><h3>Α[8]</h3><div class="cells" id="colA"></div></div>
+          <div class="col"><h3>Β[5]</h3><div class="cells" id="colB"></div></div>
+          <div class="col"><h3>Γ[13]</h3><div class="cells" id="colGamma"></div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap">
+          <span class="k-badge">i = <span id="iVal">1</span></span>
+          <span class="k-badge">j = <span id="jVal">1</span></span>
+          <span class="k-badge">k = <span id="kVal">1</span></span>
+          <span class="k-badge">Ενέργεια: <span id="lastAct">—</span></span>
+          <label class="badge">Ταχύτητα <input id="speed" type="range" min="250" max="1500" step="50" value="800"></label>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="codeSection">
+      <h2>Κώδικας</h2>
+      <div class="body">
+        <button class="btn" id="toggleCode">👁️ Απόκρυψη/Εμφάνιση Κώδικα</button>
+        <code id="code"></code>
+        <div class="controls">
+          <button class="btn" id="btnPlay">▶️ Εκκίνηση</button>
+          <button class="btn" id="btnPause" disabled>⏸️ Παύση</button>
+          <button class="btn" id="btnStep">⏭️ Βήμα</button>
+          <button class="btn" id="btnReset">🔄 Επαναφορά</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function(){
+  // Δεδομένα (αύξουσα σειρά)
+  const A=[2,5,9,12,15,18,25,30];
+  const B=[1,6,10,20,28];
+
+  // Elements
+  const colA=document.getElementById('colA');
+  const colB=document.getElementById('colB');
+  const colGamma=document.getElementById('colGamma');
+  const iVal=document.getElementById('iVal');
+  const jVal=document.getElementById('jVal');
+  const kVal=document.getElementById('kVal');
+  const lastAct=document.getElementById('lastAct');
+  const code=document.getElementById('code');
+  const btnPlay=document.getElementById('btnPlay');
+  const btnPause=document.getElementById('btnPause');
+  const btnStep=document.getElementById('btnStep');
+  const btnReset=document.getElementById('btnReset');
+  const speed=document.getElementById('speed');
+  const toggleCode=document.getElementById('toggleCode');
+
+  // Καταστάσεις
+  let i=0,j=0,k=0; // 0-based δείκτες, εμφανίζονται +1
+  let Γ=new Array(13).fill('');
+  let timer=null,phase="merge";
+
+  // Κώδικας προς εμφάνιση (τρεις πρώτες σε ξεχωριστές γραμμές)
+  const codeLines=[
+    "i ← 1",
+    "j ← 1",
+    "k ← 1",
+    "Όσο i ≤ 8 και j ≤ 5 επανάλαβε",
+    "  Αν Α[i] < Β[j] τότε",
+    "    Γ[k] ← Α[i]",
+    "    i ← i + 1",
+    "  αλλιώς",
+    "    Γ[k] ← Β[j]",
+    "    j ← j + 1",
+    "  Τέλος_αν",
+    "  k ← k + 1",
+    "Τέλος_επανάληψης",
+    "Αν i ≤ 8 τότε",
+    "  Για λ από k μέχρι 13",
+    "    Γ[λ] ← Α[i]",
+    "    i ← i + 1",
+    "  Τέλος_επανάληψης",
+    "Αλλιώς",
+    "  Για λ από k μέχρι 13",
+    "    Γ[λ] ← Β[j]",
+    "    j ← j + 1",
+    "  Τέλος_επανάληψης",
+    "Τέλος_αν"
+  ];
+
+  function renderCode(high=[]){
+    code.innerHTML=codeLines.map((ln,idx)=>`<div class="${high.includes(idx)?'hl-line':''}">${ln}</div>`).join('');
+  }
+
+  function makeCell(idx, value, label){
+    const c=document.createElement('div');
+    c.className='cell'; c.dataset.idx=idx; c.innerHTML=`<small>${label}</small><span>${value||'—'}</span>`; return c;
+  }
+
+  function draw(){
+    [colA,colB,colGamma].forEach(c=>c.innerHTML='');
+    for(let x=0;x<13;x++) colGamma.appendChild(makeCell(x,Γ[x],x+1));
+    for(let x=0;x<8;x++) colA.appendChild(makeCell(x,A[x],x+1));
+    for(let x=0;x<5;x++) colB.appendChild(makeCell(x,B[x],x+1));
+    highlight();
+  }
+
+  function highlight(){
+    document.querySelectorAll('.cell').forEach(e=>e.classList.remove('i-active','scan-pulse','k-spot'));
+    if(i<8) colA.querySelector(`[data-idx="${i}"]`)?.classList.add('i-active','scan-pulse');
+    if(j<5) colB.querySelector(`[data-idx="${j}"]`)?.classList.add('i-active','scan-pulse');
+    if(k<13) colGamma.querySelector(`[data-idx="${k}"]`)?.classList.add('k-spot');
+    iVal.textContent=i+1; jVal.textContent=j+1; kVal.textContent=k+1;
+  }
+
+  function flyCopy(fromEl,toEl,text,done){
+    const r1=fromEl.getBoundingClientRect(); const r2=toEl.getBoundingClientRect();
+    const fx=document.createElement('div'); fx.className='copy-fx'; fx.textContent=text; document.body.appendChild(fx);
+    fx.style.left=(r1.left+r1.width/2)+'px'; fx.style.top=(r1.top+r1.height/2)+'px';
+    requestAnimationFrame(()=>{ fx.style.left=(r2.left+r2.width/2)+'px'; fx.style.top=(r2.top+r2.height/2)+'px';
+      setTimeout(()=>{ fx.remove(); done&&done(); }, Math.max(350, Number(speed.value)*0.7)); });
+  }
+
+  function step(){
+    if(phase==="merge"){
+      if(i<8 && j<5){
+        renderCode([3,4]);
+        if(A[i] < B[j]){
+          renderCode([4,5]);
+          lastAct.textContent=`Α[${i+1}] < Β[${j+1}] → Γ[${k+1}] = ${A[i]}`;
+          const from=colA.querySelector(`[data-idx='${i}']`); const to=colGamma.querySelector(`[data-idx='${k}']`);
+          flyCopy(from,to,A[i],()=>{ Γ[k]=A[i]; i++; k++; draw(); });
+        } else {
+          renderCode([7,6]);
+          lastAct.textContent=`Α[${i+1}] ≥ Β[${j+1}] → Γ[${k+1}] = ${B[j]}`;
+          const from=colB.querySelector(`[data-idx='${j}']`); const to=colGamma.querySelector(`[data-idx='${k}']`);
+          flyCopy(from,to,B[j],()=>{ Γ[k]=B[j]; j++; k++; draw(); });
+        }
+        return;
+      } else {
+        // πέρασμα στα υπόλοιπα
+        phase = (i<8)?'restA':'restB';
+        renderCode((i<8)?[12,13]:[16,17]);
+        lastAct.textContent='Αντιγραφή υπολοίπων';
+        return;
+      }
+    }
+
+    if(phase==='restA' && i<8){
+      renderCode([14,15]);
+      const from=colA.querySelector(`[data-idx='${i}']`); const to=colGamma.querySelector(`[data-idx='${k}']`);
+      flyCopy(from,to,A[i],()=>{ Γ[k]=A[i]; i++; k++; draw(); if(i>=8){ phase='done'; lastAct.textContent='Τέλος αντιγραφής Α'; }});
+      return;
+    }
+    if(phase==='restB' && j<5){
+      renderCode([18,19]);
+      const from=colB.querySelector(`[data-idx='${j}']`); const to=colGamma.querySelector(`[data-idx='${k}']`);
+      flyCopy(from,to,B[j],()=>{ Γ[k]=B[j]; j++; k++; draw(); if(j>=5){ phase='done'; lastAct.textContent='Τέλος αντιγραφής Β'; }});
+      return;
+    }
+    if(phase==='done'){
+      renderCode([22]); lastAct.textContent='Ο πίνακας Γ είναι πλήρως ταξινομημένος'; stop();
+    }
+  }
+
+  function play(){ if(timer) return; btnPlay.disabled=true; btnPause.disabled=false; btnStep.disabled=true; timer=setInterval(step, Number(speed.value)); }
+  function pause(){ if(timer){ clearInterval(timer); timer=null; } btnPlay.disabled=false; btnPause.disabled=true; btnStep.disabled=false; }
+  function stop(){ if(timer){ clearInterval(timer); timer=null; } btnPlay.disabled=false; btnPause.disabled=true; btnStep.disabled=false; }
+  function reset(){ stop(); i=0;j=0;k=0; Γ=new Array(13).fill(''); phase='merge'; lastAct.textContent='—'; renderCode([0,1,2]); draw(); }
+
+  toggleCode.onclick=()=>{ code.classList.toggle('hidden'); };
+  btnPlay.onclick=play; btnPause.onclick=pause; btnStep.onclick=step; btnReset.onclick=reset; speed.oninput=()=>{ if(timer){ stop(); play(); } };
+  // init
+  reset();
+})();
+</script>
+</body>
+</html>

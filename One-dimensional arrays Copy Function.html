@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Αντιγραφή Πινάκων - Τελική Έκδοση</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .cell { transition: all 0.3s ease; }
+        
+        /* Animation classes */
+        .flying-element {
+            position: fixed;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            pointer-events: none;
+        }
+        
+        .arrow-indicator { transition: opacity 0.3s, transform 0.3s; }
+        
+        /* Styles για την οθόνη κονσόλας */
+        .console-window {
+            font-family: 'Consolas', 'Monaco', monospace;
+            background-color: #1e293b; /* Slate 800 */
+            color: #4ade80; /* Green 400 */
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.3);
+        }
+        .console-header {
+            background-color: #0f172a; /* Slate 900 */
+            padding: 0.25rem 0.75rem;
+            display: flex;
+            gap: 0.4rem;
+            border-bottom: 1px solid #334155;
+        }
+        .dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; }
+        
+        /* Highlight για το κελί που τυπώνεται */
+        .highlight-print {
+            border-color: #f59e0b !important; /* Orange */
+            background-color: #fffbeb !important;
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-blue-50 text-slate-800 min-h-screen p-4 md:p-8 flex flex-col items-center">
+
+    <div class="text-center mb-8 max-w-4xl">
+        <h1 class="text-3xl md:text-4xl font-bold text-blue-600 mb-2">Αντιγραφή μονοδιάστατων πινάκων</h1>
+        <p class="text-slate-600 max-w-2xl mx-auto text-sm">
+            Διαχωρισμός στοιχείων πίνακα και εμφάνιση αποτελεσμάτων.
+        </p>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-8 w-full max-w-7xl relative justify-center">
+        
+        <div class="flex-1">
+            <div class="flex justify-center gap-4 md:gap-8">
+                
+                <div class="flex flex-col items-center">
+                    <h3 class="text-lg font-bold text-blue-600 mb-3">ΟΝ</h3>
+                    <div id="container-on" class="relative"></div>
+                </div>
+
+                <div class="flex flex-col items-center">
+                    <h3 class="text-lg font-bold text-pink-600 mb-3">Φ</h3>
+                    <div id="container-f" class="relative"></div>
+                </div>
+
+                <div class="flex flex-col items-center">
+                    <h3 class="text-lg font-bold text-emerald-600 mb-3">ΟΝ_Α</h3>
+                    <div id="container-ona" class="relative"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full lg:w-96 flex flex-col gap-4">
+            
+            <div id="code-panel" class="hidden bg-white/90 backdrop-blur rounded-xl border border-slate-200 p-4 shadow-lg transition-all duration-300">
+                <h3 class="text-sm font-bold mb-2 flex items-center gap-2 text-blue-600 uppercase tracking-wider">
+                    <i data-lucide="code" class="w-4 h-4"></i> Κώδικας
+                </h3>
+                <div id="code-lines" class="font-mono text-xs md:text-sm space-y-1">
+                    </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div class="p-3 bg-white rounded-lg border border-slate-200 shadow-sm text-center">
+                    <span class="text-xs text-slate-500 font-bold">ι (Δείκτης)</span>
+                    <p id="var-i" class="text-2xl font-bold text-orange-600">-</p>
+                </div>
+                <div class="p-3 bg-white rounded-lg border border-slate-200 shadow-sm text-center">
+                    <span class="text-xs text-slate-500 font-bold">κ (Μετρητής)</span>
+                    <p id="var-k" class="text-2xl font-bold text-emerald-600">0</p>
+                </div>
+            </div>
+
+            <div class="console-window flex-1 min-h-[160px] flex flex-col shadow-xl">
+                <div class="console-header">
+                    <div class="dot bg-red-500"></div>
+                    <div class="dot bg-yellow-500"></div>
+                    <div class="dot bg-green-500"></div>
+                    <span class="text-xs text-slate-400 ml-auto">Output</span>
+                </div>
+                <div id="console-output" class="p-4 overflow-y-auto flex-1 text-sm leading-relaxed">
+                    <span class="animate-pulse">_</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="fixed bottom-6 bg-white/95 backdrop-blur border border-slate-200 p-3 rounded-2xl shadow-2xl flex flex-wrap items-center justify-center gap-4 z-40">
+        
+        <button onclick="toggleCode()" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 font-medium transition text-sm">
+            <i id="btn-code-icon" data-lucide="eye" class="w-4 h-4"></i> 
+            <span id="btn-code-text">Εμφάνιση Κώδικα</span>
+        </button>
+
+        <button onclick="stepForward()" id="btn-step" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 font-medium transition text-sm">
+            <i data-lucide="skip-forward" class="w-4 h-4"></i> Βήμα
+        </button>
+
+        <button id="btn-run" onclick="toggleRun()" class="flex items-center gap-2 px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 font-bold transition shadow-lg shadow-blue-200 text-sm">
+            <i id="icon-run" data-lucide="play" class="w-4 h-4"></i> <span id="text-run">Αυτόματη Εκτέλεση</span>
+        </button>
+
+        <button onclick="resetApp()" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 font-medium transition text-sm">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Επαναφορά
+        </button>
+
+        <div class="flex items-center gap-2 px-2 border-l border-slate-200 pl-4">
+            <i data-lucide="gauge" class="w-4 h-4 text-slate-400"></i>
+            <input type="range" id="speed-slider" min="10" max="100" value="50" class="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+        </div>
+    </div>
+
+<script>
+    // --- Data ---
+    const NAMES = ['Νίκος', 'Μαρία', 'Γιώργος', 'Ελένη', 'Δημήτρης', 'Αθηνά', 'Κώστας', 'Σοφία', 'Αλέξανδρος', 'Κατερίνα', 'Παναγιώτης', 'Χριστίνα'];
+    const GENDERS = ['Α', 'Κ', 'Α', 'Κ', 'Α', 'Κ', 'Α', 'Κ', 'Α', 'Κ', 'Α', 'Κ'];
+    
+    // Ο Κώδικας όπως ζητήθηκε
+    const CODE = [
+        { id: 0, text: "κ ← 0", indent: 0 },
+        { id: 1, text: "Για ι από 1 μέχρι 12", indent: 0 },
+        { id: 2, text: "  Αν Φ[ι] = 'Α' τότε", indent: 0 },
+        { id: 3, text: "    κ ← κ + 1", indent: 0 },
+        { id: 4, text: "    ΟΝ_Α[κ] ← ΟΝ[ι]", indent: 0 },
+        { id: 5, text: "  Τέλος_αν", indent: 0 },
+        { id: 6, text: "Τέλος_επανάληψης", indent: 0 },
+        { id: 7, text: "Για ι από 1 μέχρι κ", indent: 0 },
+        { id: 8, text: "  Γράψε ΟΝ_Α[ι]", indent: 0 },
+        { id: 9, text: "Τέλος_επανάληψης", indent: 0 },
+    ];
+
+    // --- State ---
+    let state = {
+        i: 0,
+        k: 0,
+        onA: new Array(12).fill(''),
+        currentLine: -1,
+        isRunning: false,
+        isPaused: false,
+        phase: 'idle', // idle, filtering, printing, done
+        speed: 50
+    };
+
+    // --- Helpers ---
+    const sleep = () => {
+        const ms = 2000 - (state.speed * 18);
+        return new Promise(resolve => {
+            const check = () => {
+                if (!state.isRunning) return resolve(false); // Stop check
+                if (state.isPaused) {
+                    setTimeout(check, 100);
+                } else {
+                    setTimeout(() => resolve(true), ms);
+                }
+            };
+            check();
+        });
+    };
+
+    const getEl = (id) => document.getElementById(id);
+
+    // --- Initialization ---
+    function init() {
+        // Render Arrays
+        const cOn = getEl('container-on');
+        const cF = getEl('container-f');
+        const cOna = getEl('container-ona');
+
+        cOn.innerHTML = ''; cF.innerHTML = ''; cOna.innerHTML = '';
+
+        NAMES.forEach((name, idx) => {
+            // ON Row
+            cOn.innerHTML += `
+                <div class="flex items-center mb-1 relative h-9">
+                    <div id="arrow-i-${idx+1}" class="arrow-indicator absolute -left-16 flex items-center opacity-0 transition-all duration-300">
+                        <span class="text-xs font-bold text-orange-500 mr-1">ι=${idx+1}</span>
+                        <i data-lucide="chevron-right" class="w-5 h-5 text-orange-500"></i>
+                    </div>
+                    
+                    <span class="w-6 text-xs text-slate-400 text-right mr-2">${idx+1}</span>
+                    <div id="cell-on-${idx}" class="w-32 md:w-36 h-9 flex items-center justify-center rounded-lg border border-slate-300 bg-white font-medium text-sm transition-colors duration-300">
+                        ${name}
+                    </div>
+                </div>
+            `;
+
+            // F Row
+            const isBoy = GENDERS[idx] === 'Α';
+            const colorClass = isBoy 
+                ? 'border-green-300 text-green-600 bg-green-50' 
+                : 'border-pink-300 text-pink-600 bg-pink-50';
+            
+            cF.innerHTML += `
+                <div class="flex items-center mb-1 h-9">
+                    <div id="cell-f-${idx}" class="w-12 h-9 flex items-center justify-center rounded-lg border ${colorClass} font-bold text-sm bg-white transition-transform duration-300">
+                        ${GENDERS[idx]}
+                    </div>
+                </div>
+            `;
+
+            // ON_A Row
+            cOna.innerHTML += `
+                <div class="flex items-center mb-1 relative h-9">
+                    <div id="cell-ona-${idx}" class="w-32 md:w-36 h-9 flex items-center justify-center rounded-lg border border-slate-300 border-dashed bg-slate-50 text-slate-400 font-medium text-sm transition-all duration-300">
+                    </div>
+                    <span class="w-6 text-xs text-slate-400 ml-2">${idx+1}</span>
+                    
+                    <div id="arrow-k-${idx+1}" class="arrow-indicator absolute -right-16 flex items-center opacity-0 transition-all duration-300">
+                        <i data-lucide="chevron-left" class="w-5 h-5 text-emerald-500"></i>
+                        <span class="text-xs font-bold text-emerald-500 ml-1">κ=${idx+1}</span>
+                    </div>
+                </div>
+            `;
+        });
+
+        // Render Code
+        const codeDiv = getEl('code-lines');
+        codeDiv.innerHTML = CODE.map(line => `
+            <div id="code-line-${line.id}" class="px-2 py-1 rounded transition-all duration-200 border-l-4 border-transparent text-slate-500 whitespace-pre" >${line.text}</div>
+        `).join('');
+
+        // Clear Console
+        getEl('console-output').innerHTML = '<span class="animate-pulse">_</span>';
+
+        // Init Icons
+        lucide.createIcons();
+        updateUI();
+    }
+
+    // --- Visual Updates ---
+    function updateUI() {
+        getEl('var-i').innerText = state.i || '-';
+        getEl('var-k').innerText = state.k;
+
+        // Reset Arrows opacity
+        document.querySelectorAll('.arrow-indicator').forEach(el => {
+            el.classList.add('opacity-0');
+            el.classList.remove('translate-x-0'); 
+            if(el.id.includes('arrow-i')) el.classList.add('-translate-x-4');
+            if(el.id.includes('arrow-k')) el.classList.add('translate-x-4');
+        });
+
+        // Show Logic arrows
+        if (state.phase === 'filtering') {
+            if (state.i > 0 && state.i <= 12) {
+                const arrI = getEl(`arrow-i-${state.i}`);
+                if(arrI) {
+                    arrI.classList.remove('opacity-0', '-translate-x-4');
+                    arrI.classList.add('translate-x-0');
+                }
+                // Highlight active cells
+                getEl(`cell-on-${state.i-1}`).classList.add('border-blue-500', 'bg-blue-100');
+                getEl(`cell-f-${state.i-1}`).classList.add('scale-110');
+            }
+        }
+
+        if (state.k > 0) {
+            const arrK = getEl(`arrow-k-${state.k}`);
+            if(arrK) {
+                arrK.classList.remove('opacity-0', 'translate-x-4');
+                arrK.classList.add('translate-x-0');
+            }
+        }
+
+        // Code Highlight
+        document.querySelectorAll('[id^="code-line-"]').forEach(el => {
+            el.className = el.className.replace('bg-blue-100 border-blue-500 text-blue-800 font-bold', 'border-transparent text-slate-500');
+        });
+        if (state.currentLine !== -1) {
+            const line = getEl(`code-line-${state.currentLine}`);
+            if(line) line.className = line.className.replace('border-transparent text-slate-500', 'bg-blue-100 border-blue-500 text-blue-800 font-bold');
+        }
+
+        // Buttons
+        if (state.isRunning) {
+            getEl('btn-step').disabled = true;
+            getEl('btn-step').classList.add('opacity-50');
+            getEl('text-run').innerText = state.isPaused ? "Συνέχεια" : "Παύση";
+            getEl('icon-run').setAttribute('data-lucide', state.isPaused ? 'play' : 'pause');
+        } else {
+            getEl('btn-step').disabled = false;
+            getEl('btn-step').classList.remove('opacity-50');
+            getEl('text-run').innerText = "Αυτόματη Εκτέλεση";
+            getEl('icon-run').setAttribute('data-lucide', 'play');
+        }
+        lucide.createIcons();
+    }
+
+    function clearHighlights() {
+        document.querySelectorAll('[id^="cell-on-"]').forEach(el => {
+            el.classList.remove('border-blue-500', 'bg-blue-100');
+        });
+        document.querySelectorAll('[id^="cell-f-"]').forEach(el => {
+            el.classList.remove('scale-110');
+        });
+    }
+
+    // --- Animation Logic (Flying Name) ---
+    async function animateTransfer(idxFrom, idxTo, text) {
+        const fromEl = getEl(`cell-on-${idxFrom}`);
+        const toEl = getEl(`cell-ona-${idxTo}`);
+        
+        const r1 = fromEl.getBoundingClientRect();
+        const r2 = toEl.getBoundingClientRect();
+
+        const flyer = document.createElement('div');
+        flyer.innerText = text;
+        flyer.className = 'flying-element bg-gradient-to-r from-blue-500 to-emerald-500 text-white border border-blue-300 text-sm shadow-lg';
+        flyer.style.width = r1.width + 'px';
+        flyer.style.height = r1.height + 'px';
+        flyer.style.left = r1.left + 'px';
+        flyer.style.top = r1.top + 'px';
+        
+        const speedFactor = 1.5 - (state.speed/80);
+        flyer.style.transition = `all ${speedFactor}s ease-in-out`;
+
+        document.body.appendChild(flyer);
+        await new Promise(r => requestAnimationFrame(r));
+        
+        flyer.style.left = r2.left + 'px';
+        flyer.style.top = r2.top + 'px';
+        flyer.style.transform = 'scale(1.05)';
+
+        const ms = speedFactor * 1000; 
+        await new Promise(r => setTimeout(r, ms));
+
+        flyer.remove();
+
+        // Update target cell permanently
+        toEl.innerText = text;
+        toEl.className = 'w-32 md:w-36 h-9 flex items-center justify-center rounded-lg border border-emerald-500 bg-emerald-100 text-emerald-700 font-bold text-sm shadow-sm transition-all duration-300';
+    }
+
+    // --- Algorithm Execution ---
+    async function runAlgorithm() {
+        if (state.isRunning && !state.isPaused) return; 
+        state.isRunning = true;
+        state.isPaused = false;
+        
+        // Ensure code is visible if running (optional UX) - uncomment if you want code to auto-show
+        // if(getEl('code-panel').classList.contains('hidden')) toggleCode();
+
+        updateUI();
+        
+        // --- PHASE 1: FILTERING ---
+        if (state.phase === 'idle') {
+            state.phase = 'filtering';
+            
+            state.currentLine = 0; // k <- 0
+            state.k = 0;
+            updateUI();
+            if(!(await sleep())) return;
+
+            state.currentLine = 1; // For Loop
+            if(!(await sleep())) return;
+
+            for (let i = 1; i <= 12; i++) {
+                state.i = i;
+                clearHighlights();
+                updateUI();
+                
+                state.currentLine = 1;
+                if(!(await sleep())) return;
+
+                state.currentLine = 2; // If...
+                updateUI();
+                if(!(await sleep())) return;
+
+                if (GENDERS[i-1] === 'Α') {
+                    state.currentLine = 3; // k <- k+1
+                    state.k++;
+                    updateUI();
+                    
+                    // Highlight target placeholder
+                    const target = getEl(`cell-ona-${state.k-1}`);
+                    target.classList.replace('border-slate-300', 'border-emerald-400');
+                    target.classList.replace('border-dashed', 'border-solid');
+                    
+                    if(!(await sleep())) return;
+
+                    state.currentLine = 4; // Copy
+                    updateUI();
+                    
+                    // Trigger Animation
+                    await animateTransfer(i-1, state.k-1, NAMES[i-1]);
+                    state.onA[state.k-1] = NAMES[i-1];
+                    
+                    if(!(await sleep())) return;
+                }
+                state.currentLine = 5; // End If
+                updateUI();
+                if(!(await sleep())) return; // Short delay
+            }
+
+            state.currentLine = 6; // End Loop 1
+            state.i = 0; // Reset i for visual cleanliness
+            clearHighlights();
+            updateUI();
+            if(!(await sleep())) return;
+
+            state.phase = 'printing'; // Move to next phase
+        }
+
+        // --- PHASE 2: PRINTING / OUTPUT ---
+        if (state.phase === 'printing') {
+            
+            state.currentLine = 7; // For i from 1 to k
+            updateUI();
+            if(!(await sleep())) return;
+
+            for(let j = 1; j <= state.k; j++) {
+                state.i = j; // Update i display
+                state.currentLine = 7;
+                updateUI();
+                if(!(await sleep())) return;
+
+                state.currentLine = 8; // Γράψε ΟΝ_Α[ι]
+                updateUI();
+
+                // Highlight the cell being printed
+                const cell = getEl(`cell-ona-${j-1}`);
+                if(cell) cell.classList.add('highlight-print');
+
+                // Print to console
+                const consoleDiv = getEl('console-output');
+                const p = document.createElement('div');
+                p.innerText = '> ' + state.onA[j-1];
+                p.className = "mb-1";
+                // Insert before the cursor
+                consoleDiv.insertBefore(p, consoleDiv.lastElementChild);
+                consoleDiv.scrollTop = consoleDiv.scrollHeight;
+
+                if(!(await sleep())) return;
+                if(cell) cell.classList.remove('highlight-print');
+            }
+
+            state.currentLine = 9; // End Loop 2
+            updateUI();
+            if(!(await sleep())) return;
+
+            // Done
+            state.currentLine = -1;
+            state.isRunning = false;
+            state.phase = 'done';
+            updateUI();
+        }
+    }
+
+    // --- Controls ---
+    function toggleRun() {
+        if (state.phase === 'done') return;
+        
+        if (state.phase === 'idle' || state.phase === 'filtering' || state.phase === 'printing') {
+            if(!state.isRunning) {
+                runAlgorithm();
+            } else {
+                state.isPaused = !state.isPaused;
+                updateUI();
+            }
+        }
+    }
+
+    function stepForward() {
+         alert("Πατήστε 'Αυτόματη Εκτέλεση' και χρησιμοποιήστε την Παύση για έλεγχο.");
+    }
+
+    function toggleCode() {
+        const p = getEl('code-panel');
+        const btnText = getEl('btn-code-text');
+        const btnIcon = getEl('btn-code-icon');
+        
+        if (p.classList.contains('hidden')) {
+            p.classList.remove('hidden');
+            btnText.innerText = "Απόκρυψη Κώδικα";
+            btnIcon.setAttribute('data-lucide', 'eye-off');
+        } else {
+            p.classList.add('hidden');
+            btnText.innerText = "Εμφάνιση Κώδικα";
+            btnIcon.setAttribute('data-lucide', 'eye');
+        }
+        lucide.createIcons();
+    }
+
+    function resetApp() {
+        state.isRunning = false;
+        state.isPaused = false;
+        state.phase = 'idle';
+        state.i = 0;
+        state.k = 0;
+        state.currentLine = -1;
+        state.onA = new Array(12).fill('');
+        
+        getEl('console-output').innerHTML = '<span class="animate-pulse">_</span>';
+        init();
+    }
+
+    getEl('speed-slider').addEventListener('input', (e) => {
+        state.speed = parseInt(e.target.value);
+    });
+
+    // Boot
+    window.onload = init;
+
+</script>
+</body>
+</html>

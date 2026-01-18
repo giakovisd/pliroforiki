@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8">
+  <title>Συμπλήρωση κενών – Τμήμα αλγορίθμου & μνήμη</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      margin: 20px;
+      background: #f5f5f5;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 1.4rem;
+    }
+
+    .exercise-container {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      max-width: 1150px;
+      margin: 0 auto 30px auto;
+    }
+
+    .statement {
+      font-size: 15px;
+      line-height: 1.5;
+      margin-bottom: 15px;
+    }
+
+    .statement ul {
+      margin-top: 6px;
+    }
+
+    table.code-mem {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 14px;
+    }
+
+    table.code-mem th,
+    table.code-mem td {
+      border: 1px solid #999;
+      padding: 4px 6px;
+      vertical-align: top;
+    }
+
+    table.code-mem th {
+      background: #e0e0e0;
+      text-align: center;
+    }
+
+    td.line-no {
+      width: 40px;
+      text-align: center;
+      background: #f5f5f5;
+      font-weight: 600;
+    }
+
+    td.code-cell {
+      font-family: "Consolas", "Courier New", monospace;
+      white-space: pre-wrap;
+      position: relative;
+      min-width: 250px;
+    }
+
+    .code-line {
+      margin-bottom: 4px;
+    }
+
+    .line-status {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .line-status.ok {
+      color: #007700;
+    }
+
+    .line-status.err {
+      color: #b00020;
+    }
+
+    .mem-cell {
+      text-align: center;
+      min-width: 40px;
+    }
+
+    .mem-header {
+      font-weight: 600;
+    }
+
+    .gap-input {
+      width: 55px;
+      font-family: inherit;
+      font-size: 14px;
+      padding: 2px 4px;
+      margin: 0 2px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+
+    .gap-input.short {
+      width: 40px;
+    }
+
+    .gap-input.operator {
+      width: 35px;
+    }
+
+    .correct-slot {
+      font-size: 0.8rem;
+      color: #555;
+      font-style: italic;
+      margin-left: 3px;
+    }
+
+    .controls {
+      margin-top: 16px;
+    }
+
+    button {
+      padding: 6px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 4px;
+      border: 1px solid #444;
+      background: #1976d2;
+      color: #fff;
+    }
+
+    button:hover {
+      background: #145ca3;
+    }
+
+    .overall-message {
+      display: inline-block;
+      margin-left: 12px;
+      font-weight: 600;
+    }
+
+    .overall-message.ok {
+      color: #007700;
+    }
+
+    .overall-message.not-ok {
+      color: #b00020;
+    }
+
+    .hint {
+      font-size: 13px;
+      font-style: italic;
+      color: #555;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 900px) {
+      table.code-mem {
+        font-size: 13px;
+      }
+      .gap-input {
+        width: 45px;
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="exercise-container">
+    <h1>Συμπλήρωση κενών αλγορίθμου με βάση τον πίνακα μνήμης</h1>
+
+    <div class="statement">
+      Δίνεται τμήμα αλγορίθμου με αριθμημένες εντολές. Κάθε εντολή έχει ένα ή δύο κενά
+      (σημειωμένα με <b>…</b>), που πρέπει να συμπληρωθούν με μία σταθερά, μία μεταβλητή
+      ή έναν τελεστή, έτσι ώστε ο πίνακας τιμών της μνήμης να είναι αυτός που φαίνεται.
+      <br><br>
+      Να γράψετε, για κάθε κενή θέση:
+      <ul>
+        <li>στις εντολές <b>1</b> και <b>2</b> <u>σταθερές τιμές</u>,</li>
+        <li>στις εντολές <b>3, 7, 10, 11</b> <u>τελεστές</u>,</li>
+        <li>στις υπόλοιπες εντολές <u>μεταβλητές</u>.</li>
+      </ul>
+      Κάντε κλικ στο «Έλεγχος όλων» για να αξιολογηθείτε. Η σωστή απάντηση θα εμφανίζεται
+      μόνο στα κενά που έχετε συμπληρώσει.
+    </div>
+
+    <table class="code-mem" id="codeMemTable">
+      <thead>
+        <tr>
+          <th>Εντ.</th>
+          <th>Εντολή με κενά</th>
+          <th class="mem-header">A</th>
+          <th class="mem-header">B</th>
+          <th class="mem-header">Γ</th>
+          <th class="mem-header">Δ</th>
+          <th class="mem-header">E</th>
+          <th class="mem-header">Z</th>
+          <th class="mem-header">X[1]</th>
+          <th class="mem-header">X[2]</th>
+          <th class="mem-header">X[3]</th>
+        </tr>
+      </thead>
+      <tbody id="codeMemBody">
+        <!-- Θα γεμίσει με JavaScript -->
+      </tbody>
+    </table>
+
+    <div class="controls">
+      <button id="checkBtn">Έλεγχος όλων</button>
+      <span id="overallMessage" class="overall-message"></span>
+      <div class="hint">
+        Για τελεστές γράψτε: &gt; , &lt; , &lt;= , &gt;= , &lt;&gt; , + , - κτλ.<br>
+        Για μεταβλητές χρησιμοποιήστε ελληνικά κεφαλαία: Α, Β, Γ, Δ, Ε, Ζ, Χ.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Περιγραφή γραμμών κώδικα με κενά
+    const lines = [
+      {
+        num: 1,
+        parts: [
+          { before: "Α <- ", id: "l1a", type: "const", after: "" }
+        ]
+      },
+      {
+        num: 2,
+        parts: [
+          { before: "Δ <- Α + ", id: "l2a", type: "const", after: "" }
+        ]
+      },
+      {
+        num: 3,
+        parts: [
+          {
+            before: "Αν Α ",
+            id: "l3a",
+            type: "op",
+            after: " Δ τότε\n    Γ <- Α\n  αλλιώς\n    Γ <- Δ\n  Τέλος_αν"
+          }
+        ]
+      },
+      {
+        num: 4,
+        parts: [
+          { before: "Β <- ", id: "l4a", type: "var", after: " - 1" }
+        ]
+      },
+      {
+        num: 5,
+        parts: [
+          { before: "Ε <- ", id: "l5a", type: "var", after: " - " },
+          { before: "", id: "l5b", type: "var", after: "" } // 2 κενά, μετά σταθερό -1
+        ]
+      },
+      {
+        num: 6,
+        parts: [
+          { before: "", id: "l6a", type: "var", after: " <- Δ + " },
+          { before: "", id: "l6b", type: "var", after: "" }
+        ]
+      },
+      {
+        num: 7,
+        parts: [
+          { before: "Γ <- Γ ", id: "l7a", type: "op", after: " Ε" }
+        ]
+      },
+      {
+        num: 8,
+        parts: [
+          { before: "Ζ <- ", id: "l8a", type: "var", after: " - 1" }
+        ]
+      },
+      {
+        num: 9,
+        parts: [
+          { before: "Χ[", id: "l9a", type: "var", after: "] <- Γ" }
+        ]
+      },
+      {
+        num: 10,
+        parts: [
+          { before: "Χ[Ζ ", id: "l10a", type: "op", after: " 1] <- Δ" }
+        ]
+      },
+      {
+        num: 11,
+        parts: [
+          { before: "Χ[Ζ ", id: "l11a", type: "op", after: " 1] <- Χ[Ζ] " },
+          { before: "", id: "l11b", type: "op", after: " 1" }
+        ]
+      }
+    ];
+
+    // Πίνακας μνήμης: κάθε γραμμή -> [A,B,Γ,Δ,E,Z,X1,X2,X3]
+    const memoryRows = {
+      1: ["4","","","","","","","",""],
+      2: ["","","","7","","","","",""],
+      3: ["","","7","","","","","",""],
+      4: ["","3","","","","","","",""],
+      5: ["","","","","-1","","","",""],
+      6: ["","","","6","","","","",""],
+      7: ["","","8","","","","","",""],
+      8: ["","","","","","2","","",""],
+      9: ["","","","","","","","8",""],
+      10:["","","","","","","6","",""],
+      11:["","","","","","","","","7"]
+    };
+
+    // Σωστές απαντήσεις
+    const correctAnswers = {
+      l1a: "4",
+      l2a: "3",
+      l3a: ">",
+      l4a: "Α",
+      l5a: "Β",
+      l5b: "Α",
+      l6a: "Δ",
+      l6b: "Ε",
+      l7a: "-",
+      l8a: "Β",
+      l9a: "Ζ",
+      l10a: "-",
+      l11a: "+",
+      l11b: "-"
+    };
+
+    // Λατινικά -> ελληνικά κεφαλαία
+    const latinToGreek = {
+      "A": "Α",
+      "B": "Β",
+      "G": "Γ",
+      "D": "Δ",
+      "E": "Ε",
+      "Z": "Ζ",
+      "X": "Χ"
+    };
+
+    function normalizeToken(s) {
+      let t = s.trim();
+      const up = t.toUpperCase();
+      const ops = ["<", ">", "<=", ">=", "<>", "=", "+", "-", "*", "/", "DIV", "MOD"];
+
+      if (ops.includes(up)) return up;
+
+      if (t.length === 1 && latinToGreek[up]) {
+        return latinToGreek[up];
+      }
+
+      return up;
+    }
+
+    // Χτίζουμε τον πίνακα (κώδικας + μνήμη ανά γραμμή)
+    const tbody = document.getElementById("codeMemBody");
+
+    lines.forEach(line => {
+      const tr = document.createElement("tr");
+
+      // Στήλη: αριθμός εντολής
+      const tdNo = document.createElement("td");
+      tdNo.className = "line-no";
+      tdNo.textContent = line.num + ".";
+      tr.appendChild(tdNo);
+
+      // Στήλη: κώδικας με κενά
+      const tdCode = document.createElement("td");
+      tdCode.className = "code-cell";
+
+      const codeDiv = document.createElement("div");
+      codeDiv.className = "code-line";
+
+      line.parts.forEach(part => {
+        // before
+        codeDiv.appendChild(document.createTextNode(part.before));
+
+        // input
+        const input = document.createElement("input");
+        input.type = "text";
+        input.className = "gap-input";
+        if (part.type === "op") input.classList.add("operator");
+        if (part.type === "const") input.classList.add("short");
+        input.setAttribute("data-id", part.id);
+        codeDiv.appendChild(input);
+
+        // σωστή απάντηση (θα εμφανίζεται μόνο αν ο μαθητής έγραψε κάτι)
+        const correctSpan = document.createElement("span");
+        correctSpan.className = "correct-slot";
+        correctSpan.setAttribute("data-correct-for", part.id);
+        codeDiv.appendChild(correctSpan);
+
+        // after
+        codeDiv.appendChild(document.createTextNode(part.after));
+      });
+
+      tdCode.appendChild(codeDiv);
+
+      const statusDiv = document.createElement("div");
+      statusDiv.className = "line-status";
+      statusDiv.id = "status-" + line.num;
+      tdCode.appendChild(statusDiv);
+
+      tr.appendChild(tdCode);
+
+      // Στήλες μνήμης A,B,Γ,Δ,E,Z,X1,X2,X3
+      const mem = memoryRows[line.num] || ["","","","","","","","",""];
+      for (let i = 0; i < mem.length; i++) {
+        const tdMem = document.createElement("td");
+        tdMem.className = "mem-cell";
+        tdMem.textContent = mem[i];
+        tr.appendChild(tdMem);
+      }
+
+      tbody.appendChild(tr);
+    });
+
+    // Έλεγχος
+    const checkBtn = document.getElementById("checkBtn");
+    const overallMessage = document.getElementById("overallMessage");
+
+    checkBtn.addEventListener("click", () => {
+      let allCorrect = true;
+
+      lines.forEach(line => {
+        let lineCorrect = true;
+        let anyFilled = false;
+
+        line.parts.forEach(part => {
+          const id = part.id;
+          const input = document.querySelector(`input[data-id="${id}"]`);
+          const correctSpan = document.querySelector(`span[data-correct-for="${id}"]`);
+
+          const raw = input.value;
+          const normGiven = normalizeToken(raw);
+          const normCorrect = normalizeToken(correctAnswers[id] || "");
+
+          // Αν ο μαθητής δεν έγραψε τίποτα
+          if (!raw.trim()) {
+            anyFilled = anyFilled || false;
+            correctSpan.textContent = "";   // δεν δείχνουμε σωστή απάντηση
+            lineCorrect = false;            // η γραμμή δεν είναι "πλήρως σωστή"
+          } else {
+            anyFilled = true;
+            // Δείχνουμε πάντα τη σωστή απάντηση (μόνο αν απάντησε)
+            correctSpan.textContent = " (σωστό: " + correctAnswers[id] + ")";
+            // έλεγχος αν ταιριάζει
+            if (normGiven !== normCorrect) {
+              lineCorrect = false;
+            }
+          }
+        });
+
+        const status = document.getElementById("status-" + line.num);
+        if (!anyFilled) {
+          // Αν δεν έχει συμπληρωθεί κανένα κενό στη γραμμή, δεν γράφουμε τίποτα
+          status.textContent = "";
+          status.className = "line-status";
+          allCorrect = false;
+        } else if (lineCorrect) {
+          status.textContent = "Σωστό ✓";
+          status.className = "line-status ok";
+        } else {
+          status.textContent = "Λάθος";
+          status.className = "line-status err";
+          allCorrect = false;
+        }
+      });
+
+      if (allCorrect) {
+        overallMessage.textContent = "Όλες οι απαντήσεις είναι σωστές!";
+        overallMessage.classList.add("ok");
+        overallMessage.classList.remove("not-ok");
+      } else {
+        overallMessage.textContent = "Υπάρχουν λάθη. Δοκιμάστε ξανά.";
+        overallMessage.classList.add("not-ok");
+        overallMessage.classList.remove("ok");
+      }
+    });
+  </script>
+</body>
+</html>

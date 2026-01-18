@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Διαδραστική Δυαδική Αναζήτηση v2 (Step-by-Step)</title>
+    <style>
+        /* Βασικό Στυλ Σελίδας */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 { color: #333; margin-bottom: 10px; }
+
+        /* Κύριο Container για διάταξη 2 στηλών */
+        .main-container {
+            display: flex;
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+            align-items: flex-start;
+        }
+
+        /* Αριστερή Στήλη - Πάνελ Κώδικα */
+        .code-panel {
+            flex: 1;
+            background: #282c34; /* Dark theme για κώδικα */
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .code-line {
+            padding: 2px 10px;
+            border-radius: 4px;
+            margin-bottom: 2px;
+            white-space: pre-wrap;
+        }
+        
+        /* Το στυλ για τη γραμμή που εκτελείται τώρα */
+        .highlighted-line {
+            background-color: #f1e05a; /* Έντονο κίτρινο */
+            color: #333;
+            font-weight: bold;
+            border-left: 4px solid #ff9800;
+        }
+
+        /* Δεξιά Στήλη - Οπτικοποίηση */
+        .visualization-panel {
+            flex: 2;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Στυλ Πίνακα */
+        .array-container {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+            gap: 8px;
+        }
+
+        .box-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .box {
+            width: 45px;
+            height: 45px;
+            border: 2px solid #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: #fff;
+            transition: all 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .index-label {
+            margin-top: 6px;
+            font-size: 12px;
+            color: #888;
+        }
+
+        /* Visual States */
+        .marker-boundary { 
+            border-color: #d63031 !important; 
+            color: #d63031;
+            border-width: 3px;
+        }
+        .marker-mid { 
+            background-color: #fdcb6e !important; 
+            color: #2d3436 !important; 
+            border-color: #fdcb6e !important;
+            transform: scale(1.15); 
+            z-index: 10; 
+        }
+        .marker-found { background-color: #00b894 !important; color: white !important; border-color: #00b894 !important; transform: scale(1.2); z-index: 11;}
+        .dimmed { opacity: 0.2; }
+
+        /* Controls Area */
+        .controls-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        input, select, button { padding: 8px 12px; font-size: 14px; border-radius: 4px; border: 1px solid #ddd; }
+        button { cursor: pointer; transition: background 0.2s; border: none; color: white;}
+        
+        /* Button Colors */
+        .btn-blue { background-color: #3498db; }
+        .btn-blue:hover { background-color: #2980b9; }
+        
+        .btn-purple { background-color: #9b59b6; }
+        .btn-purple:hover { background-color: #8e44ad; }
+        
+        .btn-green { background-color: #27ae60; font-weight: bold; transform: scale(1.05); }
+        .btn-green:hover { background-color: #219150; }
+        
+        .secondary-btn { background-color: #7f8c8d; }
+        .secondary-btn:hover { background-color: #636e72; }
+
+        button:disabled { background-color: #bdc3c7; cursor: not-allowed; transform: none; opacity: 0.7; }
+
+        .variable-monitor {
+            display: flex; gap: 20px; font-family: monospace; font-weight: bold; margin-bottom: 20px; font-size: 1.1em; color: #555;
+        }
+
+        #logMsg { margin-top: 20px; font-weight: bold; min-height: 1.4em; color: #2c3e50; }
+    </style>
+</head>
+<body>
+
+    <h1>Οπτικοποίηση Δυαδικής Αναζήτησης</h1>
+
+    <div class="main-container">
+        
+        <div class="code-panel">
+            <div class="code-line" id="l1">Διάβασε X</div>
+            <div class="code-line" id="l2">low ← 1</div>
+            <div class="code-line" id="l3">high ← 12</div>
+            <div class="code-line" id="l4">found ← ΨΕΥΔΗΣ</div>
+            <div class="code-line" id="l5">Όσο low ≤ high ΚΑΙ found=ΨΕΥΔΗΣ επανάλαβε</div>
+            <div class="code-line" id="l6">  mid ← (low+high) DIV 2</div>
+            <div class="code-line" id="l7">  Εμφάνισε ΠΙΝ[mid]</div>
+            <div class="code-line" id="l8">  Αν ΠΙΝ[mid] < Χ τότε</div>
+            <div class="code-line" id="l9">    low ← mid+1</div>
+            <div class="code-line" id="l10"> Αλλιώς_αν ΠΙΝ[mid] > Χ τότε</div>
+            <div class="code-line" id="l11">    high ← mid-1</div>
+            <div class="code-line" id="l12"> Αλλιώς</div>
+            <div class="code-line" id="l13">    found ← ΑΛΗΘΗΣ</div>
+            <div class="code-line" id="l14"> Τέλος_αν</div>
+            <div class="code-line" id="l15">Τέλος_Επανάληψης</div>
+            <div class="code-line" id="l16">Αν found = Αληθής τότε</div>
+            <div class="code-line" id="l17">  Γράψε 'ΒΡΕΘΗΚΕ', mid</div>
+            <div class="code-line" id="l18">αλλιώς</div>
+            <div class="code-line" id="l19">  Γράψε 'ΔΕΝ ΒΡΕΘΗΚΕ'</div>
+            <div class="code-line" id="l20">Τέλος_αν</div>
+        </div>
+
+        <div class="visualization-panel">
+            <div class="controls-area">
+                <button onclick="generateNewArray()" class="secondary-btn">Νέος Πίνακας</button>
+                <div style="border-left: 1px solid #ccc; height: 25px; margin: 0 5px;"></div>
+                
+                <input type="number" id="searchInput" placeholder="Αριθμός X" style="width: 80px;">
+                
+                <select id="speedSelect">
+                    <option value="1500">Ταχύτητα: Αργή</option>
+                    <option value="800" selected>Ταχύτητα: Μεσαία</option>
+                    <option value="300">Ταχύτητα: Γρήγορη</option>
+                </select>
+
+                <div style="border-left: 1px solid #ccc; height: 25px; margin: 0 5px;"></div>
+
+                <button onclick="startSearch('auto')" id="btnAuto" class="btn-blue">▶ Αυτόματη</button>
+                <button onclick="startSearch('step')" id="btnManual" class="btn-purple">👣 Βήμα-Βήμα</button>
+                
+                <button onclick="triggerNextStep()" id="btnNext" class="btn-green" disabled>Επόμενο ></button>
+            </div>
+
+            <div class="variable-monitor">
+                <span id="var-low">low: -</span>
+                <span id="var-high">high: -</span>
+                <span id="var-mid">mid: -</span>
+                <span id="var-X">X: -</span>
+            </div>
+
+            <div class="array-container" id="arrayContainer">
+                </div>
+
+             <div id="logMsg">Επιλέξτε τρόπο εκτέλεσης.</div>
+        </div>
+    </div>
+
+
+    <script>
+        let arr = [];
+        const size = 12;
+        let isRunning = false;
+        
+        // Μεταβλητές για τον έλεγχο ροής
+        let isAutoMode = true; 
+        let nextStepResolver = null; // Η συνάρτηση που ξεκλειδώνει το Promise
+
+        // --- Βοηθητικές Συναρτήσεις ---
+
+        function getSleepTime() {
+            return parseInt(document.getElementById('speedSelect').value);
+        }
+
+        // Τροποποιημένη sleep για να υποστηρίζει και βήμα-βήμα
+        async function sleep() {
+            if (isAutoMode) {
+                // Αυτόματη λειτουργία: Απλή καθυστέρηση
+                return new Promise(resolve => setTimeout(resolve, getSleepTime()));
+            } else {
+                // Χειροκίνητη λειτουργία: Περιμένουμε το κλικ
+                setNextBtnState(true); // Ενεργοποίηση κουμπιού "Επόμενο"
+                await new Promise(resolve => {
+                    nextStepResolver = resolve;
+                });
+                setNextBtnState(false); // Απενεργοποίηση κουμπιού μέχρι το επόμενο βήμα
+            }
+        }
+
+        // Καλείται όταν πατηθεί το "Επόμενο >"
+        function triggerNextStep() {
+            if (nextStepResolver) {
+                nextStepResolver(); // Ξεμπλοκάρει το await στο sleep()
+                nextStepResolver = null;
+            }
+        }
+
+        function setNextBtnState(enabled) {
+            document.getElementById('btnNext').disabled = !enabled;
+            // Απλό visual cue ότι περιμένει
+            if(enabled) {
+                document.getElementById('btnNext').style.boxShadow = "0 0 8px rgba(39, 174, 96, 0.6)";
+            } else {
+                document.getElementById('btnNext').style.boxShadow = "none";
+            }
+        }
+
+        function highlightLine(lineId) {
+            document.querySelectorAll('.code-line').forEach(el => el.classList.remove('highlighted-line'));
+            if (lineId) {
+                document.getElementById(lineId).classList.add('highlighted-line');
+            }
+        }
+
+        function setLog(msg) { document.getElementById('logMsg').textContent = msg; }
+
+        function toggleInputs(disabled) {
+            document.getElementById('btnAuto').disabled = disabled;
+            document.getElementById('btnManual').disabled = disabled;
+            document.getElementById('searchInput').disabled = disabled;
+            // Το κουμπί "Νέος Πίνακας" απενεργοποιείται επίσης
+            document.querySelector('.secondary-btn').disabled = disabled;
+        }
+
+        function generateNewArray() {
+            if (isRunning) return;
+            arr = [];
+            let current = Math.floor(Math.random() * 5) + 1;
+            for (let i = 0; i < size; i++) {
+                arr.push(current);
+                current += Math.floor(Math.random() * 8) + 1;
+            }
+            renderArray();
+            resetVars();
+            highlightLine(null);
+            setLog("Δημιουργήθηκε νέος ταξινομημένος πίνακας.");
+        }
+
+        function renderArray() {
+            const container = document.getElementById('arrayContainer');
+            container.innerHTML = '';
+            arr.forEach((value, index) => {
+                container.innerHTML += `
+                    <div class="box-wrapper">
+                        <div class="box" id="box-${index}">${value}</div>
+                        <div class="index-label">${index + 1}</div>
+                    </div>`;
+            });
+        }
+
+        function resetVars() {
+            document.getElementById('var-low').textContent = 'low: -';
+            document.getElementById('var-high').textContent = 'high: -';
+            document.getElementById('var-mid').textContent = 'mid: -';
+            document.getElementById('var-X').textContent = 'X: -';
+        }
+
+        function updateVisuals(low, high, mid) {
+             document.getElementById('var-low').textContent = `low: ${low + 1}`;
+             document.getElementById('var-high').textContent = `high: ${high + 1}`;
+             document.getElementById('var-mid').textContent = mid !== null ? `mid: ${mid + 1}` : 'mid: -';
+
+            for (let i = 0; i < size; i++) {
+                const box = document.getElementById(`box-${i}`);
+                box.className = 'box'; 
+
+                if (i < low || i > high) {
+                    box.classList.add('dimmed');
+                }
+                if (i === low && i <= high) box.classList.add('marker-boundary');
+                if (i === high && i >= low) box.classList.add('marker-boundary');
+                if (i === mid) {
+                     box.classList.remove('marker-boundary'); 
+                     box.classList.add('marker-mid');
+                }
+            }
+        }
+
+
+        // --- ΚΥΡΙΑ ΣΥΝΑΡΤΗΣΗ (Ενοποιημένη) ---
+        async function startSearch(mode) {
+            const inputVal = document.getElementById('searchInput').value;
+            if (inputVal === '') { alert("Παρακαλώ δώστε αριθμό X"); return; }
+            const X = parseInt(inputVal);
+            
+            // Ρύθμιση Mode
+            isAutoMode = (mode === 'auto');
+            
+            toggleInputs(true); // Κλείδωμα κουμπιών
+            isRunning = true;
+            resetVars();
+            document.getElementById('var-X').textContent = `X: ${X}`;
+            setLog(isAutoMode ? `Αυτόματη αναζήτηση για το ${X}...` : `Βήμα-βήμα αναζήτηση για το ${X}. Πατήστε "Επόμενο".`);
+
+            // --- Αλγόριθμος ---
+            
+            highlightLine('l1'); await sleep(); 
+
+            highlightLine('l2'); 
+            let low = 0; 
+            updateVisuals(low, size-1, null); await sleep();
+
+            highlightLine('l3'); 
+            let high = size - 1;
+            updateVisuals(low, high, null); await sleep();
+            
+            highlightLine('l4'); 
+            let found = false;
+            let mid = null;
+            await sleep();
+
+            highlightLine('l5'); 
+            while (low <= high && !found) {
+                setLog(`Έλεγχος: ${low+1} ≤ ${high+1} (ΑΛΗΘΕΣ)`);
+                await sleep();
+
+                highlightLine('l6'); 
+                mid = Math.floor((low + high) / 2);
+                updateVisuals(low, high, mid); 
+                setLog(`Mid = (${low+1} + ${high+1}) DIV 2 = ${mid+1}`);
+                await sleep();
+
+                highlightLine('l7'); 
+                setLog(`Στοιχείο στη θέση ${mid+1}: ${arr[mid]}`);
+                await sleep();
+
+                highlightLine('l8'); 
+                setLog(`Σύγκριση: ${arr[mid]} < ${X};`);
+                await sleep();
+                if (arr[mid] < X) {
+                    setLog("Ναι, μικρότερο. Δεξί τμήμα.");
+                    highlightLine('l9'); 
+                    low = mid + 1;
+                    await sleep();
+                } 
+                else {
+                    highlightLine('l10'); 
+                    setLog(`Σύγκριση: ${arr[mid]} > ${X};`);
+                    await sleep();
+                    if (arr[mid] > X) {
+                        setLog("Ναι, μεγαλύτερο. Αριστερό τμήμα.");
+                        highlightLine('l11'); 
+                        high = mid - 1;
+                        await sleep();
+                    } 
+                    else {
+                        highlightLine('l12'); 
+                        await sleep();
+                        highlightLine('l13'); 
+                        found = true;
+                        setLog("Το βρήκα!");
+                        await sleep();
+                    }
+                }
+                
+                highlightLine('l14'); 
+                await sleep();
+
+                updateVisuals(low, high, mid); 
+                highlightLine('l15'); 
+                await sleep();
+                highlightLine('l5');
+            }
+
+            if (!found) { setLog(`Συνθήκη: low > high. Τέλος.`); await sleep(); }
+            
+            highlightLine('l16'); 
+            await sleep();
+            
+            if (found) {
+                highlightLine('l17'); 
+                setLog(`✅ ΒΡΕΘΗΚΕ στη θέση ${mid + 1}`);
+                document.getElementById(`box-${mid}`).className = 'box marker-found';
+            } else {
+                highlightLine('l18'); 
+                await sleep();
+                highlightLine('l19'); 
+                setLog("❌ ΔΕΝ ΒΡΕΘΗΚΕ");
+            }
+            highlightLine('l20'); await sleep();
+
+            // Επαναφορά
+            toggleInputs(false);
+            setNextBtnState(false);
+            isRunning = false;
+            highlightLine(null);
+        }
+
+        // Εκκίνηση
+        generateNewArray();
+
+    </script>
+</body>
+</html>

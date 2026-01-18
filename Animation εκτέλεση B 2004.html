@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <title>Προσομοίωση min/max σε ζεύγη (Άσκηση 34)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 1rem 1.5rem 3rem;
+    }
+
+    h1 {
+      margin-top: 0;
+    }
+
+    .container {
+      display: flex;
+      gap: 2rem;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .code, .values {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 1rem;
+      flex: 1 1 380px;
+    }
+
+    pre {
+      margin: 0;
+      font-family: "Consolas", monospace;
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    .code-line {
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    .code-line.active {
+      outline: 2px solid #000;
+      background: #f0f0f0;
+      font-weight: bold;
+    }
+
+    .controls {
+      margin-top: 1rem;
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 0.4rem 0.8rem;
+      border-radius: 4px;
+      border: 1px solid #333;
+      cursor: pointer;
+      background: #f5f5f5;
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 0.9rem;
+      margin-bottom: 0.75rem;
+    }
+
+    th, td {
+      border: 1px solid #999;
+      padding: 4px 6px;
+      text-align: center;
+      height: 1.8em;
+    }
+
+    th {
+      background: #eee;
+    }
+
+    /* Οπτική αναπαράσταση του πίνακα C πάνω από τον πίνακα τιμών */
+    .array-visual {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .array-box {
+      border: 1px solid #666;
+      border-radius: 6px;
+      padding: 0.25rem 0.4rem;
+      min-width: 40px;
+      text-align: center;
+      background: #fafafa;
+    }
+
+    .array-index {
+      font-size: 0.7rem;
+      color: #555;
+      margin-bottom: 0.2rem;
+    }
+
+    .array-value {
+      font-size: 1rem;
+      font-weight: bold;
+    }
+
+    /* Κρυφή στήλη συνθήκης: δίπλα στις άλλες, αλλά αρχικά κρυφή */
+    .condition-col {
+      display: none;
+    }
+
+    /* Παλιά τιμή (πλάγια διαγραφή, ξεθωριασμένη) */
+    .old-cell {
+      text-decoration: line-through;
+      font-style: italic;
+      opacity: 0.5;
+    }
+
+    .info {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      font-style: italic;
+    }
+
+    /* Οθόνη υπολογιστή κάτω από τον πίνακα */
+    .screen {
+      margin-top: 0.5rem;
+    }
+
+    .screen-frame {
+      border: 2px solid #444;
+      border-radius: 8px;
+      background: #222;
+      color: #0f0;
+      font-family: "Consolas", monospace;
+      padding: 0.5rem;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    .screen-header {
+      font-size: 0.8rem;
+      color: #ccc;
+      margin-bottom: 0.3rem;
+      border-bottom: 1px solid #555;
+      padding-bottom: 0.2rem;
+    }
+
+    .screen-body {
+      min-height: 80px;
+      max-height: 160px;
+      overflow-y: auto;
+      font-size: 0.9rem;
+      white-space: pre-line;
+    }
+
+    /* Footer κάτω αριστερά */
+    .footer {
+      position: fixed;
+      left: 10px;
+      bottom: 8px;
+      font-size: 0.8rem;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Προσομοίωση min / max σε ζεύγη (C[1..6])</h1>
+
+  <div class="container">
+    <!-- Ψευδοκώδικας + κουμπιά ελέγχου από κάτω -->
+    <div class="code">
+      <pre>
+<span class="code-line" data-line="1">1: min ← 100</span>
+<span class="code-line" data-line="2">2: max ← -100</span>
+<span class="code-line" data-line="3">3: Για i από 1 μέχρι 6 με_βήμα 2</span>
+<span class="code-line" data-line="4">4:     A ← C[i]</span>
+<span class="code-line" data-line="5">5:     B ← C[i+1]</span>
+<span class="code-line" data-line="6">6:     Αν A &lt; B τότε</span>
+<span class="code-line" data-line="7">7:         Lmin ← A</span>
+<span class="code-line" data-line="8">8:         Lmax ← B</span>
+<span class="code-line" data-line="9">9:     αλλιώς</span>
+<span class="code-line" data-line="10">10:        Lmin ← B</span>
+<span class="code-line" data-line="11">11:        Lmax ← A</span>
+<span class="code-line" data-line="12">12:    Τέλος_αν</span>
+<span class="code-line" data-line="13">13:    Αν Lmin &lt; min τότε</span>
+<span class="code-line" data-line="14">14:        min ← Lmin</span>
+<span class="code-line" data-line="15">15:    Τέλος_αν</span>
+<span class="code-line" data-line="16">16:    Αν Lmax &gt; max τότε</span>
+<span class="code-line" data-line="17">17:        max ← Lmax</span>
+<span class="code-line" data-line="18">18:    Τέλος_αν</span>
+<span class="code-line" data-line="19">19:    Εκτύπωσε A, B, Lmin, Lmax, min, max</span>
+<span class="code-line" data-line="20">20: Τέλος_επανάληψης</span>
+<span class="code-line" data-line="21">21: D ← max * min</span>
+<span class="code-line" data-line="22">22: Εκτύπωσε D</span>
+      </pre>
+
+      <div class="controls">
+        <button id="btnNext">Επόμενο βήμα</button>
+        <button id="btnAuto">Αυτόματη εκτέλεση</button>
+        <button id="btnReset">Επαναφορά</button>
+        <button id="btnToggleCond">Εμφάνιση συνθήκης</button>
+      </div>
+    </div>
+
+    <!-- Πίνακας τιμών + οθόνη -->
+    <div class="values">
+
+      <!-- ΟΡΙΖΟΝΤΙΑ απεικόνιση του πίνακα C πάνω από τον πίνακα τιμών -->
+      <div class="array-visual">
+        <div class="array-box">
+          <div class="array-index">C[1]</div>
+          <div class="array-value">2</div>
+        </div>
+        <div class="array-box">
+          <div class="array-index">C[2]</div>
+          <div class="array-value">5</div>
+        </div>
+        <div class="array-box">
+          <div class="array-index">C[3]</div>
+          <div class="array-value">15</div>
+        </div>
+        <div class="array-box">
+          <div class="array-index">C[4]</div>
+          <div class="array-value">-1</div>
+        </div>
+        <div class="array-box">
+          <div class="array-index">C[5]</div>
+          <div class="array-value">32</div>
+        </div>
+        <div class="array-box">
+          <div class="array-index">C[6]</div>
+          <div class="array-value">14</div>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>A</th>
+            <th>B</th>
+            <th>Lmin</th>
+            <th>Lmax</th>
+            <th>min</th>
+            <th>max</th>
+            <th>D</th>
+            <th class="condition-col">Συνθήκη ΑΝ (A &lt; B)</th>
+          </tr>
+        </thead>
+        <tbody id="values-body">
+          <!-- 10 κενές γραμμές -->
+          <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="condition-col"></td></tr>
+          <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="condition-col"></td></tr>
+          <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="condition-col"></td></tr>
+          <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="condition-col"></td></tr>
+          <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="condition-col"></td></tr>
+          <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="condition-col"></td></tr>
+          <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="condition-col"></td></tr>
+          <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="condition-col"></td></tr>
+          <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="condition-col"></td></tr>
+          <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="condition-col"></td></tr>
+        </tbody>
+      </table>
+
+      <!-- Οθόνη "υπολογιστή" -->
+      <div class="screen">
+        <div class="screen-frame">
+          <div class="screen-header">Οθόνη υπολογιστή</div>
+          <div class="screen-body" id="screen-output">
+            <!-- Εδώ θα εμφανίζονται ΜΟΝΟ οι Εκτυπώσεις -->
+          </div>
+        </div>
+      </div>
+
+      <div class="info" id="info-text">
+        Πίνακας C = [2, 5, 15, -1, 32, 14]. Πάτα «Επόμενο βήμα». Πρώτα φωτίζεται η εντολή και μετά ενημερώνεται ο πίνακας τιμών.
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer με ονόματα -->
+  <div class="footer">
+    Δημιουργία Δημήτρης Γιακοβής - Ευτυχία Δουφέκα
+  </div>
+
+  <script>
+    // Πίνακας C (1..6): 2, 5, 15, -1, 32, 14
+    const C = [null, 2, 5, 15, -1, 32, 14];
+
+    let A = null;
+    let B = null;
+    let Lmin = null;
+    let Lmax = null;
+    let minVal = null;
+    let maxVal = null;
+    let D = null;
+    let condAB = null; // για το A < B
+    let iVar = null;
+
+    // Καταστάσεις εκτέλεσης
+    let state = "initMin";
+    let autoInterval = null;
+
+    const codeLines = document.querySelectorAll(".code-line");
+    const valuesBody = document.getElementById("values-body");
+    const rows = valuesBody.querySelectorAll("tr");
+    const btnNext = document.getElementById("btnNext");
+    const btnAuto = document.getElementById("btnAuto");
+    const btnReset = document.getElementById("btnReset");
+    const btnToggleCond = document.getElementById("btnToggleCond");
+    const infoText = document.getElementById("info-text");
+    const screenOutput = document.getElementById("screen-output");
+
+    let conditionVisible = false;
+
+    let lastShown = {
+      A:    { value: null, row: -1 },
+      B:    { value: null, row: -1 },
+      Lmin: { value: null, row: -1 },
+      Lmax: { value: null, row: -1 },
+      min:  { value: null, row: -1 },
+      max:  { value: null, row: -1 },
+      D:    { value: null, row: -1 },
+      cond: { value: null, row: -1 }
+    };
+
+    function clearHighlight() {
+      codeLines.forEach(line => line.classList.remove("active"));
+    }
+
+    function highlightLine(lineNumber) {
+      clearHighlight();
+      const line = document.querySelector(`.code-line[data-line="${lineNumber}"]`);
+      if (line) {
+        line.classList.add("active");
+      }
+    }
+
+    function fmt(v) {
+      return v === null || Number.isNaN(v) ? "" : v;
+    }
+
+    function colIndexForKey(key) {
+      if (key === "A")    return 0;
+      if (key === "B")    return 1;
+      if (key === "Lmin") return 2;
+      if (key === "Lmax") return 3;
+      if (key === "min")  return 4;
+      if (key === "max")  return 5;
+      if (key === "D")    return 6;
+      return 7;
+    }
+
+    function logChange(key, newValue, displayValue) {
+      const info = lastShown[key];
+      if (newValue === info.value) {
+        return;
+      }
+
+      const nextRow = info.row + 1;
+      if (nextRow >= rows.length) {
+        infoText.textContent = "Ο πίνακας γέμισε για τη μεταβλητή " + key + ".";
+        return;
+      }
+
+      const trNew = rows[nextRow];
+      const cellsNew = trNew.querySelectorAll("td");
+
+      const colIndex = colIndexForKey(key);
+      const newCell = cellsNew[colIndex];
+      newCell.textContent = displayValue !== undefined ? displayValue : fmt(newValue);
+      newCell.classList.remove("old-cell");
+
+      if (info.row >= 0) {
+        const trOld = rows[info.row];
+        const oldCell = trOld.querySelectorAll("td")[colIndex];
+        oldCell.classList.add("old-cell");
+      }
+
+      info.value = newValue;
+      info.row = nextRow;
+    }
+
+    function finishExecution(message = "Η εκτέλεση ολοκληρώθηκε.") {
+      state = "finished";
+      btnNext.disabled = true;
+      btnAuto.disabled = true;
+      clearInterval(autoInterval);
+      clearHighlight();
+      highlightLine(22);
+      infoText.textContent = message;
+    }
+
+    function appendToScreen(text) {
+      const line = document.createElement("div");
+      line.textContent = text;
+      screenOutput.appendChild(line);
+      screenOutput.scrollTop = screenOutput.scrollHeight;
+    }
+
+    function doStep() {
+      if (state === "finished") return;
+
+      switch (state) {
+        case "initMin": {
+          highlightLine(1);
+          minVal = 100;
+          logChange("min", minVal);
+          state = "initMax";
+          infoText.textContent = "Αρχικοποίηση: min ← 100.";
+          break;
+        }
+
+        case "initMax": {
+          highlightLine(2);
+          maxVal = -100;
+          logChange("max", maxVal);
+          state = "forInit";
+          infoText.textContent = "Αρχικοποίηση: max ← -100. Προετοιμασία Για i.";
+          break;
+        }
+
+        case "forInit": {
+          highlightLine(3);
+          iVar = 1;
+          state = "forCheck";
+          infoText.textContent = "Έναρξη επανάληψης: i ← 1.";
+          break;
+        }
+
+        case "forCheck": {
+          highlightLine(3);
+          const condFor = (iVar <= 6);
+          if (!condFor) {
+            state = "afterFor";
+            infoText.textContent = "Η επανάληψη Για ολοκληρώθηκε (i > 6).";
+          } else {
+            state = "loadA";
+            infoText.textContent = `i = ${iVar} ≤ 6. Φόρτωση A ← C[i].`;
+          }
+          break;
+        }
+
+        case "loadA": {
+          highlightLine(4);
+          A = C[iVar];
+          logChange("A", A);
+          state = "loadB";
+          infoText.textContent = `A ← C[${iVar}] = ${A}. Τώρα B ← C[i+1].`;
+          break;
+        }
+
+        case "loadB": {
+          highlightLine(5);
+          B = C[iVar + 1];
+          logChange("B", B);
+          state = "ifAB";
+          infoText.textContent = `B ← C[${iVar + 1}] = ${B}. Έλεγχος ΑΝ A < B.`;
+          break;
+        }
+
+        case "ifAB": {
+          highlightLine(6);
+          condAB = (A < B);
+          const condText = condAB ? "Αληθής" : "Ψευδής";
+          logChange("cond", condAB, condText);
+
+          if (condAB) {
+            state = "thenAB_Lmin";
+            infoText.textContent = "Η συνθήκη A < B είναι Αληθής. Lmin ← A, Lmax ← B.";
+          } else {
+            state = "elseAB_Lmin";
+            infoText.textContent = "Η συνθήκη A < B είναι Ψευδής. Lmin ← B, Lmax ← A.";
+          }
+          break;
+        }
+
+        case "thenAB_Lmin": {
+          highlightLine(7);
+          Lmin = A;
+          logChange("Lmin", Lmin);
+          state = "thenAB_Lmax";
+          infoText.textContent = `Lmin ← A = ${Lmin}. Τώρα Lmax ← B.`;
+          break;
+        }
+
+        case "thenAB_Lmax": {
+          highlightLine(8);
+          Lmax = B;
+          logChange("Lmax", Lmax);
+          state = "ifMinCheck";
+          infoText.textContent = `Lmax ← B = ${Lmax}. Έλεγχος Αν Lmin < min.`;
+          break;
+        }
+
+        case "elseAB_Lmin": {
+          highlightLine(10);
+          Lmin = B;
+          logChange("Lmin", Lmin);
+          state = "elseAB_Lmax";
+          infoText.textContent = `Lmin ← B = ${Lmin}. Τώρα Lmax ← A.`;
+          break;
+        }
+
+        case "elseAB_Lmax": {
+          highlightLine(11);
+          Lmax = A;
+          logChange("Lmax", Lmax);
+          state = "ifMinCheck";
+          infoText.textContent = `Lmax ← A = ${Lmax}. Έλεγχος Αν Lmin < min.`;
+          break;
+        }
+
+        case "ifMinCheck": {
+          highlightLine(13);
+          const condMin = (Lmin < minVal);
+          if (condMin) {
+            state = "thenMin";
+            infoText.textContent = `Lmin = ${Lmin} < min = ${minVal}. Ενημέρωση min ← Lmin.`;
+          } else {
+            state = "ifMaxCheck";
+            infoText.textContent = `Lmin = ${Lmin} δεν είναι μικρότερο από min = ${minVal}.`;
+          }
+          break;
+        }
+
+        case "thenMin": {
+          highlightLine(14);
+          minVal = Lmin;
+          logChange("min", minVal);
+          state = "ifMaxCheck";
+          infoText.textContent = `Νέα τιμή min = ${minVal}. Έλεγχος Αν Lmax > max.`;
+          break;
+        }
+
+        case "ifMaxCheck": {
+          highlightLine(16);
+          const condMax = (Lmax > maxVal);
+          if (condMax) {
+            state = "thenMax";
+            infoText.textContent = `Lmax = ${Lmax} > max = ${maxVal}. Ενημέρωση max ← Lmax.`;
+          } else {
+            state = "printLine";
+            infoText.textContent = `Lmax = ${Lmax} δεν είναι μεγαλύτερο από max = ${maxVal}.`;
+          }
+          break;
+        }
+
+        case "thenMax": {
+          highlightLine(17);
+          maxVal = Lmax;
+          logChange("max", maxVal);
+          state = "printLine";
+          infoText.textContent = `Νέα τιμή max = ${maxVal}. Εκτύπωση γραμμής αποτελεσμάτων.`;
+          break;
+        }
+
+        case "printLine": {
+          highlightLine(19);
+          appendToScreen(
+            `A=${fmt(A)}, B=${fmt(B)}, Lmin=${fmt(Lmin)}, Lmax=${fmt(Lmax)}, min=${fmt(minVal)}, max=${fmt(maxVal)}`
+          );
+          state = "incI";
+          infoText.textContent = "Εκτυπώθηκαν οι τιμές. Αύξηση i κατά 2.";
+          break;
+        }
+
+        case "incI": {
+          highlightLine(3);
+          iVar = iVar + 2;
+          state = "forCheck";
+          infoText.textContent = `Νέα τιμή i = ${iVar}. Έλεγχος αν συνεχίζεται η επανάληψη.`;
+          break;
+        }
+
+        case "afterFor": {
+          highlightLine(21);
+          D = maxVal * minVal;
+          logChange("D", D);
+          state = "printD";
+          infoText.textContent = `Υπολογισμός D = max * min = ${maxVal} * ${minVal} = ${D}.`;
+          break;
+        }
+
+        case "printD": {
+          highlightLine(22);
+          appendToScreen(`D = ${fmt(D)}`);
+          finishExecution("Η εκτέλεση ολοκληρώθηκε. Η τελική τιμή D εμφανίστηκε στην οθόνη.");
+          break;
+        }
+      }
+    }
+
+    function resetAll() {
+      clearInterval(autoInterval);
+
+      A = null;
+      B = null;
+      Lmin = null;
+      Lmax = null;
+      minVal = null;
+      maxVal = null;
+      D = null;
+      condAB = null;
+      iVar = null;
+      state = "initMin";
+
+      rows.forEach(tr => {
+        const cells = tr.querySelectorAll("td");
+        cells.forEach(c => {
+          c.textContent = "";
+          c.classList.remove("old-cell");
+        });
+      });
+
+      screenOutput.innerHTML = "";
+
+      lastShown = {
+        A:    { value: null, row: -1 },
+        B:    { value: null, row: -1 },
+        Lmin: { value: null, row: -1 },
+        Lmax: { value: null, row: -1 },
+        min:  { value: null, row: -1 },
+        max:  { value: null, row: -1 },
+        D:    { value: null, row: -1 },
+        cond: { value: null, row: -1 }
+      };
+
+      clearHighlight();
+      btnNext.disabled = false;
+      btnAuto.disabled = false;
+      infoText.textContent =
+        "Πίνακας C = [2, 5, 15, -1, 32, 14]. Πάτα «Επόμενο βήμα» για να ξεκινήσει η προσομοίωση.";
+    }
+
+    btnNext.addEventListener("click", () => {
+      doStep();
+    });
+
+    btnAuto.addEventListener("click", () => {
+      btnAuto.disabled = true;
+      btnNext.disabled = true;
+      infoText.textContent = "Αυτόματη εκτέλεση...";
+      autoInterval = setInterval(() => {
+        if (state === "finished") {
+          clearInterval(autoInterval);
+        } else {
+          doStep();
+        }
+      }, 900);
+    });
+
+    btnReset.addEventListener("click", () => {
+      resetAll();
+    });
+
+    btnToggleCond.addEventListener("click", () => {
+      conditionVisible = !conditionVisible;
+      const condCells = document.querySelectorAll(".condition-col");
+      condCells.forEach(cell => {
+        cell.style.display = conditionVisible ? "table-cell" : "none";
+      });
+      btnToggleCond.textContent = conditionVisible ? "Απόκρυψη συνθήκης" : "Εμφάνιση συνθήκης";
+    });
+
+    resetAll();
+  </script>
+</body>
+</html>

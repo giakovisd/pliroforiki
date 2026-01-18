@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <title>Άσκηση 38 – DATA, L, R – Προσομοίωση</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 1rem 1.5rem 3rem;
+    }
+
+    h1 {
+      margin-top: 0;
+    }
+
+    .container {
+      display: flex;
+      gap: 2rem;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .code, .values {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 1rem;
+      flex: 1 1 380px;
+    }
+
+    pre {
+      margin: 0;
+      font-family: "Consolas", monospace;
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    .code-line {
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    .code-line.active {
+      outline: 2px solid #000;
+      background: #f0f0f0;
+      font-weight: bold;
+    }
+
+    .controls {
+      margin-top: 1rem;
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 0.4rem 0.8rem;
+      border-radius: 4px;
+      border: 1px solid #333;
+      cursor: pointer;
+      background: #f5f5f5;
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 0.9rem;
+      margin-bottom: 0.75rem;
+    }
+
+    th, td {
+      border: 1px solid #999;
+      padding: 4px 6px;
+      text-align: center;
+      height: 1.8em;
+    }
+
+    th {
+      background: #eee;
+    }
+
+    /* Οπτική αναπαράσταση των πινάκων DATA, L, R πάνω από τον πίνακα τιμών */
+    .arrays-wrapper {
+      margin-bottom: 0.8rem;
+    }
+
+    .array-title {
+      font-size: 0.85rem;
+      margin-bottom: 0.15rem;
+      font-weight: bold;
+    }
+
+    .array-visual {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .array-box {
+      border: 1px solid #666;
+      border-radius: 6px;
+      padding: 0.25rem 0.4rem;
+      min-width: 40px;
+      text-align: center;
+      background: #fafafa;
+    }
+
+    .array-index {
+      font-size: 0.7rem;
+      color: #555;
+      margin-bottom: 0.2rem;
+    }
+
+    .array-value {
+      font-size: 1rem;
+      font-weight: bold;
+    }
+
+    /* Κρυφή στήλη συνθήκης: δίπλα στις άλλες, αλλά αρχικά κρυφή */
+    .condition-col {
+      display: none;
+    }
+
+    /* Παλιά τιμή (πλάγια διαγραφή, ξεθωριασμένη) */
+    .old-cell {
+      text-decoration: line-through;
+      font-style: italic;
+      opacity: 0.5;
+    }
+
+    .info {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      font-style: italic;
+    }
+
+    /* Οθόνη υπολογιστή κάτω από τον πίνακα */
+    .screen {
+      margin-top: 0.5rem;
+    }
+
+    .screen-frame {
+      border: 2px solid #444;
+      border-radius: 8px;
+      background: #222;
+      color: #0f0;
+      font-family: "Consolas", monospace;
+      padding: 0.5rem;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    .screen-header {
+      font-size: 0.8rem;
+      color: #ccc;
+      margin-bottom: 0.3rem;
+      border-bottom: 1px solid #555;
+      padding-bottom: 0.2rem;
+    }
+
+    .screen-body {
+      min-height: 80px;
+      max-height: 160px;
+      overflow-y: auto;
+      font-size: 0.9rem;
+      white-space: pre-line;
+    }
+
+    /* Footer κάτω αριστερά */
+    .footer {
+      position: fixed;
+      left: 10px;
+      bottom: 8px;
+      font-size: 0.8rem;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Άσκηση 38 – Προσομοίωση με πίνακες DATA, L, R</h1>
+
+  <div class="container">
+    <!-- Ψευδοκώδικας + κουμπιά ελέγχου από κάτω -->
+    <div class="code">
+      <pre>
+<span class="code-line" data-line="1">1: ΓΡΑΜΜΑ ← 'Σ'</span>
+<span class="code-line" data-line="2">2: K ← 1</span>
+<span class="code-line" data-line="3">3: Όσο DATA[K] &lt;&gt; ΓΡΑΜΜΑ επανάλαβε</span>
+<span class="code-line" data-line="4">4:     Εκτύπωσε DATA[K]</span>
+<span class="code-line" data-line="5">5:     Αν DATA[K] &gt; ΓΡΑΜΜΑ τότε</span>
+<span class="code-line" data-line="6">6:         K ← L[K]</span>
+<span class="code-line" data-line="7">7:     αλλιώς</span>
+<span class="code-line" data-line="8">8:         K ← R[K]</span>
+<span class="code-line" data-line="9">9:     Τέλος_αν</span>
+<span class="code-line" data-line="10">10: Τέλος_επανάληψης</span>
+<span class="code-line" data-line="11">11: Εκτύπωσε DATA[K]</span>
+      </pre>
+
+      <div class="controls">
+        <button id="btnNext">Επόμενο βήμα</button>
+        <button id="btnAuto">Αυτόματη εκτέλεση</button>
+        <button id="btnReset">Επαναφορά</button>
+        <button id="btnToggleCond">Εμφάνιση συνθήκης</button>
+      </div>
+    </div>
+
+    <!-- Πίνακας τιμών + οθόνη -->
+    <div class="values">
+
+      <!-- Οριζόντια απεικόνιση των πινάκων DATA, L, R -->
+      <div class="arrays-wrapper">
+        <div class="array-title">Πίνακας DATA</div>
+        <div class="array-visual">
+          <div class="array-box"><div class="array-index">DATA[1]</div><div class="array-value">Ψ</div></div>
+          <div class="array-box"><div class="array-index">DATA[2]</div><div class="array-value">Β</div></div>
+          <div class="array-box"><div class="array-index">DATA[3]</div><div class="array-value">Ο</div></div>
+          <div class="array-box"><div class="array-index">DATA[4]</div><div class="array-value">Κ</div></div>
+          <div class="array-box"><div class="array-index">DATA[5]</div><div class="array-value">Η</div></div>
+          <div class="array-box"><div class="array-index">DATA[6]</div><div class="array-value">Φ</div></div>
+          <div class="array-box"><div class="array-index">DATA[7]</div><div class="array-value">Σ</div></div>
+        </div>
+
+        <div class="array-title">Πίνακας L</div>
+        <div class="array-visual">
+          <div class="array-box"><div class="array-index">L[1]</div><div class="array-value">5</div></div>
+          <div class="array-box"><div class="array-index">L[2]</div><div class="array-value">4</div></div>
+          <div class="array-box"><div class="array-index">L[3]</div><div class="array-value">2</div></div>
+          <div class="array-box"><div class="array-index">L[4]</div><div class="array-value">6</div></div>
+          <div class="array-box"><div class="array-index">L[5]</div><div class="array-value">7</div></div>
+          <div class="array-box"><div class="array-index">L[6]</div><div class="array-value">3</div></div>
+          <div class="array-box"><div class="array-index">L[7]</div><div class="array-value">1</div></div>
+        </div>
+
+        <div class="array-title">Πίνακας R</div>
+        <div class="array-visual">
+          <div class="array-box"><div class="array-index">R[1]</div><div class="array-value">6</div></div>
+          <div class="array-box"><div class="array-index">R[2]</div><div class="array-value">4</div></div>
+          <div class="array-box"><div class="array-index">R[3]</div><div class="array-value">7</div></div>
+          <div class="array-box"><div class="array-index">R[4]</div><div class="array-value">5</div></div>
+          <div class="array-box"><div class="array-index">R[5]</div><div class="array-value">6</div></div>
+          <div class="array-box"><div class="array-index">R[6]</div><div class="array-value">1</div></div>
+          <div class="array-box"><div class="array-index">R[7]</div><div class="array-value">2</div></div>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>K</th>
+            <th>DATA[K]</th>
+            <th>ΓΡΑΜΜΑ</th>
+            <th class="condition-col">Συνθήκη ΑΝ (DATA[K] &gt; ΓΡΑΜΜΑ)</th>
+          </tr>
+        </thead>
+        <tbody id="values-body">
+          <!-- 6 κενές γραμμές -->
+          <tr><td></td><td></td><td></td><td class="condition-col"></td></tr>
+          <tr><td></td><td></td><td></td><td class="condition-col"></td></tr>
+          <tr><td></td><td></td><td></td><td class="condition-col"></td></tr>
+          <tr><td></td><td></td><td></td><td class="condition-col"></td></tr>
+          <tr><td></td><td></td><td></td><td class="condition-col"></td></tr>
+          <tr><td></td><td></td><td></td><td class="condition-col"></td></tr>
+        </tbody>
+      </table>
+
+      <!-- Οθόνη "υπολογιστή" -->
+      <div class="screen">
+        <div class="screen-frame">
+          <div class="screen-header">Οθόνη υπολογιστή</div>
+          <div class="screen-body" id="screen-output">
+            <!-- Εδώ θα εμφανίζεται ΜΟΝΟ η Εκτύπωση DATA[K] -->
+          </div>
+        </div>
+      </div>
+
+      <div class="info" id="info-text">
+        Οι πίνακες DATA, L και R είναι σταθεροί όπως πάνω. Πάτα «Επόμενο βήμα». Πρώτα φωτίζεται η εντολή και μετά ενημερώνεται ο πίνακας τιμών / η οθόνη.
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer με ονόματα -->
+  <div class="footer">
+    Δημιουργία Δημήτρης Γιακοβής - Ευτυχία Δουφέκα
+  </div>
+
+  <script>
+    const DATA = [null, 'Ψ', 'Β', 'Ο', 'Κ', 'Η', 'Φ', 'Σ'];
+    const L =    [null, 5,   4,   2,   6,   7,   3,   1 ];
+    const R =    [null, 6,   4,   7,   5,   6,   1,   2 ];
+
+    let K = null;
+    let GRAMMA = null;
+    let currentDataK = null;
+    let condIf = null;
+
+    let state = "initGamma";
+    let autoInterval = null;
+
+    const codeLines = document.querySelectorAll(".code-line");
+    const rows = document.querySelectorAll("#values-body tr");
+    const btnNext = document.getElementById("btnNext");
+    const btnAuto = document.getElementById("btnAuto");
+    const btnReset = document.getElementById("btnReset");
+    const btnToggleCond = document.getElementById("btnToggleCond");
+    const infoText = document.getElementById("info-text");
+    const screenOutput = document.getElementById("screen-output");
+
+    let conditionVisible = false;
+
+    let lastShown = {
+      K:      { value: null, row: -1 },
+      DATAK:  { value: null, row: -1 },
+      GRAMMA: { value: null, row: -1 },
+      cond:   { value: null, row: -1 }
+    };
+
+    function clearHighlight() {
+      codeLines.forEach(line => line.classList.remove("active"));
+    }
+
+    function highlightLine(lineNumber) {
+      clearHighlight();
+      const line = document.querySelector(`.code-line[data-line="${lineNumber}"]`);
+      if (line) line.classList.add("active");
+    }
+
+    function fmt(v) {
+      return v === null || Number.isNaN(v) ? "" : v;
+    }
+
+    function colIndexForKey(key) {
+      if (key === "K")      return 0;
+      if (key === "DATAK")  return 1;
+      if (key === "GRAMMA") return 2;
+      return 3;
+    }
+
+    function logChange(key, newValue, displayValue) {
+      const info = lastShown[key];
+      if (newValue === info.value) return;
+
+      const nextRow = info.row + 1;
+      if (nextRow >= rows.length) {
+        infoText.textContent = "Ο πίνακας γέμισε για τη μεταβλητή " + key + ".";
+        return;
+      }
+
+      const trNew = rows[nextRow];
+      const cellsNew = trNew.querySelectorAll("td");
+      const colIndex = colIndexForKey(key);
+      const newCell = cellsNew[colIndex];
+
+      newCell.textContent = displayValue !== undefined ? displayValue : fmt(newValue);
+      newCell.classList.remove("old-cell");
+
+      if (info.row >= 0) {
+        const trOld = rows[info.row];
+        const oldCell = trOld.querySelectorAll("td")[colIndex];
+        oldCell.classList.add("old-cell");
+      }
+
+      info.value = newValue;
+      info.row = nextRow;
+    }
+
+    function finishExecution(message = "Η εκτέλεση ολοκληρώθηκε.") {
+      state = "finished";
+      btnNext.disabled = true;
+      btnAuto.disabled = true;
+      clearInterval(autoInterval);
+      clearHighlight();
+      highlightLine(11);
+      infoText.textContent = message;
+    }
+
+    function appendToScreen(text) {
+      const line = document.createElement("div");
+      line.textContent = text;
+      screenOutput.appendChild(line);
+      screenOutput.scrollTop = screenOutput.scrollHeight;
+    }
+
+    function doStep() {
+      if (state === "finished") return;
+
+      switch (state) {
+        case "initGamma": {
+          highlightLine(1);
+          GRAMMA = 'Σ';
+          logChange("GRAMMA", GRAMMA);
+          state = "initK";
+          infoText.textContent = "Αρχικοποίηση: ΓΡΑΜΜΑ ← 'Σ'.";
+          break;
+        }
+
+        case "initK": {
+          highlightLine(2);
+          K = 1;
+          logChange("K", K);
+          state = "whileCheck";
+          infoText.textContent = "Αρχικοποίηση: K ← 1. Πάμε στη δομή Όσο.";
+          break;
+        }
+
+        case "whileCheck": {
+          highlightLine(3);
+
+          currentDataK = DATA[K];
+          logChange("DATAK", currentDataK);
+
+          const condWhile = (currentDataK !== GRAMMA);
+
+          if (!condWhile) {
+            state = "finalPrint";
+            infoText.textContent = `DATA[K] = ${currentDataK} είναι ίσο με ΓΡΑΜΜΑ. Τερματισμός επανάληψης.`;
+          } else {
+            state = "printData";
+            infoText.textContent = `DATA[K] = ${currentDataK} ≠ ΓΡΑΜΜΑ. Εκτύπωση DATA[K].`;
+          }
+          break;
+        }
+
+        case "printData": {
+          highlightLine(4);
+          appendToScreen(`DATA[K] = ${currentDataK}`);
+          state = "ifCheck";
+          infoText.textContent = `Εκτυπώθηκε το DATA[K]. Έλεγχος ΑΝ DATA[K] > ΓΡΑΜΜΑ.`;
+          break;
+        }
+
+        case "ifCheck": {
+          highlightLine(5);
+
+          condIf = (currentDataK > GRAMMA);
+          const condText = condIf ? "Αληθής" : "Ψευδής";
+          logChange("cond", condIf, condText);
+
+          if (condIf) {
+            state = "thenLeft";
+            infoText.textContent = "Η συνθήκη DATA[K] > ΓΡΑΜΜΑ είναι Αληθής. K ← L[K].";
+          } else {
+            state = "elseRight";
+            infoText.textContent = "Η συνθήκη DATA[K] > ΓΡΑΜΜΑ είναι Ψευδής. K ← R[K].";
+          }
+          break;
+        }
+
+        case "thenLeft": {
+          highlightLine(6);
+          K = L[K];
+          logChange("K", K);
+          state = "whileCheck";
+          infoText.textContent = `Νέα τιμή K = ${K} (από τον πίνακα L). Επιστροφή στη συνθήκη Όσο.`;
+          break;
+        }
+
+        case "elseRight": {
+          highlightLine(8);
+          K = R[K];
+          logChange("K", K);
+          state = "whileCheck";
+          infoText.textContent = `Νέα τιμή K = ${K} (από τον πίνακα R). Επιστροφή στη συνθήκη Όσο.`;
+          break;
+        }
+
+        case "finalPrint": {
+          highlightLine(11);
+          appendToScreen(`DATA[K] = ${currentDataK}`);
+          finishExecution("Η εκτέλεση ολοκληρώθηκε. Βρέθηκε το γράμμα ΓΡΑΜΜΑ και εκτυπώθηκε.");
+          break;
+        }
+      }
+    }
+
+    function resetAll() {
+      clearInterval(autoInterval);
+
+      K = null;
+      GRAMMA = null;
+      currentDataK = null;
+      condIf = null;
+      state = "initGamma";
+
+      rows.forEach(tr => {
+        const cells = tr.querySelectorAll("td");
+        cells.forEach(c => {
+          c.textContent = "";
+          c.classList.remove("old-cell");
+        });
+      });
+
+      screenOutput.innerHTML = "";
+
+      lastShown = {
+        K:      { value: null, row: -1 },
+        DATAK:  { value: null, row: -1 },
+        GRAMMA: { value: null, row: -1 },
+        cond:   { value: null, row: -1 }
+      };
+
+      clearHighlight();
+      btnNext.disabled = false;
+      btnAuto.disabled = false;
+      infoText.textContent =
+        "Οι πίνακες DATA, L, R φαίνονται πάνω. Πάτα «Επόμενο βήμα» για να ξεκινήσει η προσομοίωση.";
+    }
+
+    btnNext.addEventListener("click", () => {
+      doStep();
+    });
+
+    btnAuto.addEventListener("click", () => {
+      btnAuto.disabled = true;
+      btnNext.disabled = true;
+      infoText.textContent = "Αυτόματη εκτέλεση...";
+      autoInterval = setInterval(() => {
+        if (state === "finished") {
+          clearInterval(autoInterval);
+        } else {
+          doStep();
+        }
+      }, 900);
+    });
+
+    btnReset.addEventListener("click", () => {
+      resetAll();
+    });
+
+    btnToggleCond.addEventListener("click", () => {
+      conditionVisible = !conditionVisible;
+      const condCells = document.querySelectorAll(".condition-col");
+      condCells.forEach(cell => {
+        cell.style.display = conditionVisible ? "table-cell" : "none";
+      });
+      btnToggleCond.textContent = conditionVisible ? "Απόκρυψη συνθήκης" : "Εμφάνιση συνθήκης";
+    });
+
+    resetAll();
+  </script>
+</body>
+</html>

@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Συγχώνευση Πινάκων - Wide Layout</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .cell { transition: all 0.3s ease; }
+        
+        /* Animation classes */
+        .flying-element {
+            position: fixed;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            pointer-events: none;
+        }
+        
+        .arrow-indicator { transition: opacity 0.3s, transform 0.3s; }
+        
+        /* Console Styles */
+        .console-window {
+            font-family: 'Consolas', 'Monaco', monospace;
+            background-color: #1e293b; /* Slate 800 */
+            color: #4ade80; /* Green 400 */
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.3);
+        }
+        .console-header {
+            background-color: #0f172a; /* Slate 900 */
+            padding: 0.25rem 0.75rem;
+            display: flex;
+            gap: 0.4rem;
+            border-bottom: 1px solid #334155;
+        }
+        .dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; }
+        
+        /* Highlight Print */
+        .highlight-print {
+            border-color: #f59e0b !important;
+            background-color: #fffbeb !important;
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-blue-50 text-slate-800 min-h-screen p-4 md:p-8 flex flex-col items-center">
+
+    <div class="text-center mb-8 max-w-4xl">
+        <h1 class="text-3xl md:text-4xl font-bold text-blue-600 mb-2">Συγχώνευση Πινάκων</h1>
+        <p class="text-slate-600 max-w-2xl mx-auto text-sm">
+            Δημιουργία πίνακα Γ[12] από τους Α[7] και Β[5].
+        </p>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-8 w-full max-w-[90rem] relative justify-center">
+        
+        <div class="flex-1">
+            <div class="flex justify-center gap-12 md:gap-32">
+                
+                <div class="flex flex-col items-center">
+                    <h3 class="text-lg font-bold text-blue-600 mb-3">Α</h3>
+                    <div id="container-a" class="relative"></div>
+                </div>
+
+                <div class="flex flex-col items-center">
+                    <h3 class="text-lg font-bold text-purple-600 mb-3">Β</h3>
+                    <div id="container-b" class="relative"></div>
+                </div>
+
+                <div class="flex flex-col items-center">
+                    <h3 class="text-lg font-bold text-emerald-600 mb-3">Γ</h3>
+                    <div id="container-c" class="relative"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full lg:w-96 flex flex-col gap-4">
+            
+            <div id="code-panel" class="hidden bg-white/90 backdrop-blur rounded-xl border border-slate-200 p-4 shadow-lg transition-all duration-300">
+                <h3 class="text-sm font-bold mb-2 flex items-center gap-2 text-blue-600 uppercase tracking-wider">
+                    <i data-lucide="code" class="w-4 h-4"></i> Κώδικας
+                </h3>
+                <div id="code-lines" class="font-mono text-xs md:text-sm space-y-1"></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div class="p-3 bg-white rounded-lg border border-slate-200 shadow-sm text-center">
+                    <span class="text-xs text-slate-500 font-bold">i (Δείκτης)</span>
+                    <p id="var-i" class="text-2xl font-bold text-orange-600">-</p>
+                </div>
+                <div class="p-3 bg-white rounded-lg border border-slate-200 shadow-sm text-center">
+                    <span class="text-xs text-slate-500 font-bold">κ (Δείκτης Β)</span>
+                    <p id="var-k" class="text-2xl font-bold text-purple-600">-</p>
+                </div>
+            </div>
+
+            <div class="console-window flex-1 min-h-[160px] flex flex-col shadow-xl">
+                <div class="console-header">
+                    <div class="dot bg-red-500"></div>
+                    <div class="dot bg-yellow-500"></div>
+                    <div class="dot bg-green-500"></div>
+                    <span class="text-xs text-slate-400 ml-auto">Output</span>
+                </div>
+                <div id="console-output" class="p-4 overflow-y-auto flex-1 text-sm leading-relaxed">
+                    <span class="animate-pulse">_</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="fixed bottom-6 bg-white/95 backdrop-blur border border-slate-200 p-3 rounded-2xl shadow-2xl flex flex-wrap items-center justify-center gap-4 z-40">
+        <button onclick="toggleCode()" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 font-medium transition text-sm">
+            <i id="btn-code-icon" data-lucide="eye" class="w-4 h-4"></i> 
+            <span id="btn-code-text">Εμφάνιση Κώδικα</span>
+        </button>
+        <button onclick="stepForward()" id="btn-step" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 font-medium transition text-sm">
+            <i data-lucide="skip-forward" class="w-4 h-4"></i> Βήμα
+        </button>
+        <button id="btn-run" onclick="toggleRun()" class="flex items-center gap-2 px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 font-bold transition shadow-lg shadow-blue-200 text-sm">
+            <i id="icon-run" data-lucide="play" class="w-4 h-4"></i> <span id="text-run">Αυτόματη Εκτέλεση</span>
+        </button>
+        <button onclick="resetApp()" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 font-medium transition text-sm">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Επαναφορά
+        </button>
+        <div class="flex items-center gap-2 px-2 border-l border-slate-200 pl-4">
+            <i data-lucide="gauge" class="w-4 h-4 text-slate-400"></i>
+            <input type="range" id="speed-slider" min="10" max="100" value="50" class="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+        </div>
+    </div>
+
+<script>
+    // --- Data ---
+    const ARR_A = ['Νίκος', 'Μαρία', 'Γιώργος', 'Ελένη', 'Δημήτρης', 'Αθηνά', 'Κώστας']; // 7 items
+    const ARR_B = ['Σοφία', 'Αλέξανδρος', 'Κατερίνα', 'Παναγιώτης', 'Χριστίνα']; // 5 items
+    
+    // Algorithm
+    const CODE = [
+        { id: 0, text: "Για i από 1 μέχρι 7", indent: 0 },
+        { id: 1, text: "  Γ[i] ← Α[i]", indent: 1 },
+        { id: 2, text: "Τέλος_επανάληψης", indent: 0 },
+        { id: 3, text: "κ ← 0", indent: 0 },
+        { id: 4, text: "Για i από 8 μέχρι 12", indent: 0 },
+        { id: 5, text: "  κ ← κ + 1", indent: 1 },
+        { id: 6, text: "  Γ[i] ← Β[κ]", indent: 1 },
+        { id: 7, text: "Τέλος_επανάληψης", indent: 0 },
+        { id: 8, text: "Για i από 1 μέχρι 12", indent: 0 },
+        { id: 9, text: "  Γράψε Γ[i]", indent: 1 },
+        { id: 10, text: "Τέλος_επανάληψης", indent: 0 },
+    ];
+
+    // --- State ---
+    let state = {
+        i: 0,
+        k: 0,
+        arrC: new Array(12).fill(''),
+        currentLine: -1,
+        isRunning: false,
+        isPaused: false,
+        phase: 'idle', // idle, copyA, copyB, printing, done
+        speed: 50
+    };
+
+    // --- Helpers ---
+    const sleep = () => {
+        const ms = 2000 - (state.speed * 18);
+        return new Promise(resolve => {
+            const check = () => {
+                if (!state.isRunning) return resolve(false);
+                if (state.isPaused) setTimeout(check, 100);
+                else setTimeout(() => resolve(true), ms);
+            };
+            check();
+        });
+    };
+
+    const getEl = (id) => document.getElementById(id);
+
+    // --- Initialization ---
+    function init() {
+        const cA = getEl('container-a');
+        const cB = getEl('container-b');
+        const cC = getEl('container-c');
+
+        cA.innerHTML = ''; cB.innerHTML = ''; cC.innerHTML = '';
+
+        // Render Array A
+        ARR_A.forEach((name, idx) => {
+            cA.innerHTML += `
+                <div class="flex items-center mb-1 relative h-9">
+                    <div id="arrow-a-${idx+1}" class="arrow-indicator absolute -left-14 flex items-center opacity-0 transition-all duration-300">
+                        <span class="text-xs font-bold text-orange-500 mr-1">i=${idx+1}</span>
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-orange-500"></i>
+                    </div>
+                    <span class="w-4 text-[10px] text-slate-400 text-right mr-1">${idx+1}</span>
+                    <div id="cell-a-${idx}" class="w-28 h-9 flex items-center justify-center rounded-lg border border-blue-300 bg-blue-50 text-blue-800 font-medium text-xs transition-all">
+                        ${name}
+                    </div>
+                </div>`;
+        });
+
+        // Render Array B
+        ARR_B.forEach((name, idx) => {
+            // FIX: Arrow moved to -right-14 to clear space
+            cB.innerHTML += `
+                <div class="flex items-center mb-1 relative h-9">
+                    <span class="w-4 text-[10px] text-slate-400 text-right mr-1">${idx+1}</span>
+                    <div id="cell-b-${idx}" class="w-28 h-9 flex items-center justify-center rounded-lg border border-purple-300 bg-purple-50 text-purple-800 font-medium text-xs transition-all">
+                        ${name}
+                    </div>
+                    <div id="arrow-b-${idx+1}" class="arrow-indicator absolute -right-14 flex items-center opacity-0 transition-all duration-300">
+                        <i data-lucide="chevron-left" class="w-4 h-4 text-purple-500"></i>
+                        <span class="text-xs font-bold text-purple-500 ml-1">κ=${idx+1}</span>
+                    </div>
+                </div>`;
+        });
+
+        // Render Array C
+        for(let j=0; j<12; j++) {
+            cC.innerHTML += `
+                <div class="flex items-center mb-1 relative h-9">
+                    <div id="cell-c-${j}" class="w-28 h-9 flex items-center justify-center rounded-lg border border-slate-300 border-dashed bg-slate-50 text-slate-400 font-medium text-xs transition-all"></div>
+                    <span class="w-4 text-[10px] text-slate-400 ml-1">${j+1}</span>
+                    <div id="arrow-c-${j+1}" class="arrow-indicator absolute -right-14 flex items-center opacity-0 transition-all duration-300">
+                        <i data-lucide="chevron-left" class="w-4 h-4 text-orange-500"></i>
+                        <span class="text-xs font-bold text-orange-500 ml-1">i=${j+1}</span>
+                    </div>
+                </div>`;
+        }
+
+        // Render Code
+        getEl('code-lines').innerHTML = CODE.map(line => `
+            <div id="code-line-${line.id}" class="px-2 py-1 rounded transition-all duration-200 border-l-4 border-transparent text-slate-500 whitespace-pre" style="padding-left: ${line.indent * 16 + 8}px">${line.text}</div>
+        `).join('');
+
+        getEl('console-output').innerHTML = '<span class="animate-pulse">_</span>';
+        lucide.createIcons();
+        updateUI();
+    }
+
+    // --- UI Update ---
+    function updateUI() {
+        getEl('var-i').innerText = state.i || '-';
+        getEl('var-k').innerText = state.k > 0 ? state.k : '-';
+
+        // Arrows Reset
+        document.querySelectorAll('.arrow-indicator').forEach(el => {
+            el.classList.add('opacity-0');
+            el.classList.remove('translate-x-0');
+            // FIX: Array B arrows now live on the right, so they need positive translate to hide
+            if(el.id.includes('arrow-c') || el.id.includes('arrow-b')) el.classList.add('translate-x-4');
+            else el.classList.add('-translate-x-4');
+        });
+
+        // Code Highlight
+        document.querySelectorAll('[id^="code-line-"]').forEach(el => {
+            el.className = el.className.replace('bg-blue-100 border-blue-500 text-blue-800 font-bold', 'border-transparent text-slate-500');
+        });
+        if (state.currentLine !== -1) {
+            getEl(`code-line-${state.currentLine}`).className = getEl(`code-line-${state.currentLine}`).className.replace('border-transparent text-slate-500', 'bg-blue-100 border-blue-500 text-blue-800 font-bold');
+        }
+
+        // Logic Visuals
+        if (state.phase === 'copyA' && state.i > 0 && state.i <= 7) {
+            // Point i to A and C
+            showArrow(`arrow-a-${state.i}`, true);
+            showArrow(`arrow-c-${state.i}`, false);
+            highlightCell(`cell-a-${state.i-1}`, 'blue');
+        } 
+        else if (state.phase === 'copyB' && state.i >= 8) {
+            // Point k to B, i to C
+            if(state.k > 0) {
+                // FIX: arrow-b is now on the right, so pass false for isLeft
+                showArrow(`arrow-b-${state.k}`, false);
+                highlightCell(`cell-b-${state.k-1}`, 'purple');
+            }
+            showArrow(`arrow-c-${state.i}`, false);
+        }
+        else if (state.phase === 'printing' && state.i > 0) {
+            // Point i to C
+            showArrow(`arrow-c-${state.i}`, false);
+        }
+
+        // Buttons
+        if (state.isRunning) {
+            getEl('btn-step').disabled = true;
+            getEl('btn-step').classList.add('opacity-50');
+            getEl('text-run').innerText = state.isPaused ? "Συνέχεια" : "Παύση";
+            getEl('icon-run').setAttribute('data-lucide', state.isPaused ? 'play' : 'pause');
+        } else {
+            getEl('btn-step').disabled = false;
+            getEl('btn-step').classList.remove('opacity-50');
+            getEl('text-run').innerText = "Αυτόματη Εκτέλεση";
+            getEl('icon-run').setAttribute('data-lucide', 'play');
+        }
+        lucide.createIcons();
+    }
+
+    function showArrow(id, isLeft) {
+        const el = getEl(id);
+        if(!el) return;
+        el.classList.remove('opacity-0', isLeft ? '-translate-x-4' : 'translate-x-4');
+        el.classList.add('translate-x-0');
+    }
+
+    function highlightCell(id, color) {
+        const el = getEl(id);
+        if(el) el.classList.add(`ring-2`, `ring-${color}-400`, `ring-offset-1`);
+    }
+
+    function clearHighlights() {
+        document.querySelectorAll('[id^="cell-"]').forEach(el => {
+            el.className = el.className.replace(/ring-2 ring-\w+-400 ring-offset-1/g, '');
+        });
+    }
+
+    // --- Animation ---
+    async function animateTransfer(fromId, toId, text, color) {
+        const fromEl = getEl(fromId);
+        const toEl = getEl(toId);
+        const r1 = fromEl.getBoundingClientRect();
+        const r2 = toEl.getBoundingClientRect();
+
+        const flyer = document.createElement('div');
+        flyer.innerText = text;
+        let colorClasses = color === 'blue' 
+            ? 'from-blue-500 to-blue-400 border-blue-300' 
+            : 'from-purple-500 to-purple-400 border-purple-300';
+            
+        flyer.className = `flying-element bg-gradient-to-r ${colorClasses} text-white border text-xs shadow-lg`;
+        flyer.style.width = r1.width + 'px';
+        flyer.style.height = r1.height + 'px';
+        flyer.style.left = r1.left + 'px';
+        flyer.style.top = r1.top + 'px';
+        
+        const speedFactor = 1.5 - (state.speed/80);
+        flyer.style.transition = `all ${speedFactor}s ease-in-out`;
+        document.body.appendChild(flyer);
+
+        await new Promise(r => requestAnimationFrame(r));
+        flyer.style.left = r2.left + 'px';
+        flyer.style.top = r2.top + 'px';
+        
+        const ms = speedFactor * 1000;
+        await new Promise(r => setTimeout(r, ms));
+        flyer.remove();
+
+        // Update C
+        toEl.innerText = text;
+        toEl.className = `w-28 h-9 flex items-center justify-center rounded-lg border border-emerald-500 bg-emerald-100 text-emerald-700 font-bold text-xs shadow-sm`;
+    }
+
+    // --- Logic ---
+    async function runAlgorithm() {
+        if(state.isRunning && !state.isPaused) return;
+        state.isRunning = true;
+        state.isPaused = false;
+        
+        // --- PHASE 1: Copy A to C ---
+        if(state.phase === 'idle') {
+            state.phase = 'copyA';
+            state.currentLine = 0; // For i 1 to 7
+            updateUI();
+            if(!(await sleep())) return;
+
+            for(let i=1; i<=7; i++) {
+                state.i = i;
+                clearHighlights();
+                updateUI();
+                state.currentLine = 0;
+                if(!(await sleep())) return;
+
+                state.currentLine = 1; // C[i] <- A[i]
+                updateUI();
+                await animateTransfer(`cell-a-${i-1}`, `cell-c-${i-1}`, ARR_A[i-1], 'blue');
+                state.arrC[i-1] = ARR_A[i-1];
+                if(!(await sleep())) return;
+            }
+            state.currentLine = 2; // End Loop 1
+            clearHighlights();
+            updateUI();
+            if(!(await sleep())) return;
+            
+            state.phase = 'copyB';
+        }
+
+        // --- PHASE 2: Copy B to C ---
+        if(state.phase === 'copyB') {
+            state.currentLine = 3; // k <- 0
+            state.k = 0;
+            state.i = 0; // Temp visual reset
+            updateUI();
+            if(!(await sleep())) return;
+
+            state.currentLine = 4; // For i 8 to 12
+            updateUI();
+            if(!(await sleep())) return;
+
+            for(let i=8; i<=12; i++) {
+                state.i = i;
+                clearHighlights();
+                updateUI();
+                state.currentLine = 4; 
+                if(!(await sleep())) return;
+
+                state.currentLine = 5; // k <- k + 1
+                state.k++;
+                updateUI();
+                if(!(await sleep())) return;
+
+                state.currentLine = 6; // C[i] <- B[k]
+                updateUI();
+                await animateTransfer(`cell-b-${state.k-1}`, `cell-c-${i-1}`, ARR_B[state.k-1], 'purple');
+                state.arrC[i-1] = ARR_B[state.k-1];
+                if(!(await sleep())) return;
+            }
+            state.currentLine = 7; // End Loop 2
+            clearHighlights();
+            updateUI();
+            if(!(await sleep())) return;
+
+            state.phase = 'printing';
+        }
+
+        // --- PHASE 3: Printing ---
+        if(state.phase === 'printing') {
+            state.k = 0; // Reset k visual
+            state.currentLine = 8; // For i 1 to 12
+            updateUI();
+            if(!(await sleep())) return;
+
+            for(let i=1; i<=12; i++) {
+                state.i = i;
+                updateUI();
+                state.currentLine = 8;
+                if(!(await sleep())) return;
+
+                state.currentLine = 9; // Write C[i]
+                updateUI();
+                const cell = getEl(`cell-c-${i-1}`);
+                cell.classList.add('highlight-print');
+
+                const consoleDiv = getEl('console-output');
+                const p = document.createElement('div');
+                p.innerText = '> ' + state.arrC[i-1];
+                p.className = "mb-1";
+                consoleDiv.insertBefore(p, consoleDiv.lastElementChild);
+                consoleDiv.scrollTop = consoleDiv.scrollHeight;
+
+                if(!(await sleep())) return;
+                cell.classList.remove('highlight-print');
+            }
+            
+            state.currentLine = 10;
+            updateUI();
+            if(!(await sleep())) return;
+
+            state.phase = 'done';
+            state.currentLine = -1;
+            state.isRunning = false;
+            updateUI();
+        }
+    }
+
+    // --- Controls ---
+    function toggleCode() {
+        const p = getEl('code-panel');
+        const t = getEl('btn-code-text');
+        const i = getEl('btn-code-icon');
+        if(p.classList.contains('hidden')) {
+            p.classList.remove('hidden');
+            t.innerText = 'Απόκρυψη Κώδικα';
+            i.setAttribute('data-lucide', 'eye-off');
+        } else {
+            p.classList.add('hidden');
+            t.innerText = 'Εμφάνιση Κώδικα';
+            i.setAttribute('data-lucide', 'eye');
+        }
+        lucide.createIcons();
+    }
+
+    function toggleRun() {
+        if(state.phase === 'done') return;
+        if(!state.isRunning) runAlgorithm();
+        else {
+            state.isPaused = !state.isPaused;
+            updateUI();
+        }
+    }
+
+    function stepForward() {
+        alert("Πατήστε 'Αυτόματη Εκτέλεση' και χρησιμοποιήστε την Παύση για έλεγχο.");
+    }
+
+    function resetApp() {
+        state.isRunning = false;
+        state.isPaused = false;
+        state.phase = 'idle';
+        state.i = 0;
+        state.k = 0;
+        state.currentLine = -1;
+        state.arrC = new Array(12).fill('');
+        getEl('console-output').innerHTML = '<span class="animate-pulse">_</span>';
+        init();
+    }
+
+    getEl('speed-slider').addEventListener('input', (e) => state.speed = parseInt(e.target.value));
+    window.onload = init;
+
+</script>
+</body>
+</html>

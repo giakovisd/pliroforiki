@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <title>Πίνακες – Συμπλήρωση Κενών</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #e5e7eb;
+      font-size: 16px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 26px 40px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      color: #111827;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: #4b5563;
+      margin-bottom: 18px;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .tab-btn {
+      border-radius: 999px;
+      border: none;
+      padding: 7px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      background: #e5e7eb;
+      color: #111827;
+      transition: background 0.15s ease, transform 0.06s ease;
+      white-space: nowrap;
+    }
+
+    .tab-btn.active {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 3px 8px rgba(37, 99, 235, 0.35);
+    }
+
+    .tab-btn:active {
+      transform: translateY(1px);
+      box-shadow: none;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .panel {
+      background: #f9fafb;
+      border-radius: 16px;
+      border: 1px solid #e5e7eb;
+      padding: 16px 18px 18px;
+      margin-bottom: 18px;
+    }
+
+    .panel h2 {
+      margin: 0 0 6px;
+      font-size: 20px;
+      color: #111827;
+    }
+
+    .panel p {
+      margin: 4px 0 8px;
+      color: #4b5563;
+    }
+
+    /* Κώδικας */
+    .code-block {
+      font-family: "Fira Code", ui-monospace, Menlo, Monaco, Consolas, "Courier New", monospace;
+      font-size: 19px;              /* μεγαλύτερα γράμματα */
+      background: #ffffff;
+      color: #111827;
+      border-radius: 12px;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      line-height: 1.45;            /* πιο «μαζεμένο» διάστιχο */
+      white-space: normal;
+      overflow-x: auto;
+    }
+
+    .code-line {
+      display: block;
+      width: 100%;
+      white-space: nowrap;          /* κρατάει την γραμμή σε μία σειρά */
+    }
+
+    .code-line.indent1 { padding-left: 2em; }
+    .code-line.indent2 { padding-left: 4em; }
+    .code-line.indent3 { padding-left: 6em; }
+
+    .gap-input {
+      width: 55px;
+      max-width: 75px;
+      padding: 2px 4px;
+      margin: 0 2px;
+      font-size: 16px;
+      font-family: inherit;
+      text-align: center;
+      border-radius: 6px;
+      border: 1px solid #9ca3af;
+    }
+
+    .gap-input.wide-4 {
+      width: 340px;          /* φαρδιά πλαίσια για μεγάλες εκφράσεις */
+      max-width: 300px;
+    }
+
+    .gap-input.correct {
+      border-color: #16a34a;
+      background: #ecfdf3;
+    }
+
+    .gap-input.wrong {
+      border-color: #dc2626;
+      background: #fef2f2;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: none;
+      padding: 6px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-right: 6px;
+      margin-top: 8px;
+      transition: transform 0.06s ease, box-shadow 0.06s ease, background 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+    }
+
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+      box-shadow: none;
+    }
+
+    .feedback {
+      margin-top: 6px;
+      font-size: 14px;
+    }
+
+    .feedback.ok {
+      color: #15803d;
+      font-weight: 600;
+    }
+
+    .feedback.bad {
+      color: #b91c1c;
+      font-weight: 600;
+    }
+
+    ul {
+      padding-left: 20px;
+      margin-top: 4px;
+      color: #4b5563;
+    }
+
+    .credit-signature {
+      position: fixed;
+      right: 10px;
+      bottom: 6px;
+      font-size: 10px;
+      color: #6b7280;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    @media (max-width: 900px) {
+      .code-block {
+        font-size: 17px;
+      }
+      .gap-input {
+        width: 50px;
+      }
+      .gap-input.wide {
+        width: 140px;
+        max-width: 180px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Πίνακες – Συμπλήρωση Κενών</h1>
+  <div class="subtitle">
+    Διαδραστικές ασκήσεις για επανάληψη σε πίνακες (ΓΛΩΣΣΑ / ψευδογλώσσα).
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="tab-1">Άσκηση 1</button>
+    <button class="tab-btn" data-tab="tab-2">Άσκηση 2</button>
+    <button class="tab-btn" data-tab="tab-3">Άσκηση 3</button>
+    <button class="tab-btn" data-tab="tab-4">Άσκηση 4</button>
+    <button class="tab-btn" data-tab="tab-5">Άσκηση 5</button>
+    <button class="tab-btn" data-tab="tab-6">Άσκηση 6</button>
+    <button class="tab-btn" data-tab="tab-7">Άσκηση 7</button>
+    <button class="tab-btn" data-tab="tab-8">Άσκηση 8</button>
+    <button class="tab-btn" data-tab="tab-9">Άσκηση 9</button>
+    <button class="tab-btn" data-tab="tab-10">Άσκηση 10</button>
+  </div>
+
+  <!-- Άσκηση 1 -->
+  <div id="tab-1" class="tab-content active">
+    <div class="panel">
+      <h2>Άσκηση 1 – Όλα τα ζευγάρια ομάδων</h2>
+      <p>
+        Θεωρούμε πίνακα <strong>Ομάδα[4]</strong> με ονόματα ομάδων που παίρνουν μέρος σ’ έναν όμιλο
+        Μουντιάλ, π.χ.:
+      </p>
+      <ul>
+        <li>Αργεντινή</li>
+        <li>Ιαπωνία</li>
+        <li>Νιγηρία</li>
+        <li>Ελλάδα</li>
+      </ul>
+      <p>
+        Να συμπληρωθούν τα κενά, ώστε να εμφανίζονται όλα τα πιθανά ζευγάρια όπως:
+        Αργεντινή–Ιαπωνία, Αργεντινή–Νιγηρία, …, Νιγηρία–Ελλάδα.
+      </p>
+
+      <div class="code-block">
+<span class="code-line">
+ΓΙΑ κ ΑΠΟ 1 ΜΕΧΡΙ
+<input class="gap-input" data-ex="1" data-solution="3">
+</span>
+<span class="code-line indent1">
+ΓΙΑ λ ΑΠΟ
+<input class="gap-input" data-ex="1" data-solution="κ+1">
+ΜΕΧΡΙ
+<input class="gap-input" data-ex="1" data-solution="4">
+</span>
+<span class="code-line indent2">
+ΓΡΑΨΕ Ομάδα[
+<input class="gap-input" data-ex="1" data-solution="κ">
+], Ομάδα[
+<input class="gap-input" data-ex="1" data-solution="λ">
+]
+</span>
+<span class="code-line indent1">ΤΕΛΟΣ_ΕΠΑΝΑΛΗΨΗΣ</span>
+<span class="code-line">ΤΕΛΟΣ_ΕΠΑΝΑΛΗΨΗΣ</span>
+      </div>
+
+      <button class="btn btn-primary" id="check-1">Αξιολόγηση</button>
+      <button class="btn btn-secondary" id="solution-1">Λύση</button>
+      <div id="feedback-1" class="feedback"></div>
+    </div>
+  </div>
+
+  <!-- Άσκηση 2 -->
+  <div id="tab-2" class="tab-content">
+    <div class="panel">
+      <h2>Άσκηση 2 – Ένωση τριών πινάκων Α, Β, Γ σε Δ</h2>
+      <p>
+        Να συμπληρωθεί το τμήμα αλγορίθμου ώστε να γίνεται ένωση τριών πινάκων
+        <strong>Α[5], Β[5], Γ[5]</strong> σε έναν πίνακα <strong>Δ[15]</strong>, τοποθετώντας
+        πρώτα τα στοιχεία του Α, μετά του Β και μετά του Γ.
+      </p>
+
+      <div class="code-block">
+<span class="code-line">
+ΓΙΑ κ ΑΠΟ 1 ΜΕΧΡΙ
+<input class="gap-input" data-ex="2" data-solution="5">
+</span>
+<span class="code-line indent1">
+Δ[
+<input class="gap-input" data-ex="2" data-solution="κ">
+] &larr; Α[
+<input class="gap-input" data-ex="2" data-solution="κ">
+]
+</span>
+<span class="code-line indent1">
+Δ[
+<input class="gap-input" data-ex="2" data-solution="κ+5">
+] &larr; Β[
+<input class="gap-input" data-ex="2" data-solution="κ">
+]
+</span>
+<span class="code-line indent1">
+Δ[
+<input class="gap-input" data-ex="2" data-solution="κ+10">
+] &larr; Γ[
+<input class="gap-input" data-ex="2" data-solution="κ">
+]
+</span>
+<span class="code-line">ΤΕΛΟΣ_ΕΠΑΝΑΛΗΨΗΣ</span>
+      </div>
+
+      <button class="btn btn-primary" id="check-2">Αξιολόγηση</button>
+      <button class="btn btn-secondary" id="solution-2">Λύση</button>
+      <div id="feedback-2" class="feedback"></div>
+    </div>
+  </div>
+
+  <!-- Άσκηση 3 -->
+  <div id="tab-3" class="tab-content">
+    <div class="panel">
+      <h2>Άσκηση 3 – Ζ με τις 10 μεγαλύτερες τιμές (συγχώνευση)</h2>
+      <p>
+        Δίνεται ο πίνακας αριθμών <strong>Χ[50]</strong> (φθίνουσα σειρά) και
+        <strong>Υ[100]</strong> (αύξουσα σειρά). Να συμπληρωθεί ο αλγόριθμος που
+        δημιουργεί πίνακα <strong>Ζ[10]</strong> με τις 10 μεγαλύτερες τιμές συνολικά.
+      </p>
+
+      <div class="code-block">
+<span class="code-line">
+i &larr;
+<input class="gap-input" data-ex="3" data-solution="1">
+</span>
+<span class="code-line">
+j &larr;
+<input class="gap-input" data-ex="3" data-solution="100">
+</span>
+<span class="code-line">
+ΓΙΑ k ΑΠΟ 1 ΜΕΧΡΙ 10
+</span>
+<span class="code-line indent1">
+ΑΝ Χ[i]
+<input class="gap-input" data-ex="3" data-solution=">">
+Υ[j] ΤΟΤΕ
+</span>
+<span class="code-line indent2">Ζ[k] &larr; Χ[i]</span>
+<span class="code-line indent2">
+i &larr; i
+<input class="gap-input" data-ex="3" data-solution="+">
+1
+</span>
+<span class="code-line indent1">ΑΛΛΙΩΣ</span>
+<span class="code-line indent2">Ζ[k] &larr; Υ[j]</span>
+<span class="code-line indent2">
+j &larr; j
+<input class="gap-input" data-ex="3" data-solution="-">
+1
+</span>
+<span class="code-line indent1">ΤΕΛΟΣ_ΑΝ</span>
+<span class="code-line">ΤΕΛΟΣ_ΕΠΑΝΑΛΗΨΗΣ</span>
+      </div>
+
+      <button class="btn btn-primary" id="check-3">Αξιολόγηση</button>
+      <button class="btn btn-secondary" id="solution-3">Λύση</button>
+      <div id="feedback-3" class="feedback"></div>
+    </div>
+  </div>
+
+  <!-- Άσκηση 4 -->
+  <div id="tab-4" class="tab-content">
+    <div class="panel">
+      <h2>Άσκηση 4 – Διάμεσος ταξινομημένου πίνακα</h2>
+      <p>
+        Ο πίνακας <strong>Π</strong> έχει <strong>Ν</strong> στοιχεία σε αύξουσα σειρά.
+        Να συμπληρωθεί ο αλγόριθμος για τον υπολογισμό της διάμεσης τιμής
+        (με χρήση <strong>DIV</strong> στους δείκτες).
+      </p>
+
+      <div class="code-block">
+<span class="code-line">ΑΛΓΟΡΙΘΜΟΣ διάμεσος_τιμή</span>
+<span class="code-line">ΔΕΔΟΜΕΝΑ // Π, Ν //</span>
+<span class="code-line">
+ΑΝ
+<input class="gap-input wide" data-ex="4" data-solution="Ν MOD 2 = 1" data-alt="ΝMOD2=1|NMOD2=1|N MOD 2=1|Ν ΜΟΔ 2 = 1">
+ΤΟΤΕ
+</span>
+<span class="code-line indent1">
+διάμεσος &larr;
+<input class="gap-input wide-4" data-ex="4" data-solution="Π[(Ν+1) DIV 2]">
+</span>
+<span class="code-line">ΑΛΛΙΩΣ</span>
+<span class="code-line indent1">
+διάμεσος &larr;
+<input class="gap-input wide-4" data-ex="4" data-solution="(Π[Ν DIV 2] + Π[Ν DIV 2 + 1]) / 2">
+</span>
+<span class="code-line">ΤΕΛΟΣ_ΑΝ</span>
+<span class="code-line">ΕΜΦΑΝΙΣΕ διάμεσος</span>
+<span class="code-line">ΤΕΛΟΣ διάμεσος_τιμή</span>
+      </div>
+
+      <button class="btn btn-primary" id="check-4">Αξιολόγηση</button>
+      <button class="btn btn-secondary" id="solution-4">Λύση</button>
+      <div id="feedback-4" class="feedback"></div>
+    </div>
+  </div>
+
+  <!-- Άσκηση 5 -->
+  <div id="tab-5" class="tab-content">
+    <div class="panel">
+      <h2>Άσκηση 5 – Παραλλαγή φυσαλίδας (αύξουσα)</h2>
+      <p>Να συμπληρωθεί ο αλγόριθμος ώστε ο πίνακας <strong>Α</strong> να ταξινομείται σε αύξουσα σειρά.</p>
+
+      <div class="code-block">
+<span class="code-line">ΑΛΓΟΡΙΘΜΟΣ ταξινόμηση_1</span>
+<span class="code-line">ΔΕΔΟΜΕΝΑ // Α, Ν //</span>
+<span class="code-line">
+ΓΙΑ λ ΑΠΟ
+<input class="gap-input" data-ex="5" data-solution="1">
+ΜΕΧΡΙ
+<input class="gap-input" data-ex="5" data-solution="Ν-1" data-alt="N-1">
+</span>
+<span class="code-line indent1">
+ΓΙΑ κ ΑΠΟ
+<input class="gap-input" data-ex="5" data-solution="Ν-1" data-alt="N-1">
+ΜΕΧΡΙ λ ΜΕ_ΒΗΜΑ -1
+</span>
+<span class="code-line indent2">
+ΑΝ Α[κ]
+<input class="gap-input" data-ex="5" data-solution=">">
+Α[κ+1] ΤΟΤΕ
+</span>
+<span class="code-line indent3">Αντιμετάθεσε Α[κ], Α[κ+1]</span>
+<span class="code-line indent2">ΤΕΛΟΣ_ΑΝ</span>
+<span class="code-line indent1">ΤΕΛΟΣ_ΕΠΑΝΑΛΗΨΗΣ</span>
+<span class="code-line">ΤΕΛΟΣ_ΕΠΑΝΑΛΗΨΗΣ</span>
+<span class="code-line">ΑΠΟΤΕΛΕΣΜΑΤΑ // Α //</span>
+<span class="code-line">ΤΕΛΟΣ ταξινόμηση_1</span>
+      </div>
+
+      <button class="btn btn-primary" id="check-5">Αξιολόγηση</button>
+      <button class="btn btn-secondary" id="solution-5">Λύση</button>
+      <div id="feedback-5" class="feedback"></div>
+    </div>
+  </div>
+
+  <!-- Άσκηση 6 -->
+  <div id="tab-6" class="tab-content">
+    <div class="panel">
+      <h2>Άσκηση 6 – Επιλογή σε φθίνουσα σειρά</h2>
+      <p>Να συμπληρωθούν τα κενά ώστε ο πίνακας <strong>Π[30]</strong> να ταξινομείται σε φθίνουσα σειρά.</p>
+
+      <div class="code-block">
+<span class="code-line">
+ΓΙΑ κ ΑΠΟ 1 ΜΕΧΡΙ 29
+</span>
+<span class="code-line indent1">
+θ &larr;
+<input class="gap-input" data-ex="6" data-solution="κ">
+</span>
+<span class="code-line indent1">
+ΓΙΑ i ΑΠΟ κ ΜΕΧΡΙ 30
+</span>
+<span class="code-line indent2">
+ΑΝ Π[i]
+<input class="gap-input" data-ex="6" data-solution=">">
+Π[θ] ΤΟΤΕ
+</span>
+<span class="code-line indent3">
+θ &larr;
+<input class="gap-input" data-ex="6" data-solution="i">
+</span>
+<span class="code-line indent2">ΤΕΛΟΣ_ΑΝ</span>
+<span class="code-line indent1">ΤΕΛΟΣ_ΕΠΑΝΑΛΗΨΗΣ</span>
+<span class="code-line indent1">
+Αντιμετάθεσε
+<input class="gap-input" data-ex="6" data-solution="Π[κ]">
+,
+<input class="gap-input" data-ex="6" data-solution="Π[θ]">
+</span>
+<span class="code-line">ΤΕΛΟΣ_ΕΠΑΝΑΛΗΨΗΣ</span>
+      </div>
+
+      <button class="btn btn-primary" id="check-6">Αξιολόγηση</button>
+      <button class="btn btn-secondary" id="solution-6">Λύση</button>
+      <div id="feedback-6" class="feedback"></div>
+    </div>
+  </div>
+
+  <!-- Άσκηση 7 -->
+  <div id="tab-7" class="tab-content">
+    <div class="panel">
+      <h2>Άσκηση 7 – Γραμμική αναζήτηση της τιμής 2026</h2>
+      <p>Να συμπληρωθεί το τμήμα ώστε να εντοπίζεται η τιμή 2026 στον πίνακα <strong>Χ[100]</strong>.</p>
+
+      <div class="code-block">
+<span class="code-line">i &larr; 1</span>
+<span class="code-line">
+ΟΣΟ i
+<input class="gap-input" data-ex="7" data-solution="<">
+100 ΚΑΙ
+<input class="gap-input" data-ex="7" data-solution="Χ[i]">
+&lt;&gt;
+<input class="gap-input" data-ex="7" data-solution="2026">
+ΕΠΑΝΑΛΑΒΕ
+</span>
+<span class="code-line indent1">i &larr; i + 1</span>
+<span class="code-line">ΤΕΛΟΣ_ΕΠΑΝΑΛΗΨΗΣ</span>
+<span class="code-line">
+ΑΝ
+<input class="gap-input" data-ex="7" data-solution="Χ[i]">
+=
+<input class="gap-input" data-ex="7" data-solution="2026">
+ΤΟΤΕ
+</span>
+<span class="code-line indent1">ΓΡΑΨΕ i</span>
+<span class="code-line">ΑΛΛΙΩΣ</span>
+<span class="code-line indent1">ΓΡΑΨΕ "ΔΕ ΒΡΕΘΗΚΕ"</span>
+<span class="code-line">ΤΕΛΟΣ_ΑΝ</span>
+      </div>
+
+      <button class="btn btn-primary" id="check-7">Αξιολόγηση</button>
+      <button class="btn btn-secondary" id="solution-7">Λύση</button>
+      <div id="feedback-7" class="feedback"></div>
+    </div>
+  </div>
+
+  <!-- Άσκηση 8 -->
+  <div id="tab-8" class="tab-content">
+    <div class="panel">
+      <h2>Άσκηση 8 – Αναζήτηση key σε ταξινομημένο πίνακα</h2>
+      <p>
+        Ο πίνακας <strong>table</strong> είναι ταξινομημένος σε αύξουσα σειρά.
+        Ο <strong>key</strong> μπορεί να εμφανίζεται πολλές φορές. Ο αλγόριθμος εμφανίζει όλες τις θέσεις
+        και σταματά μόλις γίνει σαφές ότι ο key δεν υπάρχει (table[i] &gt; key).
+      </p>
+
+      <div class="code-block">
+<span class="code-line">Αλγόριθμος Αναζήτηση</span>
+<span class="code-line">Δεδομένα // table, N, key //</span>
+<span class="code-line">Βρέθηκε &larr; Ψευδής</span>
+<span class="code-line">
+ΔενΒρέθηκε &larr;
+<input class="gap-input" data-ex="8" data-solution="Αληθής">
+</span>
+<span class="code-line">i &larr; 1</span>
+<span class="code-line">
+ΟΣΟ ΔενΒρέθηκε = Αληθής ΚΑΙ i &lt;= N ΕΠΑΝΑΛΑΒΕ
+</span>
+<span class="code-line indent1">
+ΑΝ
+<input class="gap-input wide" data-ex="8" data-solution="table[i] = key">
+ΤΟΤΕ
+</span>
+<span class="code-line indent2">Εμφάνισε "Βρέθηκε στη θέση", i</span>
+<span class="code-line indent2">
+Βρέθηκε &larr;
+<input class="gap-input" data-ex="8" data-solution="Αληθής">
+</span>
+<span class="code-line indent1">
+ΑΛΛΙΩΣ_ΑΝ
+<input class="gap-input wide" data-ex="8" data-solution="table[i] > key">
+ΤΟΤΕ
+</span>
+<span class="code-line indent2">
+ΔενΒρέθηκε &larr;
+<input class="gap-input" data-ex="8" data-solution="Ψευδής">
+</span>
+<span class="code-line indent1">ΤΕΛΟΣ_ΑΝ</span>
+<span class="code-line indent1">i &larr; i + 1</span>
+<span class="code-line">ΤΕΛΟΣ_ΕΠΑΝΑΛΗΨΗΣ</span>
+<span class="code-line">Αποτελέσματα // Βρέθηκε //</span>
+<span class="code-line">Τέλος Αναζήτηση</span>
+      </div>
+
+      <button class="btn btn-primary" id="check-8">Αξιολόγηση</button>
+      <button class="btn btn-secondary" id="solution-8">Λύση</button>
+      <div id="feedback-8" class="feedback"></div>
+    </div>
+  </div>
+
+  <!-- Άσκηση 9 -->
+  <div id="tab-9" class="tab-content">
+    <div class="panel">
+      <h2>Άσκηση 9 – Πρώτα άρτιοι, μετά περιττοί</h2>
+      <p>Ο πίνακας <strong>Α[20]</strong> έχει άρτιους και περιττούς. Ο πίνακας <strong>Β[20]</strong> θα έχει πρώτα όλους τους άρτιους και μετά όλους τους περιττούς.</p>
+
+      <div class="code-block">
+<span class="code-line">Κ &larr; 0</span>
+<span class="code-line">
+ΓΙΑ i ΑΠΟ
+<input class="gap-input" data-ex="9" data-solution="1">
+ΜΕΧΡΙ
+<input class="gap-input" data-ex="9" data-solution="20">
+</span>
+<span class="code-line indent1">ΑΝ Α[i] MOD 2 = 0 ΤΟΤΕ</span>
+<span class="code-line indent2">
+Κ &larr;
+<input class="gap-input" data-ex="9" data-solution="Κ+1">
+</span>
+<span class="code-line indent2">
+Β[
+<input class="gap-input" data-ex="9" data-solution="Κ">
+] &larr; Α[i]
+</span>
+<span class="code-line indent1">ΤΕΛΟΣ_ΑΝ</span>
+<span class="code-line">ΤΕΛΟΣ_ΕΠΑΝΑΛΗΨΗΣ</span>
+
+<span class="code-line">
+ΓΙΑ i ΑΠΟ
+<input class="gap-input" data-ex="9" data-solution="1">
+ΜΕΧΡΙ
+<input class="gap-input" data-ex="9" data-solution="20">
+</span>
+<span class="code-line indent1">
+ΑΝ Α[i] MOD 2 =
+<input class="gap-input" data-ex="9" data-solution="1">
+ΤΟΤΕ
+</span>
+<span class="code-line indent2">
+Κ &larr;
+<input class="gap-input" data-ex="9" data-solution="Κ+1">
+</span>
+<span class="code-line indent2">
+Β[
+<input class="gap-input" data-ex="9" data-solution="Κ">
+] &larr; Α[
+<input class="gap-input" data-ex="9" data-solution="i">
+]
+</span>
+<span class="code-line indent1">ΤΕΛΟΣ_ΑΝ</span>
+<span class="code-line">ΤΕΛΟΣ_ΕΠΑΝΑΛΗΨΗΣ</span>
+      </div>
+
+      <button class="btn btn-primary" id="check-9">Αξιολόγηση</button>
+      <button class="btn btn-secondary" id="solution-9">Λύση</button>
+      <div id="feedback-9" class="feedback"></div>
+    </div>
+  </div>
+
+  <!-- Άσκηση 10 -->
+  <div id="tab-10" class="tab-content">
+    <div class="panel">
+      <h2>Άσκηση 10 – Συνένωση δύο πινάκων Α, Β σε Γ</h2>
+      <p>Ο αλγόριθμος <strong>Συνένωση</strong> αντιγράφει πρώτα τα Ν στοιχεία του Α, μετά τα Μ στοιχεία του Β στον Γ.</p>
+
+      <div class="code-block">
+<span class="code-line">Αλγόριθμος Συνένωση</span>
+<span class="code-line">Δεδομένα // Α, Ν, Β, Μ //</span>
+<span class="code-line">
+ΓΙΑ i ΑΠΟ
+<input class="gap-input" data-ex="10" data-solution="1">
+ΜΕΧΡΙ
+<input class="gap-input" data-ex="10" data-solution="Ν" data-alt="N">
+</span>
+<span class="code-line indent1">
+Γ[
+<input class="gap-input" data-ex="10" data-solution="i">
+] &larr; Α[
+<input class="gap-input" data-ex="10" data-solution="i">
+]
+</span>
+<span class="code-line">ΤΕΛΟΣ_ΕΠΑΝΑΛΗΨΗΣ</span>
+<span class="code-line">
+ΓΙΑ i ΑΠΟ
+<input class="gap-input" data-ex="10" data-solution="1">
+ΜΕΧΡΙ
+<input class="gap-input" data-ex="10" data-solution="Μ" data-alt="M">
+</span>
+<span class="code-line indent1">
+Γ[
+<input class="gap-input" data-ex="10" data-solution="Ν+i" data-alt="N+i">
+] &larr; Β[
+<input class="gap-input" data-ex="10" data-solution="i">
+]
+</span>
+<span class="code-line">ΤΕΛΟΣ_ΕΠΑΝΑΛΗΨΗΣ</span>
+<span class="code-line">Αποτελέσματα // Γ //</span>
+<span class="code-line">Τέλος Συνένωση</span>
+      </div>
+
+      <button class="btn btn-primary" id="check-10">Αξιολόγηση</button>
+      <button class="btn btn-secondary" id="solution-10">Λύση</button>
+      <div id="feedback-10" class="feedback"></div>
+    </div>
+  </div>
+</div>
+
+<div class="credit-signature">
+  Ιδέα + Δημιουργία: Ευτυχία Δουφέκα, Δημήτρης Γιακοβής
+</div>
+
+<script>
+  // Tabs
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      const tabId = btn.dataset.tab;
+      document.getElementById(tabId).classList.add('active');
+    });
+  });
+
+  // Κανονικοποίηση για σύγκριση
+  function normalize(str) {
+    return str
+      .toString()
+      .replace(/\s+/g, '')
+      .toUpperCase()
+      .replace(/[,·]/g, ',');
+  }
+
+  function checkExercise(ex) {
+    const inputs = document.querySelectorAll(`.gap-input[data-ex="${ex}"]`);
+    let correctCount = 0;
+    let total = 0;
+    inputs.forEach(inp => {
+      total++;
+      const sol = inp.dataset.solution || '';
+      const alt = inp.dataset.alt || '';
+      const answers = [sol].concat(alt.split('|').filter(x => x));
+      const user = normalize(inp.value || '');
+      let ok = false;
+      for (const a of answers) {
+        if (normalize(a) === user && user !== '') {
+          ok = true;
+          break;
+        }
+      }
+      inp.classList.remove('correct', 'wrong');
+      if (ok) {
+        inp.classList.add('correct');
+        correctCount++;
+      } else {
+        inp.classList.add('wrong');
+      }
+    });
+    const fb = document.getElementById(`feedback-${ex}`);
+    if (!fb) return;
+    if (total === 0) {
+      fb.textContent = '';
+      return;
+    }
+    if (correctCount === total) {
+      fb.textContent = 'Όλα σωστά! ✔';
+      fb.className = 'feedback ok';
+    } else {
+      fb.textContent = `Σωστά: ${correctCount} από ${total}. Δοκίμασε ξανά.`;
+      fb.className = 'feedback bad';
+    }
+  }
+
+  function showSolution(ex) {
+    const inputs = document.querySelectorAll(`.gap-input[data-ex="${ex}"]`);
+    inputs.forEach(inp => {
+      const sol = inp.dataset.solution || '';
+      inp.value = sol;
+      inp.classList.remove('wrong');
+      inp.classList.add('correct');
+    });
+    const fb = document.getElementById(`feedback-${ex}`);
+    if (fb) {
+      fb.textContent = 'Εμφανίστηκε η σωστή λύση.';
+      fb.className = 'feedback ok';
+    }
+  }
+
+  // Σύνδεση κουμπιών αξιολόγησης/λύσης
+  for (let ex = 1; ex <= 10; ex++) {
+    const checkBtn = document.getElementById(`check-${ex}`);
+    if (checkBtn) {
+      checkBtn.addEventListener('click', () => checkExercise(ex));
+    }
+    const solBtn = document.getElementById(`solution-${ex}`);
+    if (solBtn) {
+      solBtn.addEventListener('click', () => showSolution(ex));
+    }
+  }
+
+  // Σβήνουμε τυχόν αποθηκευμένες τιμές του browser στα κενά
+  window.addEventListener('load', () => {
+    document.querySelectorAll('.gap-input').forEach(inp => {
+      inp.value = '';
+      inp.classList.remove('correct', 'wrong');
+    });
+  });
+</script>
+</body>
+</html>
