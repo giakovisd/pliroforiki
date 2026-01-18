@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Δομές Δεδομένων: Compact Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&family=Fira+Code:wght@500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --primary: #2980b9;
+            --secondary: #16a085;
+            --accent: #c0392b;
+            --text: #2c3e50;
+            --code-bg: #1e1e1e;
+            --code-text: #d4d4d4;
+            --highlight: #005f9e;
+            --panel-bg: #ffffff;
+            --shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        * { box-sizing: border-box; transition: all 0.3s ease; }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-size: 15px; /* Βασικό μέγεθος γραμματοσειράς */
+        }
+
+        /* --- NAVIGATION --- */
+        nav {
+            background: #34495e;
+            padding: 0 10px;
+            display: flex;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 1000;
+            height: 50px;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: #ecf0f1;
+            padding: 0 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            position: relative;
+            text-transform: uppercase;
+            height: 100%;
+        }
+
+        .nav-btn:hover { background: rgba(255,255,255,0.1); }
+        .nav-btn.active { color: #50e3c2; }
+        .nav-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 3px;
+            background: #50e3c2;
+        }
+
+        /* --- CONTENT --- */
+        main {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .tab-section {
+            display: none;
+            max-width: 1100px;
+            margin: 0 auto;
+            animation: fadeIn 0.4s ease-out;
+        }
+        .tab-section.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- THEORY TEXT --- */
+        .theory-card { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 8px; 
+            margin-bottom: 15px; 
+            border-left: 5px solid var(--primary); 
+            box-shadow: var(--shadow); 
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+        .theory-card h2 { color: var(--primary); border-bottom: 1px solid #eee; padding-bottom: 8px; margin-top: 0; font-size: 1.4rem; }
+        .theory-card h3 { color: var(--text); margin-top: 20px; border-bottom: 1px dashed #ccc; padding-bottom: 4px; width: fit-content; font-size: 1.1rem;}
+        .theory-card ul { margin-left: 15px; padding-left: 10px;}
+        .theory-card li { margin-bottom: 6px; }
+        .theory-svg { display: block; margin: 20px auto; max-width: 100%; height: auto; border: 1px solid #eee; padding: 10px; border-radius: 6px; background: #fafafa; }
+        .highlight-text { background-color: #f1f8ff; padding: 8px; border-radius: 4px; border-left: 3px solid var(--secondary); font-weight: bold; color: var(--text); margin: 10px 0; }
+
+        /* --- CONTROLS --- */
+        .controls {
+            background: var(--panel-bg);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+        }
+
+        input[type="text"] {
+            padding: 8px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 1rem;
+            width: 120px;
+            text-align: center;
+            font-family: 'Fira Code', monospace;
+            font-weight: bold;
+        }
+        input:focus { border-color: var(--primary); outline: none; }
+
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            color: white;
+        }
+        .btn:active { transform: translateY(1px); }
+        
+        .btn-push, .btn-enq { background: var(--primary); }
+        .btn-pop, .btn-deq { background: var(--accent); }
+        .btn-clear { background: #7f8c8d; }
+        .btn-code { background: #34495e; }
+
+        /* --- WORKSPACE --- */
+        .workspace {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .visual-container {
+            flex: 2;
+            min-width: 350px;
+            background: var(--panel-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            min-height: 450px; /* Reduced height */
+            border: 1px solid #ccc;
+        }
+
+        .code-container {
+            flex: 1;
+            min-width: 380px; 
+            background: var(--code-bg);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: var(--shadow);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem; /* Smaller code font */
+            color: var(--code-text);
+            display: none;
+        }
+        
+        /* Indentation classes */
+        .code-line { padding: 2px 5px; border-radius: 2px; display: block; margin-bottom: 1px; white-space: pre-wrap; line-height: 1.4; }
+        .indent-1 { padding-left: 20px; }
+        .indent-2 { padding-left: 40px; }
+        .indent-3 { padding-left: 60px; }
+        
+        .code-line.active { background-color: var(--highlight); color: white; border-left: 3px solid var(--secondary); }
+
+        /* --- STACK VISUALS (Compact) --- */
+        .stack-wrapper {
+            position: relative;
+            padding-left: 40px;
+        }
+
+        .stack-box {
+            position: relative;
+            width: 160px; /* Smaller width */
+            height: 320px; /* 8 slots * 40px height */
+            border-left: 5px solid #333;
+            border-right: 5px solid #333;
+            border-bottom: 5px solid #333;
+            border-radius: 0 0 8px 8px;
+            background: white;
+        }
+        
+        .stack-row {
+            width: 100%;
+            height: 40px; /* Reduced height */
+            border-top: 1px solid #999;
+            box-sizing: border-box;
+            position: absolute;
+            left: 0;
+        }
+
+        .stack-num {
+            position: absolute;
+            left: -35px;
+            height: 40px;
+            width: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            color: #000;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .data-element {
+            width: 140px; /* Fits in 160px box with padding */
+            height: 32px; /* Smaller height */
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            position: absolute;
+            left: 10px;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            border: 1px solid #1a5276;
+        }
+
+        .pointer {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            transition: all 1s ease-in-out;
+            z-index: 20;
+            right: -110px; /* Closer */
+            height: 40px;
+        }
+        .pointer-tag {
+            background: var(--accent);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            font-size: 0.9rem;
+        }
+        .pointer-arrow { font-size: 1.8rem; color: var(--accent); margin-right: 5px; line-height: 0; }
+
+        /* --- QUEUE VISUALS (Compact) --- */
+        .queue-track {
+            display: flex;
+            gap: 0;
+            padding: 10px;
+            position: relative;
+            margin-top: 30px;
+        }
+
+        .queue-cell {
+            width: 60px; /* Smaller cells */
+            height: 60px;
+            border: 2px solid #555;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin-right: 3px;
+            border-radius: 3px;
+        }
+
+        .q-num {
+            position: absolute;
+            bottom: -25px;
+            color: #000;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .queue-element {
+            width: 48px; /* Fits in 60px cell */
+            height: 48px;
+            background: linear-gradient(135deg, #1abc9c, #16a085);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            position: absolute;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            border: 1px solid #0e6655;
+        }
+
+        /* Queue Pointers */
+        .q-ptr-wrapper {
+            position: absolute;
+            height: 100%;
+            width: 100%;
+            top: 0; left: 0;
+            pointer-events: none;
+        }
+        .q-indicator {
+            position: absolute;
+            width: 60px; /* Matches cell width */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: left 1s ease-in-out;
+            font-weight: bold;
+        }
+        .q-front { top: -35px; color: var(--accent); }
+        .q-rear { bottom: -55px; color: var(--primary); }
+        
+        .ptr-lbl { font-size: 0.9rem; font-weight: bold; text-transform: uppercase; }
+        .ptr-arr { font-size: 1.5rem; line-height: 1; }
+
+        /* --- QUIZ --- */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; border-radius: 6px; overflow: hidden; box-shadow: var(--shadow); }
+        th { background: #34495e; color: white; padding: 10px; text-align: left; font-size: 0.95rem; }
+        td { padding: 10px; border-bottom: 1px solid #ddd; font-size: 0.95rem; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        
+        .choice-btn {
+            border: 1px solid #ccc; background: white; padding: 5px 10px; cursor: pointer; margin-right: 5px; border-radius: 4px; font-weight: bold; font-size: 0.85rem;
+        }
+        .choice-btn.correct { background: var(--secondary); color: white; border-color: var(--secondary); }
+        .choice-btn.wrong { background: var(--accent); color: white; border-color: var(--accent); }
+
+    </style>
+</head>
+<body>
+
+<nav>
+    <button class="nav-btn active" onclick="switchTab('theory', this)">Θεωρια</button>
+    <button class="nav-btn" onclick="switchTab('stack', this)">Στοιβα</button>
+    <button class="nav-btn" onclick="switchTab('queue', this)">Ουρα</button>
+    <button class="nav-btn" onclick="switchTab('quiz', this)">Quiz</button>
+</nav>
+
+<main>
+    <section id="theory" class="tab-section active">
+        <div class="theory-card">
+            <h2>Στοίβα (Stack)</h2>
+            <p><strong>Ορισμός:</strong> Στοίβα ονομάζεται μια δομή δεδομένων, το σύνολο των στοιχείων της οποίας είναι διατεταγμένο με τέτοιο τρόπο, ώστε τα στοιχεία που βρίσκονται στην κορυφή της στοίβας λαμβάνονται πρώτα, ενώ αυτά που βρίσκονται στο βάθος της στοίβας λαμβάνονται τελευταία.</p>
+            <p>Είναι μια δομή δεδομένων που χρησιμοποιούμε πολλές φορές στην καθημερινή μας ζωή. Έχουμε στοίβα από βιβλία, από πιάτα, από κέρματα κλπ.</p>
+            
+            <h3>Βασικές Λειτουργίες</h3>
+            <ul>
+                <li><strong>Ώθηση (Push):</strong> Η εισαγωγή ενός νέου στοιχείου στη στοίβα. Γίνεται πάντα στην κορυφή.</li>
+                <li><strong>Απώθηση (Pop):</strong> Η εξαγωγή ενός στοιχείου από τη στοίβα. Γίνεται πάντα από την κορυφή.</li>
+            </ul>
+
+            <p>Χρειάζεται μια μεταβλητή <strong>(κορυφή – top)</strong> που δείχνει τη θέση του στοιχείου της στοίβας που βρίσκεται στην κορυφή της (δηλ. του στοιχείου που ωθήθηκε πιο πρόσφατα και ταυτόχρονα του στοιχείου που πρόκειται να απωθηθεί πρώτο).</p>
+
+            <div class="highlight-text">
+                <p><strong>Μέθοδος LIFO (Last In First Out):</strong> Το τελευταίο μέσα, πρώτο έξω. Δηλαδή, αυτό που τοποθετήθηκε τελευταίο, είναι το πρώτο που θα εξαχθεί προς χρήση.</p>
+            </div>
+
+            <svg class="theory-svg" width="300" height="180" viewBox="0 0 300 220">
+                <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="0" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#c0392b" /></marker></defs>
+                <line x1="100" y1="50" x2="100" y2="200" stroke="#333" stroke-width="4"/>
+                <line x1="200" y1="50" x2="200" y2="200" stroke="#333" stroke-width="4"/>
+                <line x1="98" y1="200" x2="202" y2="200" stroke="#333" stroke-width="4"/>
+                
+                <rect x="110" y="160" width="80" height="30" fill="#3498db" stroke="#2980b9" stroke-width="2"/>
+                <text x="150" y="180" text-anchor="middle" fill="white" font-weight="bold">Data 1</text>
+                
+                <rect x="110" y="120" width="80" height="30" fill="#3498db" stroke="#2980b9" stroke-width="2"/>
+                <text x="150" y="140" text-anchor="middle" fill="white" font-weight="bold">Data 2</text>
+
+                <text x="240" y="135" fill="#c0392b" font-weight="bold" font-size="16">TOP</text>
+                <path d="M235,130 L205,130" stroke="#c0392b" stroke-width="3" marker-end="url(#arrow)" />
+            </svg>
+
+            <h3>Διαδικασίες (σε Πίνακα Π[10])</h3>
+            <ul>
+                <li><strong>Ώθηση:</strong> Πριν την εισαγωγή, αυξάνουμε την κορυφή κατά 1 (<code>top &larr; top + 1</code>). Προσέχουμε να υπάρχει διαθέσιμη θέση (αλλιώς έχουμε <em>Υπερχείλιση</em>).</li>
+                <li><strong>Απώθηση:</strong> Μετά την εξαγωγή, μειώνουμε την κορυφή κατά 1 (<code>top &larr; top - 1</code>). Προσέχουμε να υπάρχει τουλάχιστον ένα στοιχείο (αλλιώς έχουμε <em>Υποχείλιση</em>).</li>
+            </ul>
+        </div>
+
+        <div class="theory-card" style="border-left-color: var(--secondary);">
+            <h2>Ουρά (Queue)</h2>
+            <p><strong>Ορισμός:</strong> Ουρά ονομάζεται μια δομή δεδομένων το σύνολο των στοιχείων της οποίας είναι διατεταγμένο με τέτοιο τρόπο, ώστε τα στοιχεία που τοποθετήθηκαν πρώτα στην ουρά να λαμβάνονται επίσης πρώτα.</p>
+            <p>Στην καθημερινή μας ζωή παρατηρούμε ουρά από αυτοκίνητα, ουρά από ανθρώπους σε μια τράπεζα κλπ.</p>
+
+            <h3>Βασικές Λειτουργίες</h3>
+            <ul>
+                <li><strong>Εισαγωγή (Enqueue):</strong> Γίνεται πάντα στο <strong>τέλος (πίσω άκρο)</strong> της ουράς.</li>
+                <li><strong>Εξαγωγή (Dequeue):</strong> Γίνεται πάντα από την <strong>αρχή (εμπρός άκρο)</strong> της ουράς.</li>
+            </ul>
+
+            <p>Χρειάζονται δύο μεταβλητές, που δείχνουν την αρχή <strong>(front – μπροστά)</strong> και το τέλος της ουράς <strong>(πίσω – rear)</strong>.</p>
+
+            <div class="highlight-text" style="color: var(--secondary);">
+                <p><strong>Μέθοδος FIFO (First In First Out):</strong> Το Πρώτο μέσα, Πρώτο έξω. Όποιο στοιχείο εισάγεται πρώτο στην ουρά, εξάγεται (εξυπηρετείται) και πρώτο.</p>
+            </div>
+
+            <svg class="theory-svg" width="400" height="150" viewBox="0 0 400 150">
+                <rect x="50" y="60" width="50" height="50" fill="white" stroke="#333" stroke-width="2"/>
+                <rect x="100" y="60" width="50" height="50" fill="white" stroke="#333" stroke-width="2"/>
+                <rect x="150" y="60" width="50" height="50" fill="white" stroke="#333" stroke-width="2"/>
+                
+                <circle cx="75" cy="85" r="20" fill="#1abc9c"/> <text x="75" y="90" text-anchor="middle" fill="white" font-weight="bold">A</text>
+                <circle cx="125" cy="85" r="20" fill="#1abc9c"/> <text x="125" y="90" text-anchor="middle" fill="white" font-weight="bold">B</text>
+                
+                <text x="75" y="45" text-anchor="middle" fill="#c0392b" font-weight="bold">FRONT</text>
+                <line x1="75" y1="50" x2="75" y2="60" stroke="#c0392b" stroke-width="2" marker-end="url(#arrow)"/>
+                
+                <text x="175" y="130" text-anchor="middle" fill="#2980b9" font-weight="bold">REAR</text>
+                <line x1="175" y1="125" x2="175" y2="110" stroke="#2980b9" stroke-width="2" marker-end="url(#arrow)"/>
+            </svg>
+
+            <h3>Διαδικασίες (σε Πίνακα Π[10])</h3>
+            <ul>
+                <li><strong>Εισαγωγή:</strong> Η εισαγωγή στοιχείου γίνεται στο πίσω άκρο (<code>rear &larr; rear + 1</code>). Αν η ουρά είναι άδεια (<code>front=0</code>), τότε και το <code>front</code> γίνεται 1.</li>
+                <li><strong>Εξαγωγή:</strong> Η εξαγωγή στοιχείου γίνεται από το εμπρός άκρο (<code>front &larr; front + 1</code>). Αν εξαχθεί το τελευταίο στοιχείο (όταν <code>front = rear</code>), τότε η ουρά αδειάζει και οι δείκτες μηδενίζονται (<code>front &larr; 0, rear &larr; 0</code>).</li>
+            </ul>
+        </div>
+    </section>
+
+    <section id="stack" class="tab-section">
+        <div class="controls">
+            <input type="text" id="stack-val" placeholder="Τιμή" maxlength="4">
+            <button class="btn btn-push" onclick="stackPush()">Ωθηση (Push)</button>
+            <button class="btn btn-pop" onclick="stackPop()">Απωθηση (Pop)</button>
+            <button class="btn btn-clear" onclick="resetStack()">Καθαρισμος</button>
+            <button class="btn btn-code" onclick="toggleCode('stack-code')">&lt;/&gt; Κωδικας</button>
+        </div>
+
+        <div class="workspace">
+            <div class="visual-container">
+                <div class="stack-wrapper">
+                    <div class="stack-box" id="stack-grid">
+                        </div>
+                    <div id="stack-ptr" class="pointer" style="bottom: -40px;"> <span class="pointer-arrow">←</span>
+                        <span class="pointer-tag">Top: <span id="top-disp">0</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code-container" id="stack-code">
+                <h4 style="margin-top:0; color:#fff; border-bottom:1px solid #555; padding-bottom:5px;">ΔΙΑΔΙΚΑΣΙΑ ΩΘΗΣΗ</h4>
+                <div id="s1" class="code-line">ΑΝ top < N ΤΟΤΕ</div>
+                <div id="s2" class="code-line indent-1">top &larr; top + 1</div>
+                <div id="s3" class="code-line indent-1">Stack[top] &larr; στοιχείο</div>
+                <div id="s4" class="code-line">ΑΛΛΙΩΣ</div>
+                <div id="s5" class="code-line indent-1">ΓΡΑΨΕ 'Η στοίβα είναι γεμάτη'</div>
+                <div id="s6" class="code-line indent-1">ΓΡΑΨΕ 'Προσοχή: Υπερχείλιση στοίβας!'</div>
+                <div id="s7" class="code-line">ΤΕΛΟΣ_ΑΝ</div>
+                
+                <h4 style="margin-top:20px; color:#fff; border-bottom:1px solid #555; padding-bottom:5px;">ΔΙΑΔΙΚΑΣΙΑ ΑΠΩΘΗΣΗ</h4>
+                <div id="s8" class="code-line">ΑΝ top > 0 ΤΟΤΕ</div>
+                <div id="s9" class="code-line indent-1">ΓΡΑΨΕ Stack[top]</div>
+                <div id="s10" class="code-line indent-1">top &larr; top - 1</div>
+                <div id="s11" class="code-line">ΑΛΛΙΩΣ</div>
+                <div id="s12" class="code-line indent-1">ΓΡΑΨΕ 'Η στοίβα είναι άδεια'</div>
+                <div id="s13" class="code-line indent-1">ΓΡΑΨΕ 'Προσοχή: Υποχείλιση στοίβας!'</div>
+                <div id="s14" class="code-line">ΤΕΛΟΣ_ΑΝ</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="queue" class="tab-section">
+        <div class="controls">
+            <input type="text" id="queue-val" placeholder="Τιμή" maxlength="4">
+            <button class="btn btn-enq" onclick="enqueue()">Εισαγωγη (Enqueue)</button>
+            <button class="btn btn-deq" onclick="dequeue()">Εξαγωγη (Dequeue)</button>
+            <button class="btn btn-clear" onclick="resetQueue()">Καθαρισμος</button>
+            <button class="btn btn-code" onclick="toggleCode('queue-code')">&lt;/&gt; Κωδικας</button>
+        </div>
+
+        <div class="workspace">
+            <div class="visual-container" style="flex-direction: column;">
+                <div style="position:relative; padding:0 20px;">
+                    <div class="queue-track" id="queue-track">
+                        <div class="q-ptr-wrapper">
+                            <div id="ptr-front" class="q-indicator q-front" style="left:-65px;">
+                                <span class="ptr-lbl">Front</span><span class="ptr-arr">↓</span>
+                            </div>
+                            <div id="ptr-rear" class="q-indicator q-rear" style="left:-65px;">
+                                <span class="ptr-arr">↑</span><span class="ptr-lbl">Rear</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top:30px; font-weight:bold; color:#555; font-size:1.1rem;">
+                    Front: <span id="f-disp" style="color:var(--accent)">0</span> | Rear: <span id="r-disp" style="color:var(--primary)">0</span>
+                </div>
+            </div>
+
+            <div class="code-container" id="queue-code">
+                <h4 style="margin-top:0; color:#fff; border-bottom:1px solid #555; padding-bottom:5px;">ΔΙΑΔΙΚΑΣΙΑ ΕΙΣΑΓΩΓΗ</h4>
+                <div id="q1" class="code-line">ΑΝ rear = N ΤΟΤΕ</div>
+                <div id="q2" class="code-line indent-1">ΓΡΑΨΕ 'Γεμάτη ουρά'</div>
+                <div id="q3" class="code-line">ΑΛΛΙΩΣ_ΑΝ front = 0 ΚΑΙ rear = 0 ΤΟΤΕ</div>
+                <div id="q4" class="code-line indent-1">front &larr; 1</div>
+                <div id="q5" class="code-line indent-1">rear &larr; 1</div>
+                <div id="q6" class="code-line indent-1">Queue[rear] &larr; στοιχείο</div>
+                <div id="q7" class="code-line">ΑΛΛΙΩΣ</div>
+                <div id="q8" class="code-line indent-1">rear &larr; rear + 1</div>
+                <div id="q9" class="code-line indent-1">Queue[rear] &larr; στοιχείο</div>
+                <div id="q10" class="code-line">ΤΕΛΟΣ_ΑΝ</div>
+
+                <h4 style="margin-top:20px; color:#fff; border-bottom:1px solid #555; padding-bottom:5px;">ΔΙΑΔΙΚΑΣΙΑ ΕΞΑΓΩΓΗ</h4>
+                <div id="q11" class="code-line">ΑΝ front = 0 ΚΑΙ rear = 0 ΤΟΤΕ</div>
+                <div id="q12" class="code-line indent-1">ΓΡΑΨΕ 'Άδεια ουρά'</div>
+                <div id="q13" class="code-line">ΑΛΛΙΩΣ_ΑΝ front = rear ΤΟΤΕ</div>
+                <div id="q14" class="code-line indent-1">ΓΡΑΨΕ Queue[front]</div>
+                <div id="q15" class="code-line indent-1">front &larr; 0</div>
+                <div id="q16" class="code-line indent-1">rear &larr; 0</div>
+                <div id="q17" class="code-line">ΑΛΛΙΩΣ</div>
+                <div id="q18" class="code-line indent-1">ΓΡΑΨΕ Queue[front]</div>
+                <div id="q19" class="code-line indent-1">front &larr; front + 1</div>
+                <div id="q20" class="code-line">ΤΕΛΟΣ_ΑΝ</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="quiz" class="tab-section">
+        <h2>Quiz Γνώσεων (Σωστό/Λάθος)</h2>
+        <div style="background: white; padding: 20px; border-radius: 8px;">
+            <table id="quiz-table">
+                <thead>
+                    <tr><th width="50">#</th><th>Ερώτηση</th><th width="160">Επιλογή</th></tr>
+                </thead>
+                <tbody id="quiz-body"></tbody>
+            </table>
+            <br>
+            <div style="text-align:center;">
+                <button class="btn btn-push" onclick="renderQuiz()">Επαναφορά Quiz</button>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+    // --- UTILS ---
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    
+    function switchTab(id, btn) {
+        document.querySelectorAll('.tab-section').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        if(btn) btn.classList.add('active');
+    }
+
+    function toggleCode(id) {
+        const el = document.getElementById(id);
+        el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+    }
+
+    async function highlight(id) {
+        document.querySelectorAll('.code-line').forEach(el => el.classList.remove('active'));
+        const line = document.getElementById(id);
+        if(line && line.parentElement.style.display === 'block') {
+            line.classList.add('active');
+        }
+        await sleep(500); 
+    }
+
+    // --- STACK LOGIC (UPDATED SIZES) ---
+    const MAX_STACK = 8;
+    const S_CELL_H = 40; // Reduced from 50
+    let topVal = 0;
+    let isAnimatingS = false;
+
+    function initStack() {
+        const box = document.getElementById('stack-grid');
+        box.innerHTML = ''; 
+        for(let i=MAX_STACK; i>=1; i--) {
+            const row = document.createElement('div');
+            row.className = 'stack-row';
+            row.style.bottom = ((i-1)*S_CELL_H) + 'px';
+            
+            const num = document.createElement('div');
+            num.className = 'stack-num';
+            num.innerText = i;
+            num.style.bottom = ((i-1)*S_CELL_H) + 'px';
+            box.appendChild(num);
+            
+            box.appendChild(row);
+        }
+        updateStackPtr(0);
+    }
+
+    function updateStackPtr(val) {
+        const ptr = document.getElementById('stack-ptr');
+        let bottomPx = -40; // Matches cell height for offset
+        if (val > 0) {
+            bottomPx = ((val - 1) * S_CELL_H); 
+        }
+        ptr.style.bottom = bottomPx + 'px';
+        document.getElementById('top-disp').innerText = val;
+    }
+
+    async function stackPush() {
+        if(isAnimatingS) return;
+        const input = document.getElementById('stack-val');
+        const val = input.value.trim();
+        if(!val) { alert("Δώσε τιμή!"); return; }
+
+        isAnimatingS = true;
+        await highlight('s1');
+
+        if(topVal >= MAX_STACK) {
+            await highlight('s4');
+            await highlight('s6');
+            alert("Προσοχή: Υπερχείλιση στοίβας!");
+            isAnimatingS = false;
+            return;
+        }
+
+        // 1. Move Pointer
+        await highlight('s2');
+        topVal++;
+        updateStackPtr(topVal);
+        await sleep(1000);
+
+        // 2. Animate Item
+        await highlight('s3');
+        const box = document.getElementById('stack-grid');
+        const item = document.createElement('div');
+        item.className = 'data-element';
+        item.innerText = val;
+        item.id = `s-item-${topVal}`;
+        
+        item.style.transition = "none";
+        item.style.bottom = "350px"; // Start above box
+        box.appendChild(item);
+        void item.offsetWidth; 
+
+        const targetBottom = ((topVal - 1) * S_CELL_H) + 4; // +4 padding
+        item.style.transition = "bottom 1s ease-out"; 
+        item.style.bottom = targetBottom + "px";
+
+        await sleep(1000);
+        input.value = "";
+        isAnimatingS = false;
+        document.querySelectorAll('.code-line').forEach(el => el.classList.remove('active'));
+    }
+
+    async function stackPop() {
+        if(isAnimatingS) return;
+        isAnimatingS = true;
+        await highlight('s8');
+        
+        if(topVal === 0) {
+            await highlight('s11');
+            await highlight('s13');
+            alert("Προσοχή: Υποχείλιση στοίβας!");
+            isAnimatingS = false;
+            return;
+        }
+
+        // 1. Fly out
+        await highlight('s9');
+        const item = document.getElementById(`s-item-${topVal}`);
+        if(item) {
+            item.style.transition = "all 1s ease-in";
+            item.style.bottom = "400px";
+            item.style.opacity = "0";
+            await sleep(1000);
+            item.remove();
+        }
+
+        // 2. Move Pointer
+        await highlight('s10');
+        topVal--;
+        updateStackPtr(topVal);
+        await sleep(1000);
+
+        isAnimatingS = false;
+        document.querySelectorAll('.code-line').forEach(el => el.classList.remove('active'));
+    }
+
+    function resetStack() {
+        topVal = 0;
+        initStack();
+    }
+
+    // --- QUEUE LOGIC (UPDATED SIZES) ---
+    const MAX_QUEUE = 8;
+    const Q_CELL_W = 63; // 60px width + 3px margin
+    let qFront = 0; 
+    let qRear = 0;  
+    let isAnimatingQ = false;
+
+    function initQueue() {
+        const track = document.getElementById('queue-track');
+        const ptrWrap = document.querySelector('.q-ptr-wrapper');
+        track.innerHTML = '';
+        track.appendChild(ptrWrap);
+
+        for(let i=1; i<=MAX_QUEUE; i++) {
+            let cell = document.createElement('div');
+            cell.className = 'queue-cell';
+            cell.id = `q-cell-${i}`;
+            cell.innerHTML = `<span class="q-num">${i}</span>`;
+            track.appendChild(cell);
+        }
+        updateQPtrs();
+    }
+
+    function updateQPtrs() {
+        const baseOffset = 10; // Matches track padding
+        const pF = document.getElementById('ptr-front');
+        const pR = document.getElementById('ptr-rear');
+
+        let fPos = (qFront === 0) ? -65 : baseOffset + ((qFront-1) * Q_CELL_W);
+        let rPos = (qRear === 0) ? -65 : baseOffset + ((qRear-1) * Q_CELL_W);
+
+        pF.style.left = fPos + 'px';
+        pR.style.left = rPos + 'px';
+
+        document.getElementById('f-disp').innerText = qFront;
+        document.getElementById('r-disp').innerText = qRear;
+    }
+
+    async function enqueue() {
+        if(isAnimatingQ) return;
+        const input = document.getElementById('queue-val');
+        const val = input.value.trim();
+        if(!val) { alert("Δώσε τιμή!"); return; }
+
+        isAnimatingQ = true;
+        await highlight('q1');
+
+        if(qRear >= MAX_QUEUE) {
+            await highlight('q2');
+            alert("Γεμάτη ουρά");
+            isAnimatingQ = false;
+            return;
+        }
+
+        await highlight('q3'); // Check Front=0 & Rear=0
+        if (qFront === 0 && qRear === 0) {
+            await highlight('q4');
+            qFront = 1;
+            await highlight('q5');
+            qRear = 1;
+            updateQPtrs();
+            await sleep(1000);
+            
+            await highlight('q6');
+            await animateEnqueue(1, val);
+        } else {
+            await highlight('q7');
+            await highlight('q8');
+            qRear++;
+            updateQPtrs();
+            await sleep(1000);
+            
+            await highlight('q9');
+            await animateEnqueue(qRear, val);
+        }
+        
+        input.value = "";
+        isAnimatingQ = false;
+        document.querySelectorAll('.code-line').forEach(el => el.classList.remove('active'));
+    }
+
+    async function animateEnqueue(index, val) {
+        const cell = document.getElementById(`q-cell-${index}`);
+        const rect = cell.getBoundingClientRect();
+
+        const flyer = document.createElement('div');
+        flyer.className = 'queue-element';
+        flyer.innerText = val;
+        flyer.style.position = 'fixed';
+        flyer.style.top = (rect.top + 6) + 'px';
+        flyer.style.left = '100vw'; 
+        flyer.style.transition = 'left 1.5s ease-out';
+        document.body.appendChild(flyer);
+        
+        void flyer.offsetWidth; 
+        flyer.style.left = (rect.left + 6) + 'px'; 
+        
+        await sleep(1500);
+
+        flyer.remove();
+        const docked = document.createElement('div');
+        docked.className = 'queue-element';
+        docked.innerText = val;
+        docked.style.position = 'relative';
+        docked.style.left = '0'; docked.style.top = '0';
+        cell.appendChild(docked);
+    }
+
+    async function dequeue() {
+        if(isAnimatingQ) return;
+        isAnimatingQ = true;
+
+        await highlight('q11'); // Check Empty
+        if(qFront === 0 && qRear === 0) {
+            await highlight('q12');
+            alert("Άδεια ουρά");
+            isAnimatingQ = false;
+            return;
+        }
+
+        await highlight('q13'); // Check if Last Element
+        if (qFront === qRear) {
+            await highlight('q14');
+            await animateDequeue(qFront);
+            
+            await highlight('q15');
+            qFront = 0;
+            await highlight('q16');
+            qRear = 0;
+            updateQPtrs();
+            await sleep(1000);
+        } else {
+            await highlight('q17');
+            await highlight('q18');
+            await animateDequeue(qFront);
+            
+            await highlight('q19');
+            qFront++;
+            updateQPtrs();
+            await sleep(1000);
+        }
+
+        isAnimatingQ = false;
+        document.querySelectorAll('.code-line').forEach(el => el.classList.remove('active'));
+    }
+
+    async function animateDequeue(index) {
+        const cell = document.getElementById(`q-cell-${index}`);
+        const item = cell.querySelector('.queue-element');
+        
+        if(item) {
+            const rect = item.getBoundingClientRect();
+            item.remove();
+            
+            const flyer = document.createElement('div');
+            flyer.className = 'queue-element';
+            flyer.innerText = item.innerText;
+            flyer.style.background = '#c0392b'; 
+            flyer.style.position = 'fixed';
+            flyer.style.top = rect.top + 'px';
+            flyer.style.left = rect.left + 'px';
+            flyer.style.transition = 'all 1.5s ease-in';
+            document.body.appendChild(flyer);
+
+            void flyer.offsetWidth;
+            flyer.style.left = '-200px';
+            flyer.style.opacity = '0';
+            await sleep(1500);
+            flyer.remove();
+        }
+    }
+
+    function resetQueue() {
+        qFront = 0;
+        qRear = 0;
+        initQueue();
+    }
+
+    // --- QUIZ DATA ---
+    const questions = [
+        // Stack Questions
+        {q: "Για την υλοποίηση μιας στοίβας μπορεί να χρησιμοποιηθεί ένας πίνακας.", a: true},
+        {q: "Στη στοίβα το στοιχείο που μπαίνει πρώτο βγαίνει πρώτο.", a: false},
+        {q: "Στην υλοποίηση της στοίβας χρειάζονται δύο μεταβλητές-δείκτες για την υλοποίηση των δύο βασικών λειτουργιών που εκτελούνται σε αυτή.", a: false},
+        {q: "Η λειτουργία της ώθησης μπορεί να εκτελεστεί και σε μια άδεια στοίβα.", a: true},
+        {q: "Η λειτουργία της ώθησης μπορεί να εκτελεστεί και σε μια γεμάτη στοίβα.", a: false},
+        {q: "Η ώθηση στοιχείου γίνεται στην κορυφή της στοίβας.", a: true},
+        {q: "Στη δομή της στοίβας απαιτούνται δύο δείκτες, ο εμπρός και ο πίσω.", a: false},
+        {q: "Υπερχείλιση έχουμε όταν εισάγουμε ένα στοιχείο σε μια ήδη γεμάτη στοίβα.", a: true},
+        {q: "Η μέθοδος LIFO περιγράφει τη διαδικασία εκείνη κατά την οποία το στοιχείο που τοποθετείται τελευταίο εξάγεται πρώτο.", a: true},
+        {q: "Κάθε στοιχείο που εισάγεται πρώτο σε μια στοίβα είναι αυτό που εξάγεται πρώτο.", a: false},
+        
+        // Queue Questions
+        {q: "Για την υλοποίηση της ουράς μπορεί να χρησιμοποιηθεί πίνακας.", a: true},
+        {q: "Κατά την εισαγωγή ενός στοιχείου σε ουρά, αυτό τοποθετείται στο μπροστινό άκρο της.", a: false},
+        {q: "Σε μια ουρά κάθε στοιχείο της εξάγεται από το μπροστινό άκρο της.", a: true},
+        {q: "Η απώθηση είναι μια από τις λειτουργίες της ουράς.", a: false},
+        {q: "Η εισαγωγή και η εξαγωγή είναι οι δύο βασικές λειτουργίες της ουράς.", a: true},
+        {q: "Στην ουρά το στοιχείο που μπαίνει πρώτο βγαίνει και πρώτο.", a: true},
+        {q: "Η υλοποίηση της ουράς χρησιμοποιεί μία μεταβλητή-δείκτη για την εκτέλεση των δύο βασικών λειτουργιών της.", a: false},
+        {q: "Η λειτουργία της εξαγωγής μπορεί να εκτελεστεί σε μια γεμάτη ουρά.", a: true}
+    ];
+
+    function renderQuiz() {
+        const tbody = document.getElementById('quiz-body');
+        tbody.innerHTML = '';
+        questions.forEach((item, idx) => {
+            let tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${idx+1}</td>
+                <td>${item.q}</td>
+                <td>
+                    <button class="choice-btn" onclick="checkAnswer(this, ${idx}, true)">ΣΩΣΤΟ</button>
+                    <button class="choice-btn" onclick="checkAnswer(this, ${idx}, false)">ΛΑΘΟΣ</button>
+                    <span class="res-icon" style="margin-left:5px; font-weight:bold;"></span>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function checkAnswer(btn, idx, choice) {
+        const row = btn.parentNode;
+        row.querySelectorAll('.choice-btn').forEach(b => b.disabled = true);
+        const isCorrect = (choice === questions[idx].a);
+        const icon = row.querySelector('.res-icon');
+        if(isCorrect) {
+            btn.classList.add('correct');
+            icon.style.color = 'var(--secondary)';
+            icon.innerText = "ΣΩΣΤΟ!";
+        } else {
+            btn.classList.add('wrong');
+            icon.style.color = 'var(--accent)';
+            icon.innerText = "ΛΑΘΟΣ!";
+        }
+    }
+
+    // INIT
+    window.onload = function() {
+        initStack();
+        initQueue();
+        renderQuiz();
+    };
+
+</script>
+</body>
+</html>
