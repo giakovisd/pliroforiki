@@ -103,10 +103,7 @@
 
 ---
 
-## Δομές Επανάληψης – Μετασχηματισμοί
-
-- Transformations of repetition structures with state  
-  [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Transformations%20of%20repetition%20structures%20with%20state.html)
+## Δομές Επανάληψης – Μετατροπές
 
 - Transformations of repetition structures with student solution input  
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Transformations%20of%20repetition%20structures%20with%20student%20solution%20input.html)
