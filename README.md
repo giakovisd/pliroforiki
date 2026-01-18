@@ -41,8 +41,7 @@
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/One-Dimensional%20Tables%20Fill%20in%20the%20blank%202012.html)
 
 - One-Dimensional Tables – Θέμα Β (2004)  
-  [[Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/One-Dimensional%20Tables%20B%202004.html)](https://giakovisd.github.io/pliroforiki/One-Dimensional%20Tables%20B%202004.html
-)
+  [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/One-Dimensional%20Tables%20%CE%92%202004.html)
 
 - One-dimensional arrays – Copy Function  
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/One-dimensional%20arrays%20Copy%20Function.html)
@@ -51,7 +50,7 @@
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/One-dimensional%20arrays%20Merge%20Operation.html)
 
 - One-dimensional arrays – Merge sorted arrays  
-  [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/One-dimensional%20arrays%20Merge%20sorted%20arrays.html)
+  [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/One-dimensional%20arrays%20Merge%20sorted%20arrays%20function.html)
 
 - One-dimensional arrays – Merge sorted arrays (function)  
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/One-dimensional%20arrays%20Merge%20sorted%20arrays%20function.html)
