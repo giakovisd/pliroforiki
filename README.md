@@ -17,11 +17,6 @@
 
 ## Παιχνίδια – Quiz – Συμπλήρωσης Κενών
 
-## Παιχνίδια – Quiz – Συμπλήρωσης Κενών
-
-- 2-player question game on True/False questions (όπως είναι ακριβώς στο repo)
-  [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/2-player%20question%20game%20on%20TrueFalse%20question%20game%20on%20TrueFalse%20question.html)
-
 - 2-player question game on True/False questions (from National Exams)
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/2-player%20question%20game%20on%20TrueFalse%20questions%20from%20National%20Exams.html)
 
