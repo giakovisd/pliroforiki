@@ -93,8 +93,10 @@
 ---
 ## Στοίβες - Ουρές
 
+Οι ασκήσεις λειτουργίες στις Στοίβες (ώθηση - απώθηση) και Ουρές (εισαγωγή - εξαγωγή) 
 [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Stack-Queue.html)
 
+Ασκήσεις στις στοίβες και ουρές
 [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Stack-Queue-Exercises.html)
 
 ---
