@@ -57,7 +57,7 @@
 - Μονοδιάστατοι πίνακες - Λειτουργία Συγχώνευσης ταξινομημένων πινάκων 
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/One-dimensional%20arrays%20Merge%20sorted%20arrays%20function.html)
 
-  - Μονοσιάστατοι πίνακες - Εκτέλεση Επαναληπτικές Εξετάσεις Θέμα Β (2012) 
+- Μονοσιάστατοι πίνακες - Εκτέλεση Επαναληπτικές Εξετάσεις Θέμα Β (2012) 
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Three%20One-Dimensionals%20B%20topic%20what%20does%20it%20show%3F%20.html)
 
 ## Αλγόριθμοι Αναζήτησης & Ταξινόμησης
