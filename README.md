@@ -1,5 +1,5 @@
 # Διαδραστικές Εφαρμογές Πληροφορικής  
-## Γ΄ Λυκείου – Προσανατολισμός Οικονομίας & Πληροφορικής
+## Πληροφορική (πρώην ΑΕΠΠ): Γ΄ Λυκείου – Προσανατολισμός Οικονομίας & Πληροφορικής
 
 Όλες οι εφαρμογές εκτελούνται μέσω **GitHub Pages**.
 
@@ -7,7 +7,7 @@
 
 ## Κεντρικές Εφαρμογές
 
-- Κύρια εφαρμογή (index)  
+- Δυναμικές Δομές Δεδομένων (λίστες). Παράγραφος 1.3.1. Συμποληρωματικό Υλικό  
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/)
 
 - Κεφάλαιο 6  
@@ -41,7 +41,8 @@
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/One-Dimensional%20Tables%20Fill%20in%20the%20blank%202012.html)
 
 - One-Dimensional Tables – Θέμα Β (2004)  
-  [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/One-Dimensional%20Tables%20B%202004.html)
+  [[Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/One-Dimensional%20Tables%20B%202004.html)](https://giakovisd.github.io/pliroforiki/One-Dimensional%20Tables%20B%202004.html
+)
 
 - One-dimensional arrays – Copy Function  
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/One-dimensional%20arrays%20Copy%20Function.html)
