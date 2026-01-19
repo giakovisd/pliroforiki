@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8">
+  <title>Συλλογή Ασκήσεων Αλγοριθμικής</title>
+  <style>
+    /* --- GLOBAL STYLES & NAVIGATION --- */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #e5e7eb;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .main-nav {
+      background: #1f2937;
+      display: flex;
+      padding: 0 10px;
+      height: 50px;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      z-index: 1000;
+      flex-shrink: 0;
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: none;
+      color: #9ca3af;
+      padding: 0 20px;
+      height: 100%;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.2s;
+      border-bottom: 3px solid transparent;
+    }
+
+    .nav-btn:hover {
+      color: #f3f4f6;
+      background: rgba(255,255,255,0.05);
+    }
+
+    .nav-btn.active {
+      color: #ffffff;
+      border-bottom-color: #3b82f6;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .app-view {
+      display: none;
+      flex: 1;
+      height: calc(100vh - 50px);
+      overflow: auto;
+      position: relative;
+    }
+
+    .app-view.active {
+      display: block;
+    }
+
+    /* Layout for Apps 3 & 4 */
+    #view3.active, #view4.active {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+  </style>
+
+  <style>
+    #view1 .container { max-width: 1200px; margin: 0 auto; padding: 24px 26px 36px; }
+    #view1 h1 { margin: 0 0 8px; font-size: 30px; color: #111827; }
+    #view1 .subtitle { font-size: 17px; color: #4b5563; margin-bottom: 20px; }
+    #view1 .tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    #view1 .sub-tab-btn { border-radius: 999px; border: none; padding: 9px 18px; font-size: 16px; cursor: pointer; background: #e5e7eb; color: #111827; transition: background 0.15s ease; }
+    #view1 .sub-tab-btn.active { background: #2563eb; color: #ffffff; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35); }
+    #view1 .tab-content { display: none; }
+    #view1 .tab-content.active { display: block; }
+    #view1 .panel { background: #f9fafb; border-radius: 16px; border: 1px solid #e5e7eb; padding: 16px 18px 18px; margin-bottom: 18px; }
+    #view1 .array-horizontal { display: inline-block; border: 1px solid #111827; border-radius: 10px; overflow: hidden; background: #f3f4f6; margin-bottom: 14px; }
+    #view1 .array-row { display: grid; grid-template-columns: repeat(10, 54px); position: relative; }
+    #view1 .array-cell, #view1 .array-index { border-right: 1px solid #111827; border-bottom: 1px solid #111827; height: 42px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    #view1 .array-index { background: #e5e7eb; font-weight: 600; font-size: 16px; }
+    #view1 .array-cell { background: #f9fafb; font-weight: 600; }
+    #view1 .cell-swap { background: #f97316 !important; color: #ffffff; transform: scale(1.05); }
+    #view1 .moving-cell { position: absolute; top: 0; width: 54px; height: 42px; display: flex; align-items: center; justify-content: center; border-radius: 6px; border: 1px solid #111827; background: #f97316; color: #ffffff; font-weight: 600; font-size: 18px; z-index: 5; pointer-events: none; transition: transform 2s ease; }
+    #view1 .eq-row code { font-family: monospace; background: #e5e7eb; padding: 3px 8px; border-radius: 8px; line-height: 1.7; font-size: 17px; }
+    #view1 .eq-input, #view1 .code-input { width: 36px; padding: 3px 2px; text-align: center; border-radius: 4px; border: 1px solid #d1d5db; }
+    #view1 .eq-input.correct, #view1 .code-input.correct { border-color: #16a34a; background: #dcfce7; }
+    #view1 .eq-input.wrong, #view1 .code-input.wrong { border-color: #dc2626; background: #fee2e2; }
+    #view1 .btn-action { border-radius: 999px; border: none; padding: 9px 18px; font-size: 16px; cursor: pointer; background: #2563eb; color: #ffffff; margin-top: 8px; }
+    #view1 .code-block { font-family: monospace; font-size: 18px; background: #ffffff; border-radius: 12px; padding: 12px; border: 1px solid #d1d5db; white-space: pre; }
+    #view1 .solution-box { margin-top: 8px; padding: 7px 9px; border-radius: 10px; background: #eff6ff; border: 1px solid #bfdbfe; font-family: monospace; }
+  </style>
+
+  <style>
+    #view2 { background: #f5f5f5; padding: 20px; }
+    #view2 .exercise-container { background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); max-width: 1150px; margin: 0 auto; }
+    #view2 table.code-mem { border-collapse: collapse; width: 100%; font-size: 14px; }
+    #view2 table.code-mem th, #view2 table.code-mem td { border: 1px solid #999; padding: 4px 6px; vertical-align: top; }
+    #view2 table.code-mem th { background: #e0e0e0; text-align: center; }
+    #view2 td.line-no { width: 40px; text-align: center; background: #f5f5f5; font-weight: 600; }
+    #view2 td.code-cell { font-family: "Consolas", monospace; white-space: pre-wrap; min-width: 250px; }
+    #view2 .gap-input { width: 55px; font-family: inherit; font-size: 14px; text-align: center; }
+    #view2 .line-status.ok { color: #007700; font-weight: bold; }
+    #view2 .line-status.err { color: #b00020; font-weight: bold; }
+    #view2 .correct-slot { font-size: 0.8rem; color: #555; font-style: italic; }
+    #view2 button { padding: 6px 14px; background: #1976d2; color: #fff; border: 1px solid #444; border-radius: 4px; cursor: pointer; }
+    #view2 .overall-message.ok { color: #007700; font-weight: bold; }
+    #view2 .overall-message.not-ok { color: #b00020; font-weight: bold; }
+  </style>
+
+  <style>
+    /* Shared styles for the split-view apps */
+    .sim-root {
+      display: flex; flex-direction: column; height: 100%;
+    }
+    .sim-header { background: #2c3e50; color: white; padding: 0.5rem; text-align: center; font-size: 1.1rem; }
+    .sim-main { display: flex; flex: 1; overflow: hidden; padding: 10px; gap: 10px; }
+    .sim-left { flex: 0 0 40%; display: flex; flex-direction: column; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .sim-right { flex: 1; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+    
+    .sim-controls { padding: 10px; background: #eee; border-bottom: 1px solid #ddd; display: flex; gap: 5px; justify-content: center; }
+    .sim-btn { padding: 6px 12px; border: 1px solid #999; background: #fff; cursor: pointer; border-radius: 4px; font-weight: bold; }
+    .sim-btn:disabled { opacity: 0.5; }
+    .btn-next { background: #3498db; color: white; border: none; }
+    .btn-auto { background: #27ae60; color: white; border: none; }
+
+    .sim-code-container { flex: 1; background: #282c34; color: #abb2bf; font-family: 'Consolas', monospace; font-size: 0.95rem; padding: 15px; overflow-y: auto; line-height: 1.6; }
+    .sim-code-line { padding: 2px 6px; border-radius: 2px; display: block; white-space: pre; }
+    .sim-code-line.active { background-color: #f1c40f; color: black; font-weight: bold; }
+
+    .sim-arrays { background: white; padding: 10px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px; flex: 0 0 auto; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    
+    /* Missing styles restored for DATA/L/R alignment */
+    .sim-array-row { display: flex; align-items: center; gap: 10px; }
+    .array-label { width: 50px; font-weight: bold; text-align: right; color: #555; }
+    .array-boxes { display: flex; gap: 4px; }
+    
+    .sim-array-cell { border: 1px solid #999; background: #fafafa; text-align: center; width: 32px; height: 45px; border-radius: 4px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 0.8rem; }
+    .active-k { background-color: #ffecb3; border-color: #f39c12; transform: scale(1.1); box-shadow: 0 0 5px rgba(243,156,18,0.5); z-index: 5; }
+    .cell-idx { font-size: 0.65rem; color: #888; margin-bottom: 2px; }
+    .cell-val { font-size: 1rem; font-weight: bold; color: #222; }
+
+    .sim-table-container { background: white; border-radius: 8px; flex: 1; overflow: auto; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .sim-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: center; }
+    .sim-table th { position: sticky; top: 0; background: #d3d3d3; color: black; padding: 8px; border: 1px solid #999; border-bottom: 2px solid #555; z-index: 10; }
+    .sim-table td { border: 1px solid #ddd; padding: 6px; height: 2em; }
+    .sim-changed { animation: flash 1s; font-weight: bold; }
+    .sim-old-val { text-decoration: line-through; color: #aaa; }
+    @keyframes flash { 0% { background-color: yellow; } 100% { background-color: inherit; } }
+
+    .sim-screen { background: #000; color: #0f0; font-family: 'Courier New', monospace; padding: 10px; border-radius: 8px; height: 100px; overflow-y: auto; font-size: 0.9rem; border: 4px solid #555; flex: 0 0 auto; }
+    .sim-status { background: #fff3cd; color: #856404; padding: 5px 10px; font-size: 0.9rem; border-top: 1px solid #ccc; flex: 0 0 auto; }
+
+    /* Custom overrides for App 4 (Min/Max) to match specific visual style */
+    #view4 .array-view { background: white; padding: 8px; border-radius: 8px; display: flex; justify-content: center; gap: 5px; flex: 0 0 auto; }
+    #view4 .array-cell { width: 40px; }
+    #view4 .col-grp1 { background: #eaf2f8; }
+    #view4 .col-grp2 { background: #fef9e7; }
+    #view4 .col-grp3 { background: #fdedec; }
+  </style>
+</head>
+<body>
+
+  <nav class="main-nav">
+    <button class="nav-btn active" onclick="switchApp('view1', this)">1. Πίνακες (2012)</button>
+    <button class="nav-btn" onclick="switchApp('view2', this)">2. Κενά RAM</button>
+    <button class="nav-btn" onclick="switchApp('view3', this)">3. Αναζήτηση Δέντρου</button>
+    <button class="nav-btn" onclick="switchApp('view4', this)">4. Min/Max Ζεύγη</button>
+  </nav>
+
+  <div id="view1" class="app-view active">
+    <div class="container">
+      <h1>Θέμα Α3 – Πανελλαδικές 2012</h1>
+      <div class="subtitle">
+    Δίνεται ο πίνακας Α[10], στον οποίο επιθυμούμε να αποθηκεύσουμε όλους τους ακεραίους αριθμούς από το 10 μέχρι το 1 με φθίνουσα σειρά. 
+    Στον πίνακα έχουν εισαχθεί ορισμένοι αριθμοί, οι οποίοι εμφανίζονται στο παρακάτω σχήμα.<br><br>
+    
+    Καρτέλα 1) Να συμπληρώσετε τις επόμενες εντολές εκχώρησης, ώστε τα κενά κελιά του πίνακα να αποκτήσουν τις επιθυμητές τιμές.<br>
+    Καρτέλα 2) Να συμπληρώσετε το παρακάτω τμήμα αλγορίθμου, το οποίο αντιμεταθέτει τις τιμές των κελιών του πίνακα Α, έτσι ώστε η τελική διάταξη των αριθμών να είναι από 1 μέχρι 10.
+</div>
+
+      <div class="tabs">
+        <button class="sub-tab-btn active" data-target="t1-tab1">Καρτέλα 1 – Μέρος (α)</button>
+        <button class="sub-tab-btn" data-target="t1-tab2">Καρτέλα 2 – Μέρος (β)</button>
+      </div>
+
+      <div id="t1-tab1" class="tab-content active">
+        <div class="panel">
+          <h2>Μέρος (α) – Συμπλήρωση εντολών εκχώρησης</h2>
+          <div class="array-horizontal">
+            <div class="array-row">
+              <div class="array-index">1</div><div class="array-index">2</div><div class="array-index">3</div><div class="array-index">4</div><div class="array-index">5</div>
+              <div class="array-index">6</div><div class="array-index">7</div><div class="array-index">8</div><div class="array-index">9</div><div class="array-index">10</div>
+            </div>
+            <div class="array-row" id="tab1-array"></div>
+          </div>
+          <div class="eq-list">
+            <div class="eq-row"><code>Α[3] ← 3 + Α[<input id="t1-a3" class="eq-input" maxlength="2">]</code></div>
+            <div class="eq-row"><code>Α[9] ← Α[<input id="t1-a9" class="eq-input" maxlength="2">] − 2</code></div>
+            <div class="eq-row"><code>Α[8] ← Α[<input id="t1-a8" class="eq-input" maxlength="2">] − 5</code></div>
+            <div class="eq-row"><code>Α[4] ← 5 + Α[<input id="t1-a4" class="eq-input" maxlength="2">]</code></div>
+            <div class="eq-row"><code>Α[5] ← (Α[<input id="t1-a5" class="eq-input" maxlength="2">] + Α[7]) div 2</code></div>
+          </div>
+          <button id="t1-check" class="btn-action">✅ Αξιολόγηση & λύση</button>
+          <div id="t1-feedback" class="feedback"></div>
+          <div id="t1-solution" class="solution-box" style="display:none;">
+            <strong>Σωστή συμπλήρωση:</strong><br>
+            <code>Α[3] ← 3 + Α[6]</code><br><code>Α[9] ← Α[7] − 2</code><br><code>Α[8] ← Α[3] − 5</code><br><code>Α[4] ← 5 + Α[9]</code><br><code>Α[5] ← (Α[3] + Α[7]) div 2</code>
+          </div>
+        </div>
+      </div>
+
+      <div id="t1-tab2" class="tab-content">
+        <div class="panel">
+          <h2>Μέρος (β) – Ταξινόμηση (Bubble Logic)</h2>
+          <div class="array-horizontal">
+            <div class="array-row">
+              <div class="array-index">1</div><div class="array-index">2</div><div class="array-index">3</div><div class="array-index">4</div><div class="array-index">5</div>
+              <div class="array-index">6</div><div class="array-index">7</div><div class="array-index">8</div><div class="array-index">9</div><div class="array-index">10</div>
+            </div>
+            <div class="array-row" id="tab2-array"></div>
+          </div>
+          <div class="code-block">
+Για i από <input id="t2-from" class="code-input" maxlength="2"> μέχρι <input id="t2-to" class="code-input" maxlength="2">
+  αντιμετάθεσε Α[<input id="t2-left" class="code-input" maxlength="5">], Α[<input id="t2-right" class="code-input" maxlength="6">]
+Τέλος_επανάληψης
+          </div>
+          <button id="t2-check" class="btn-action">✅ Αξιολόγηση & Animation</button>
+          <div id="t2-feedback" class="feedback"></div>
+          <div id="t2-solution" class="solution-box" style="display:none;">
+            <strong>Σωστή λύση:</strong><br>
+            <code>Για i από 1 μέχρι 5</code><br><code>&nbsp;&nbsp;αντιμετάθεσε Α[i], Α[11−i]</code>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="view2" class="app-view">
+    <div class="exercise-container">
+      <h1>Συμπλήρωση κενών αλγορίθμου (Πίνακας Μνήμης)</h1>
+      <div class="statement">
+        Δίνεται το παρακάτω τμήμα αλγορίθμου με αριθμημένες εντολές για εύκολη αναφορά σε αυτές. Κάθε εντολή περιέχει ένα ή δύο κενά (σημειωμένα με …), που το καθένα αντιστοιχεί σε μία σταθερά ή μία μεταβλητή ή έναν τελεστή. Επίσης δίνεται πίνακας όπου κάθε γραμμή αντιστοιχεί στη διπλανή εντολή του τμήματος αλγορίθμου και κάθε στήλη σε μία θέση μνήμης (μεταβλητή). Η κάθε γραμμή του πίνακα παρουσιάζει το αποτέλεσμα που έχει η εκτέλεση της αντίστοιχης εντολής στη μνήμη: συγκεκριμένα, δείχνει την τιμή της μεταβλητής την οποία επηρεάζει η εντολή. Να συμπληρώσετε τη σταθερά, τη μεταβλητή, ή τον τελεστή που πρέπει να αντικαταστήσει το κάθε κενό της εντολής ώστε να έχει το αποτέλεσμα που δίνεται στον πίνακα, ως εξής: 
+Α. Για τις εντολές 1 και 2, να σημειώσετε σταθερές τιμές. 
+Β. Για τις εντολές 3,7,10 και 11, να σημειώσετε τελεστές, και για τις υπόλοιπες, να σημειώσετε μεταβλητές.
+      </div>
+      <table class="code-mem" id="codeMemTable">
+        <thead>
+          <tr>
+            <th>Εντ.</th><th>Εντολή</th><th>A</th><th>B</th><th>Γ</th><th>Δ</th><th>E</th><th>Z</th><th>X[1]</th><th>X[2]</th><th>X[3]</th>
+          </tr>
+        </thead>
+        <tbody id="codeMemBody"></tbody>
+      </table>
+      <div class="controls">
+        <button id="checkBtnRAM">Έλεγχος όλων</button>
+        <span id="overallMessageRAM" class="overall-message"></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="view3" class="app-view">
+    <div class="sim-root">
+      <div class="sim-header"> Δίνονται οι πίνακες DATA[7], L[7], R[7], οι οποίοι περιέχουν δεδομένα, όπως φαίνονται στα παρακάτω σχήματα. Χρησιμοποιώντας τους ανωτέρω πίνακες, να εκτελέσετε το παρακάτω τμήμα αλγορίθμου</div>
+      <div class="sim-main">
+        <div class="sim-left">
+          <div class="sim-controls">
+            <button id="f3_btnNext" class="sim-btn btn-next">Επόμενο ➔</button>
+            <button id="f3_btnAuto" class="sim-btn btn-auto">▶ Auto</button>
+            <button id="f3_btnReset" class="sim-btn">⟲ Reset</button>
+          </div>
+          <div class="sim-code-container">
+<div class="sim-code-line" data-line="1">ΓΡΑΜΜΑ ← 'Σ'</div>
+<div class="sim-code-line" data-line="2">K ← 1</div>
+<div class="sim-code-line" data-line="3">Όσο DATA[K] &lt;&gt; ΓΡΑΜΜΑ επανάλαβε</div>
+<div class="sim-code-line" data-line="4">    Εκτύπωσε DATA[K]</div>
+<div class="sim-code-line" data-line="5">    Αν DATA[K] &gt; ΓΡΑΜΜΑ τότε</div>
+<div class="sim-code-line" data-line="6">        K ← L[K]</div>
+<div class="sim-code-line" data-line="7">    αλλιώς</div>
+<div class="sim-code-line" data-line="8">        K ← R[K]</div>
+<div class="sim-code-line" data-line="9">    Τέλος_αν</div>
+<div class="sim-code-line" data-line="10">Τέλος_επανάληψης</div>
+<div class="sim-code-line" data-line="11">Εκτύπωσε DATA[K]</div>
+          </div>
+        </div>
+        <div class="sim-right">
+          <div class="sim-arrays">
+            <div class="sim-array-row"><div class="array-label">DATA</div><div class="array-boxes" id="f3_box-data"></div></div>
+            <div class="sim-array-row"><div class="array-label">L</div><div class="array-boxes" id="f3_box-l"></div></div>
+            <div class="sim-array-row"><div class="array-label">R</div><div class="array-boxes" id="f3_box-r"></div></div>
+          </div>
+          <div class="sim-table-container">
+            <table class="sim-table">
+              <thead><tr><th style="background:#eaf2f8">K</th><th style="background:#fef9e7">DATA[K]</th><th style="background:#fdedec">ΓΡΑΜΜΑ</th></tr></thead>
+              <tbody id="f3_values-body">
+                <tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr>
+                <tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="sim-screen" id="f3_screen-output"><div style="border-bottom: 1px solid #333; margin-bottom:5px; color:#fff;">Οθόνη:</div></div>
+        </div>
+      </div>
+      <div class="sim-status" id="f3_status-text">Έτοιμο.</div>
+    </div>
+  </div>
+
+  <div id="view4" class="app-view">
+    <div class="sim-root">
+      <div class="sim-header"> Δίνεται ο μονοδιάστατος πίνακας C με έξι στοιχεία που έχουν αντίστοιχα τις παρακάτω τιμές: 2, 5, 15, –1, 32, 14 και το παρακάτω τμήμα αλγορίθμου. Να εκτελέσετε το παραπάνω τμήμα αλγορίθμου και να γράψετε
+τις τιμές των μεταβλητών Α, Β, Lmin, Lmax, min και max, όπως αυτές εκτυπώνονται σε κάθε επανάληψη και την τιμή της μεταβλητής D που εκτυπώνεται. 
+</div>
+      <div class="sim-main">
+        <div class="sim-left">
+          <div class="sim-controls">
+            <button id="f4_btnNext" class="sim-btn btn-next">Επόμενο ➔</button>
+            <button id="f4_btnAuto" class="sim-btn btn-auto">▶ Auto</button>
+            <button id="f4_btnReset" class="sim-btn">⟲ Reset</button>
+          </div>
+          <div class="sim-code-container">
+<div class="sim-code-line" data-line="1">min ← 100</div>
+<div class="sim-code-line" data-line="2">max ← -100</div>
+<div class="sim-code-line" data-line="3">Για i από 1 μέχρι 6 με_βήμα 2</div>
+<div class="sim-code-line" data-line="4">    A ← C[i]</div>
+<div class="sim-code-line" data-line="5">    B ← C[i+1]</div>
+<div class="sim-code-line" data-line="6">    Αν A &lt; B τότε</div>
+<div class="sim-code-line" data-line="7">        Lmin ← A</div>
+<div class="sim-code-line" data-line="8">        Lmax ← B</div>
+<div class="sim-code-line" data-line="9">    αλλιώς</div>
+<div class="sim-code-line" data-line="10">        Lmin ← B</div>
+<div class="sim-code-line" data-line="11">        Lmax ← A</div>
+<div class="sim-code-line" data-line="12">    Τέλος_αν</div>
+<div class="sim-code-line" data-line="13">    Αν Lmin &lt; min τότε</div>
+<div class="sim-code-line" data-line="14">        min ← Lmin</div>
+<div class="sim-code-line" data-line="15">    Τέλος_αν</div>
+<div class="sim-code-line" data-line="16">    Αν Lmax &gt; max τότε</div>
+<div class="sim-code-line" data-line="17">        max ← Lmax</div>
+<div class="sim-code-line" data-line="18">    Τέλος_αν</div>
+<div class="sim-code-line" data-line="19">    Εκτύπωσε A, B, Lmin, Lmax, min, max</div>
+<div class="sim-code-line" data-line="20">Τέλος_επανάληψης</div>
+<div class="sim-code-line" data-line="21">D ← max * min</div>
+<div class="sim-code-line" data-line="22">Εκτύπωσε D</div>
+          </div>
+        </div>
+        <div class="sim-right">
+          <div class="array-view">
+            <strong>C:</strong>
+            <div class="sim-array-cell" id="f4_c-1"><div class="cell-idx">1</div><div class="cell-val">2</div></div>
+            <div class="sim-array-cell" id="f4_c-2"><div class="cell-idx">2</div><div class="cell-val">5</div></div>
+            <div class="sim-array-cell" id="f4_c-3"><div class="cell-idx">3</div><div class="cell-val">15</div></div>
+            <div class="sim-array-cell" id="f4_c-4"><div class="cell-idx">4</div><div class="cell-val">-1</div></div>
+            <div class="sim-array-cell" id="f4_c-5"><div class="cell-idx">5</div><div class="cell-val">32</div></div>
+            <div class="sim-array-cell" id="f4_c-6"><div class="cell-idx">6</div><div class="cell-val">14</div></div>
+          </div>
+          <div class="sim-table-container">
+            <table class="sim-table">
+              <thead>
+                <tr>
+                  <th class="col-grp1">A</th><th class="col-grp1">B</th>
+                  <th class="col-grp2">Lmin</th><th class="col-grp2">Lmax</th>
+                  <th class="col-grp3">min</th><th class="col-grp3">max</th>
+                  <th>D</th>
+                </tr>
+              </thead>
+              <tbody id="f4_values-body">
+                <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="sim-screen" id="f4_screen-output"><div style="border-bottom: 1px solid #333; margin-bottom:5px; color:#fff;">Οθόνη:</div></div>
+        </div>
+      </div>
+      <div class="sim-status" id="f4_status-text">Έτοιμο.</div>
+    </div>
+  </div>
+
+  <script>
+    function switchApp(viewId, btn) {
+      document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
+      document.getElementById(viewId).classList.add('active');
+      document.querySelectorAll('.main-nav .nav-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+  </script>
+
+  <script>
+    (() => {
+      const initialA_part1 = [10, 9, null, null, null, 5, 4, null, null, 1];
+      const finalDescending = [10,9,8,7,6,5,4,3,2,1];
+      let currentA_tab1 = initialA_part1.slice();
+      let currentA_tab2 = finalDescending.slice();
+
+      function renderArray(containerId, values) {
+        const cont = document.getElementById(containerId);
+        cont.innerHTML = '';
+        values.forEach((v, idx) => {
+          const cell = document.createElement('div');
+          cell.className = 'array-cell';
+          cell.dataset.index = idx + 1;
+          cell.textContent = (v === null || v === undefined) ? '' : v;
+          if(v!==null && v!==undefined) {
+              const idxDiv = document.createElement('div'); 
+              idxDiv.className='array-index';
+          }
+          cont.appendChild(cell);
+        });
+      }
+
+      document.querySelectorAll('.sub-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#view1 .sub-tab-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('#view1 .tab-content').forEach(c => c.classList.remove('active'));
+          btn.classList.add('active');
+          document.getElementById(btn.dataset.target).classList.add('active');
+        });
+      });
+
+      function recalcTab1Array() {
+        currentA_tab1 = initialA_part1.slice();
+        const readIndex = (id) => {
+          const v = document.getElementById(id).value.trim();
+          const n = parseInt(v, 10);
+          if (!Number.isInteger(n) || n < 1 || n > 10) return null;
+          return n;
+        };
+        let idx = readIndex('t1-a3'); if (idx !== null && currentA_tab1[idx-1] != null) currentA_tab1[2] = 3 + currentA_tab1[idx-1];
+        idx = readIndex('t1-a9'); if (idx !== null && currentA_tab1[idx-1] != null) currentA_tab1[8] = currentA_tab1[idx-1] - 2;
+        idx = readIndex('t1-a8'); if (idx !== null && currentA_tab1[idx-1] != null) currentA_tab1[7] = currentA_tab1[idx-1] - 5;
+        idx = readIndex('t1-a4'); if (idx !== null && currentA_tab1[idx-1] != null) currentA_tab1[3] = 5 + currentA_tab1[idx-1];
+        idx = readIndex('t1-a5'); if (idx !== null && currentA_tab1[idx-1] != null && currentA_tab1[6] != null) currentA_tab1[4] = Math.floor((currentA_tab1[idx-1] + currentA_tab1[6]) / 2);
+        renderArray('tab1-array', currentA_tab1);
+      }
+      
+      renderArray('tab1-array', currentA_tab1);
+      ['t1-a3','t1-a9','t1-a8','t1-a4','t1-a5'].forEach(id => {
+        document.getElementById(id).addEventListener('input', recalcTab1Array);
+      });
+
+      document.getElementById('t1-check').addEventListener('click', () => {
+        const correct = { 't1-a3': 6, 't1-a9': 7, 't1-a8': 3, 't1-a4': 9, 't1-a5': 3 };
+        let allCorrect = true;
+        Object.keys(correct).forEach(id => {
+          const inp = document.getElementById(id);
+          const val = parseInt(inp.value.trim(), 10);
+          inp.classList.remove('correct', 'wrong');
+          if (val === correct[id]) inp.classList.add('correct');
+          else { inp.classList.add('wrong'); allCorrect = false; }
+        });
+        const fb = document.getElementById('t1-feedback');
+        if (allCorrect) fb.innerHTML = '<span style="color:#15803d;font-weight:600">Μπράβο! Όλα σωστά.</span>';
+        else fb.innerHTML = '<span style="color:#b91c1c;font-weight:600">Λάθη. Δες τη λύση.</span>';
+        document.getElementById('t1-solution').style.display = 'block';
+        renderArray('tab1-array', finalDescending);
+      });
+
+      renderArray('tab2-array', currentA_tab2);
+      function animateTab2Swaps() {
+        const row = document.getElementById('tab2-array');
+        const cells = Array.from(row.children);
+        let i = 1;
+        function step() {
+          if (i > 5) return;
+          const left = i - 1; const right = 10 - i;
+          const leftCell = cells[left]; const rightCell = cells[right];
+          const rowRect = row.getBoundingClientRect();
+          const leftRect = leftCell.getBoundingClientRect();
+          const rightRect = rightCell.getBoundingClientRect();
+          const leftX = leftRect.left - rowRect.left;
+          const rightX = rightRect.left - rowRect.left;
+
+          const movingLeft = document.createElement('div');
+          movingLeft.className = 'moving-cell'; movingLeft.style.left = leftX + 'px'; movingLeft.textContent = currentA_tab2[left];
+          const movingRight = document.createElement('div');
+          movingRight.className = 'moving-cell'; movingRight.style.left = rightX + 'px'; movingRight.textContent = currentA_tab2[right];
+          row.appendChild(movingLeft); row.appendChild(movingRight);
+          leftCell.classList.add('cell-swap'); rightCell.classList.add('cell-swap');
+          
+          setTimeout(() => {
+            movingLeft.style.transform = 'translateX(' + (rightX - leftX) + 'px)';
+            movingRight.style.transform = 'translateX(' + (leftX - rightX) + 'px)';
+          }, 40);
+
+          setTimeout(() => {
+            const temp = currentA_tab2[left]; currentA_tab2[left] = currentA_tab2[right]; currentA_tab2[right] = temp;
+            leftCell.textContent = currentA_tab2[left]; rightCell.textContent = currentA_tab2[right];
+            leftCell.classList.remove('cell-swap'); rightCell.classList.remove('cell-swap');
+            movingLeft.remove(); movingRight.remove();
+            i++; setTimeout(step, 250);
+          }, 2200);
+        }
+        step();
+      }
+
+      document.getElementById('t2-check').addEventListener('click', () => {
+        const fromInp = document.getElementById('t2-from');
+        const toInp = document.getElementById('t2-to');
+        const leftInp = document.getElementById('t2-left');
+        const rightInp = document.getElementById('t2-right');
+        [fromInp,toInp,leftInp,rightInp].forEach(i => i.classList.remove('correct','wrong'));
+
+        const fromOk = parseInt(fromInp.value.trim(),10) === 1;
+        const toOk = parseInt(toInp.value.trim(),10) === 5;
+        const leftExpr = leftInp.value.toLowerCase().replace(/[\s]/g,'').replace('ι','i');
+        const rightExpr = rightInp.value.toLowerCase().replace(/[\s]/g,'').replace('ι','i');
+
+        if (fromOk) fromInp.classList.add('correct'); else fromInp.classList.add('wrong');
+        if (toOk) toInp.classList.add('correct'); else toInp.classList.add('wrong');
+        if (leftExpr === 'i') leftInp.classList.add('correct'); else leftInp.classList.add('wrong');
+        if (rightExpr === '11-i') rightInp.classList.add('correct'); else rightInp.classList.add('wrong');
+
+        const fb = document.getElementById('t2-feedback');
+        if (fromOk && toOk && leftExpr==='i' && rightExpr==='11-i') {
+          fb.innerHTML = '<span style="color:#15803d;font-weight:600">Σωστός αλγόριθμος!</span>';
+        } else {
+          fb.innerHTML = '<span style="color:#b91c1c;font-weight:600">Λάθη. Δες τη λύση.</span>';
+        }
+        document.getElementById('t2-solution').style.display = 'block';
+        currentA_tab2 = finalDescending.slice();
+        renderArray('tab2-array', currentA_tab2);
+        animateTab2Swaps();
+      });
+    })();
+  </script>
+
+  <script>
+    (() => {
+      const lines = [
+        { num: 1, parts: [{ before: "Α <- ", id: "l1a", type: "const", after: "" }] },
+        { num: 2, parts: [{ before: "Δ <- Α + ", id: "l2a", type: "const", after: "" }] },
+        { num: 3, parts: [{ before: "Αν Α ", id: "l3a", type: "op", after: " Δ τότε\n    Γ <- Α\n  αλλιώς\n    Γ <- Δ\n  Τέλος_αν" }] },
+        { num: 4, parts: [{ before: "Β <- ", id: "l4a", type: "var", after: " - 1" }] },
+        { num: 5, parts: [{ before: "Ε <- ", id: "l5a", type: "var", after: " - " }, { before: "", id: "l5b", type: "var", after: "" }] },
+        { num: 6, parts: [{ before: "", id: "l6a", type: "var", after: " <- Δ + " }, { before: "", id: "l6b", type: "var", after: "" }] },
+        { num: 7, parts: [{ before: "Γ <- Γ ", id: "l7a", type: "op", after: " Ε" }] },
+        { num: 8, parts: [{ before: "Ζ <- ", id: "l8a", type: "var", after: " - 1" }] },
+        { num: 9, parts: [{ before: "Χ[", id: "l9a", type: "var", after: "] <- Γ" }] },
+        { num: 10, parts: [{ before: "Χ[Ζ ", id: "l10a", type: "op", after: " 1] <- Δ" }] },
+        { num: 11, parts: [{ before: "Χ[Ζ ", id: "l11a", type: "op", after: " 1] <- Χ[Ζ] " }, { before: "", id: "l11b", type: "op", after: " 1" }] }
+      ];
+      const memoryRows = {
+        1: ["4","","","","","","","",""], 2: ["","","","7","","","","",""], 3: ["","","7","","","","","",""],
+        4: ["","3","","","","","","",""], 5: ["","","","","-1","","","",""], 6: ["","","","6","","","","",""],
+        7: ["","","8","","","","","",""], 8: ["","","","","","2","","",""], 9: ["","","","","","","","8",""],
+        10:["","","","","","","6","",""], 11:["","","","","","","","","7"]
+      };
+      const correctAnswers = { l1a:"4", l2a:"3", l3a:">", l4a:"Α", l5a:"Β", l5b:"Α", l6a:"Δ", l6b:"Ε", l7a:"-", l8a:"Β", l9a:"Ζ", l10a:"-", l11a:"+", l11b:"-" };
+      const latinToGreek = { "A":"Α", "B":"Β", "G":"Γ", "D":"Δ", "E":"Ε", "Z":"Ζ", "X":"Χ" };
+      function normalizeToken(s) {
+        let t = s.trim().toUpperCase();
+        if (["<",">","<=",">=","<>","=","+","-","*","/","DIV","MOD"].includes(t)) return t;
+        if (t.length===1 && latinToGreek[t]) return latinToGreek[t];
+        return t;
+      }
+      const tbody = document.getElementById("codeMemBody");
+      lines.forEach(line => {
+        const tr = document.createElement("tr");
+        const tdNo = document.createElement("td"); tdNo.className = "line-no"; tdNo.textContent = line.num + "."; tr.appendChild(tdNo);
+        const tdCode = document.createElement("td"); tdCode.className = "code-cell";
+        const codeDiv = document.createElement("div"); codeDiv.className = "code-line"; 
+        line.parts.forEach(part => {
+          codeDiv.appendChild(document.createTextNode(part.before));
+          const input = document.createElement("input"); input.type = "text"; input.className = "gap-input";
+          input.setAttribute("data-id", part.id); codeDiv.appendChild(input);
+          const correctSpan = document.createElement("span"); correctSpan.className = "correct-slot";
+          correctSpan.setAttribute("data-correct-for", part.id); codeDiv.appendChild(correctSpan);
+          codeDiv.appendChild(document.createTextNode(part.after));
+        });
+        tdCode.appendChild(codeDiv);
+        const statusDiv = document.createElement("div"); statusDiv.className = "line-status"; statusDiv.id = "status-" + line.num;
+        tdCode.appendChild(statusDiv); tr.appendChild(tdCode);
+        const mem = memoryRows[line.num] || ["","","","","","","","",""];
+        mem.forEach(m => { const td = document.createElement("td"); td.style.textAlign="center"; td.textContent = m; tr.appendChild(td); });
+        tbody.appendChild(tr);
+      });
+      document.getElementById("checkBtnRAM").addEventListener("click", () => {
+        let allCorrect = true;
+        lines.forEach(line => {
+          let lineCorrect = true; let anyFilled = false;
+          line.parts.forEach(part => {
+            const input = document.querySelector(`input[data-id="${part.id}"]`);
+            const span = document.querySelector(`span[data-correct-for="${part.id}"]`);
+            if(!input.value.trim()){ span.textContent=""; lineCorrect=false; }
+            else {
+              anyFilled=true; span.textContent=" (σωστό: "+correctAnswers[part.id]+")";
+              if(normalizeToken(input.value) !== normalizeToken(correctAnswers[part.id])) lineCorrect=false;
+            }
+          });
+          const status = document.getElementById("status-"+line.num);
+          if(!anyFilled) { status.textContent=""; status.className="line-status"; allCorrect=false; }
+          else if(lineCorrect) { status.textContent="Σωστό ✓"; status.className="line-status ok"; }
+          else { status.textContent="Λάθος"; status.className="line-status err"; allCorrect=false; }
+        });
+        const msg = document.getElementById("overallMessageRAM");
+        if(allCorrect) { msg.textContent="Όλα σωστά!"; msg.className="overall-message ok"; }
+        else { msg.textContent="Υπάρχουν λάθη."; msg.className="overall-message not-ok"; }
+      });
+    })();
+  </script>
+
+  <script>
+    (() => {
+      const DATA = [null, 'Ψ', 'Β', 'Ο', 'Κ', 'Η', 'Φ', 'Σ'];
+      const L =    [null, 5,   4,   2,   6,   7,   3,   1 ];
+      const R =    [null, 6,   4,   7,   5,   6,   1,   2 ];
+      let K, GRAMMA, currentDataK, state="initGamma", autoInterval=null;
+      const lastShown = { K:{row:-1}, DATAK:{row:-1}, GRAMMA:{row:-1} };
+      
+      const codeLines = document.querySelectorAll("#view3 .sim-code-line");
+      const tableRows = document.querySelectorAll("#f3_values-body tr");
+      const screenDiv = document.getElementById("f3_screen-output");
+      const statusText = document.getElementById("f3_status-text");
+
+      function createBoxes(arr, idPrefix, targetDivId) {
+        const container = document.getElementById(targetDivId); container.innerHTML = "";
+        for (let i = 1; i < arr.length; i++) {
+          const div = document.createElement("div"); div.className = "sim-array-cell"; div.id = `${idPrefix}-${i}`;
+          div.innerHTML = `<div class="cell-idx">${i}</div><div class="cell-val">${arr[i]}</div>`;
+          container.appendChild(div);
+        }
+      }
+      createBoxes(DATA, 'd', 'f3_box-data'); createBoxes(L, 'l', 'f3_box-l'); createBoxes(R, 'r', 'f3_box-r');
+
+      function highlight(lineNum) {
+        codeLines.forEach(l => l.classList.remove("active"));
+        if(lineNum > 0) {
+          const el = document.querySelector(`#view3 .sim-code-line[data-line="${lineNum}"]`);
+          if(el) { el.classList.add("active"); el.scrollIntoView({block:"nearest"}); }
+        }
+      }
+      function highlightArrays(idx) {
+        document.querySelectorAll("#view3 .sim-array-cell").forEach(c => c.classList.remove("active-k"));
+        if(idx && idx >= 1 && idx < DATA.length) {
+          document.getElementById(`d-${idx}`).classList.add("active-k");
+          document.getElementById(`l-${idx}`).classList.add("active-k");
+          document.getElementById(`r-${idx}`).classList.add("active-k");
+        }
+      }
+      function updateVal(key, val) {
+        const colMap = {"K":0, "DATAK":1, "GRAMMA":2};
+        const info = lastShown[key];
+        let r = info.row + 1;
+        if (r >= tableRows.length) r = tableRows.length - 1;
+        if (info.row >= 0) tableRows[info.row].children[colMap[key]].classList.add("sim-old-val");
+        const cell = tableRows[r].children[colMap[key]];
+        cell.innerText = val; cell.classList.remove("sim-old-val", "sim-changed");
+        void cell.offsetWidth; cell.classList.add("sim-changed");
+        info.row = r;
+      }
+      function logScreen(msg) {
+        const d = document.createElement("div"); d.innerText = msg;
+        screenDiv.appendChild(d); screenDiv.scrollTop = screenDiv.scrollHeight;
+      }
+
+      function doStep() {
+        if(state === "finished") return;
+        switch(state) {
+          case "initGamma": GRAMMA = 'Σ'; updateVal("GRAMMA", GRAMMA); statusText.innerText = "ΓΡΑΜΜΑ ← 'Σ'"; state="initK"; highlight(2); break;
+          case "initK": K = 1; updateVal("K", K); highlightArrays(K); statusText.innerText = "K ← 1"; state="checkWhile"; highlight(3); break;
+          case "checkWhile":
+            currentDataK = DATA[K]; updateVal("DATAK", currentDataK);
+            const cond = (currentDataK !== GRAMMA);
+            statusText.innerText = `DATA[${K}]='${currentDataK}' <> '${GRAMMA}': ${cond}`;
+            if(cond) { state="printLoop"; highlight(4); } else { state="printFinal"; highlight(11); }
+            break;
+          case "printLoop": logScreen(currentDataK); statusText.innerText = `Εκτύπωση: ${currentDataK}`; state="checkIf"; highlight(5); break;
+          case "checkIf":
+            const isGreater = (currentDataK > GRAMMA);
+            statusText.innerText = `'${currentDataK}' > '${GRAMMA}': ${isGreater}`;
+            if(isGreater) { state="goLeft"; highlight(6); } else { state="goRight"; highlight(8); }
+            break;
+          case "goLeft": K = L[K]; updateVal("K", K); highlightArrays(K); statusText.innerText = "K ← L[K]"; state="endIf"; highlight(9); break;
+          case "goRight": K = R[K]; updateVal("K", K); highlightArrays(K); statusText.innerText = "K ← R[K]"; state="endIf"; highlight(9); break;
+          case "endIf": statusText.innerText = "Επιστροφή στο Όσο"; state="checkWhile"; highlight(3); break;
+          case "printFinal":
+            logScreen(currentDataK); statusText.innerText = `Βρέθηκε! Εκτύπωση: ${currentDataK}`;
+            state="finished"; highlight(-1);
+            document.getElementById("f3_btnNext").disabled=true; document.getElementById("f3_btnAuto").disabled=true;
+            break;
+        }
+      }
+
+      function reset() {
+        clearInterval(autoInterval); state="initGamma"; K=null; GRAMMA=null; currentDataK=null;
+        tableRows.forEach(tr => { Array.from(tr.children).forEach(td => { td.innerText=""; td.className=""; }); });
+        for(let k in lastShown) lastShown[k].row = -1;
+        screenDiv.innerHTML = '<div style="border-bottom: 1px solid #333; margin-bottom:5px; color:#fff;">Οθόνη:</div>';
+        statusText.innerText = "Έτοιμο."; highlightArrays(null);
+        document.getElementById("f3_btnNext").disabled=false; document.getElementById("f3_btnAuto").disabled=false;
+        highlight(1);
+      }
+
+      document.getElementById("f3_btnNext").onclick = doStep;
+      document.getElementById("f3_btnReset").onclick = reset;
+      document.getElementById("f3_btnAuto").onclick = () => {
+        document.getElementById("f3_btnAuto").disabled=true; document.getElementById("f3_btnNext").disabled=true;
+        doStep(); autoInterval = setInterval(() => { if(state==="finished") clearInterval(autoInterval); else doStep(); }, 1000);
+      };
+      reset();
+    })();
+  </script>
+
+  <script>
+    (() => {
+      const C = [null, 2, 5, 15, -1, 32, 14];
+      let A, B, Lmin, Lmax, minVal, maxVal, D, iVar;
+      let state = "initMin"; let autoInterval = null;
+      const lastShown = { A:{row:-1}, B:{row:-1}, Lmin:{row:-1}, Lmax:{row:-1}, min:{row:-1}, max:{row:-1}, D:{row:-1} };
+      
+      const tableRows = document.querySelectorAll("#f4_values-body tr");
+      const codeLines = document.querySelectorAll("#view4 .sim-code-line");
+      const screenDiv = document.getElementById("f4_screen-output");
+      const statusText = document.getElementById("f4_status-text");
+
+      function highlight(lineNum) {
+        codeLines.forEach(l => l.classList.remove("active"));
+        if(lineNum > 0) {
+          const el = document.querySelector(`#view4 .sim-code-line[data-line="${lineNum}"]`);
+          if(el) { el.classList.add("active"); el.scrollIntoView({block:"nearest"}); }
+        }
+      }
+      function colIndex(key) { return { "A":0, "B":1, "Lmin":2, "Lmax":3, "min":4, "max":5, "D":6 }[key]; }
+      function updateVal(key, val) {
+        const info = lastShown[key]; let r = info.row + 1; if (r >= tableRows.length) r = tableRows.length - 1;
+        const tr = tableRows[r]; const cell = tr.children[colIndex(key)];
+        if (info.row >= 0) tableRows[info.row].children[colIndex(key)].classList.add("sim-old-val");
+        cell.innerText = val; cell.classList.remove("sim-old-val", "sim-changed");
+        void cell.offsetWidth; cell.classList.add("sim-changed");
+        info.row = r; 
+        document.querySelector(".sim-table-container").scrollTop = document.querySelector(".sim-table-container").scrollHeight;
+      }
+      function logScreen(msg) {
+        const d = document.createElement("div"); d.innerText = msg;
+        screenDiv.appendChild(d); screenDiv.scrollTop = screenDiv.scrollHeight;
+      }
+      function highlightArray(idx) {
+        document.querySelectorAll("#view4 .sim-array-cell").forEach(c => c.classList.remove("active-k"));
+        if(idx && idx>=1 && idx<=6) document.getElementById(`f4_c-${idx}`).classList.add("active-k");
+      }
+
+      function doStep() {
+        if(state === "finished") return;
+        switch(state) {
+          case "initMin": minVal=100; updateVal("min", minVal); statusText.innerText="min ← 100"; state="initMax"; highlight(2); break;
+          case "initMax": maxVal=-100; updateVal("max", maxVal); statusText.innerText="max ← -100"; state="forInit"; highlight(3); break;
+          case "forInit": iVar=1; statusText.innerText=`i = ${iVar}`; state="loadA"; highlight(4); highlightArray(iVar); break;
+          case "loadA": A=C[iVar]; updateVal("A", A); statusText.innerText=`A ← ${A}`; state="loadB"; highlight(5); highlightArray(iVar+1); break;
+          case "loadB": B=C[iVar+1]; updateVal("B", B); statusText.innerText=`B ← ${B}`; highlightArray(null); state="checkAB"; highlight(6); break;
+          case "checkAB":
+            const condAB = (A < B); statusText.innerText=`A < B (${A} < ${B}): ${condAB}`;
+            if(condAB) { state="thenLmin"; highlight(7); } else { state="elseLmin"; highlight(10); }
+            break;
+          case "thenLmin": Lmin=A; updateVal("Lmin", Lmin); statusText.innerText="Lmin ← A"; state="thenLmax"; highlight(8); break;
+          case "thenLmax": Lmax=B; updateVal("Lmax", Lmax); statusText.innerText="Lmax ← B"; state="checkMin"; highlight(13); break;
+          case "elseLmin": Lmin=B; updateVal("Lmin", Lmin); statusText.innerText="Lmin ← B"; state="elseLmax"; highlight(11); break;
+          case "elseLmax": Lmax=A; updateVal("Lmax", Lmax); statusText.innerText="Lmax ← A"; state="checkMin"; highlight(13); break;
+          case "checkMin":
+            const condMin = (Lmin < minVal); statusText.innerText=`Lmin < min: ${condMin}`;
+            if(condMin) { state="updMin"; highlight(14); } else { state="checkMax"; highlight(16); }
+            break;
+          case "updMin": minVal=Lmin; updateVal("min", minVal); statusText.innerText="min updated"; state="checkMax"; highlight(16); break;
+          case "checkMax":
+            const condMax = (Lmax > maxVal); statusText.innerText=`Lmax > max: ${condMax}`;
+            if(condMax) { state="updMax"; highlight(17); } else { state="printIter"; highlight(19); }
+            break;
+          case "updMax": maxVal=Lmax; updateVal("max", maxVal); statusText.innerText="max updated"; state="printIter"; highlight(19); break;
+          case "printIter":
+            logScreen(`${A}, ${B}, ${Lmin}, ${Lmax}, ${minVal}, ${maxVal}`); statusText.innerText="Εκτύπωση"; state="nextIter"; highlight(20); break;
+          case "nextIter":
+            iVar += 2;
+            if(iVar <= 6) { statusText.innerText=`i ← ${iVar}. Συνέχεια...`; state="loadA"; highlight(4); highlightArray(iVar); }
+            else { statusText.innerText=`i ← ${iVar}. Τέλος Βρόχου.`; state="calcD"; highlight(21); }
+            break;
+          case "calcD": D=maxVal*minVal; updateVal("D", D); statusText.innerText="Υπολογισμός D"; state="printD"; highlight(22); break;
+          case "printD":
+            logScreen(`D = ${D}`); statusText.innerText="ΤΕΛΟΣ"; state="finished"; highlight(-1);
+            document.getElementById("f4_btnNext").disabled=true; document.getElementById("f4_btnAuto").disabled=true;
+            break;
+        }
+      }
+
+      function reset() {
+        clearInterval(autoInterval); state="initMin"; A=B=Lmin=Lmax=minVal=maxVal=D=iVar=null;
+        tableRows.forEach(tr => Array.from(tr.children).forEach(td => { td.innerText=""; td.className=""; }));
+        for(let k in lastShown) lastShown[k].row = -1;
+        screenDiv.innerHTML = '<div style="border-bottom: 1px solid #333; margin-bottom:5px; color:#fff;">Οθόνη:</div>';
+        statusText.innerText="Έτοιμο."; highlightArray(null);
+        document.getElementById("f4_btnNext").disabled=false; document.getElementById("f4_btnAuto").disabled=false;
+        highlight(1);
+      }
+
+      document.getElementById("f4_btnNext").onclick = doStep;
+      document.getElementById("f4_btnReset").onclick = reset;
+      document.getElementById("f4_btnAuto").onclick = () => {
+        document.getElementById("f4_btnAuto").disabled=true; document.getElementById("f4_btnNext").disabled=true;
+        doStep(); autoInterval = setInterval(() => { if(state==="finished") clearInterval(autoInterval); else doStep(); }, 1000);
+      };
+      reset();
+    })();
+  </script>
+
+</body>
+</html>
