@@ -60,6 +60,9 @@
 - Μονοσιάστατοι πίνακες - Εκτέλεση Επαναληπτικές Εξετάσεις Θέμα Β (2012) 
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Three%20One-Dimensionals%20B%20topic%20what%20does%20it%20show%3F%20.html)
 
+- Μονοσιάστατοι πίνακες - Τέσσερις εκτελέσεις και συμπλήρωση κενών 
+   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/run-the-code.html)
+
 ## Αλγόριθμοι Αναζήτησης & Ταξινόμησης
 
 - Δυαδική αναζήτηση (Binary search)  
