@@ -4,8 +4,6 @@
 
 [Βιογραφικό Σημείωμα Δημήτρης Γιακοβής](https://giakovisd.github.io/pliroforiki/cv_DG.html)
 
-
-
 ---
 ## Δυναμικές Δομές Δεδομένων - Λίστες
 
@@ -130,6 +128,12 @@
 ## Υποπρογράμματα
 - Αναγνώριση λαθών στη κλήση διαδικασίας και συνάρτησης και Β2 Πανελλαδικές 2019 
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/check-the-subprograms.html)
+
+- Εκτελέσεις με υποπρογράμματα από Πανελλαδικές 
+  [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Run-the-subprograms.html)
+
+
+
 
 ---
 
