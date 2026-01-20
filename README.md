@@ -60,6 +60,9 @@
 - Μονοδιάστατοι πίνακες - Εκτέλεση Επαναληπτικές Εξετάσεις Θέμα Β (2012) (εμπεριέχεται στο Τέσσερις εκτελέσεις και συμπλήρωση κενών)
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Three%20One-Dimensionals%20B%20topic%20what%20does%20it%20show%3F%20.html)
 
+- Μονοδιάστατοι πίνακες - Σχεδίαση πίνακα Β[6], Α4 Πανελλαδικές 2016 
+   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/pin6.html)
+
 - Μονοδιάστατοι πίνακες - Τέσσερις εκτελέσεις και συμπλήρωση κενών 
    [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/run-the-code.html)
 
