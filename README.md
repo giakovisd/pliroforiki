@@ -2,7 +2,7 @@
 ## Πληροφορική (πρώην ΑΕΠΠ): Γ΄ Λυκείου – Προσανατολισμός Οικονομίας & Πληροφορικής
 ### Δημήτριος Γιακοβής 
 
- [Βιογραφικό Σημείωμα](https://giakovisd.github.io/pliroforiki/cv_DG.html)
+[Βιογραφικό Σημείωμα Δημήτρης Γιακοβής](https://giakovisd.github.io/pliroforiki/cv_DG.html)
 
 
 
