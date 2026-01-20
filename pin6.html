@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Διαδραστική Άσκηση Πινάκων</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #e67e22;
+            --success-color: #27ae60;
+            --error-color: #c0392b;
+            --bg-color: #f4f4f9;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h1 { color: #2c3e50; }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 950px; /* Αυξήσαμε λίγο το πλάτος για να χωράει η ανάλυση */
+            width: 100%;
+        }
+
+        /* --- Στυλ Πινάκων --- */
+        .array-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .array-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .index {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+
+        .box {
+            width: 60px;
+            height: 60px;
+            border: 3px solid var(--primary-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.4em;
+            background-color: #ecf0f1;
+            border-radius: 8px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            overflow: hidden; /* Σημαντικό για να μην βγαίνει το input έξω */
+        }
+
+        /* Ειδικά στυλ για τα inputs του Πίνακα Β */
+        .box.b-array {
+            border-color: var(--secondary-color);
+            background-color: #fff;
+            /* Προσθήκη padding ώστε το input να μην καβαλάει το border */
+            padding: 2px; 
+        }
+
+        .box input {
+            width: 100%;
+            height: 100%;
+            border: none; /* Αφαιρούμε το border του input */
+            text-align: center;
+            font-size: 1em;
+            font-weight: bold;
+            background-color: transparent; /* Διαφανές για να φαίνεται το χρώμα του γονέα */
+            border-radius: 4px;
+            outline: none;
+            color: var(--text-color);
+        }
+
+        .box input:focus {
+            background-color: #fbeee6;
+        }
+
+        /* --- Περιοχή Οδηγιών (Split View) --- */
+        .instructions-wrapper {
+            display: flex;
+            gap: 20px;
+            background-color: #fdf2e9;
+            border-left: 6px solid var(--secondary-color);
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 6px;
+        }
+
+        .commands-col {
+            flex: 1;
+        }
+
+        /* Η στήλη της ανάλυσης αρχικά κρυφή */
+        .steps-col {
+            flex: 1.2;
+            display: none; /* Κρύψιμο αρχικά */
+            border-left: 2px dashed rgba(230, 126, 34, 0.3);
+            padding-left: 20px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95em;
+            background-color: #fffaf7;
+            border-radius: 4px;
+            padding: 15px;
+        }
+
+        /* Κλάση για εμφάνιση της στήλης */
+        .steps-col.visible {
+            display: block;
+        }
+        
+        h3 {
+            margin-top: 0;
+            color: #d35400;
+            border-bottom: 2px solid rgba(211, 84, 0, 0.2);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        ul.commands-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        ul.commands-list li {
+            padding: 8px 12px;
+            font-family: Consolas, monospace;
+            font-size: 1.15em;
+            background: rgba(255,255,255,0.7);
+            margin-bottom: 5px;
+            border-radius: 4px;
+            border-left: 3px solid transparent;
+        }
+        
+        /* Στυλ για την αναλυτική λίστα βημάτων */
+        ul.steps-details-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        ul.steps-details-list li {
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .step-calculation {
+            color: #555;
+            margin-bottom: 4px;
+        }
+
+        .step-final {
+            font-weight: bold;
+            color: var(--success-color);
+            font-size: 1.1em;
+        }
+
+        /* --- Κουμπιά --- */
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+
+        button {
+            border: none;
+            padding: 12px 24px;
+            font-size: 1.1em;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        button:active { transform: translateY(2px); }
+
+        .btn-check {
+            background-color: var(--success-color);
+            color: white;
+        }
+        .btn-check:hover { background-color: #219150; box-shadow: 0 6px 10px rgba(39, 174, 96, 0.3); }
+
+        .btn-solution {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .btn-solution:hover { background-color: #2980b9; box-shadow: 0 6px 10px rgba(52, 152, 219, 0.3); }
+
+        .btn-reset {
+            background-color: #95a5a6;
+            color: white;
+        }
+        .btn-reset:hover { background-color: #7f8c8d; }
+
+        /* --- Μηνύματα & Feedback --- */
+        #result-msg {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            min-height: 1.4em;
+        }
+
+        /* Classes για έλεγχο - Εφαρμόζονται στο .box */
+        .box.correct {
+            background-color: #d4edda !important;
+            border-color: #28a745 !important;
+        }
+        .box.correct input { color: #155724; }
+
+        .box.wrong {
+            background-color: #f8d7da !important;
+            border-color: #dc3545 !important;
+        }
+        .box.wrong input { color: #721c24; }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Άσκηση Πινάκων</h1>
+        <p>Έστω ο μονοδιάστατος πίνακας <strong>Α</strong>. Εκτελέστε τις εντολές και συμπληρώστε τον πίνακα <strong>Β</strong>.</p>
+
+        <h3>Πίνακας Α (Δεδομένα)</h3>
+        <div class="array-container" id="arrayA-container"></div>
+
+        <div class="instructions-wrapper">
+            <div class="commands-col">
+                <h3>Εντολές</h3>
+                <ul class="commands-list">
+                    <li>1. Β[Α[1] – Α[3]] &larr; Α[5]</li>
+                    <li>2. Β[Α[7] – Α[5]] &larr; Α[2] + Α[7]</li>
+                    <li>3. Β[Α[6]] &larr; Α[4]</li>
+                    <li>4. Β[Α[1] + Α[4] – Α[8]] &larr; Α[3] + Α[8]</li>
+                    <li>5. Β[Α[8] DIV 2] &larr; Α[3] MOD 2</li>
+                    <li>6. Β[Α[1] MOD Α[4]] &larr; Α[6] + 4</li>
+                </ul>
+            </div>
+            <div class="steps-col" id="steps-details">
+                <h3>Αναλυτική Λύση</h3>
+                <ul class="steps-details-list" id="detailed-steps-list">
+                    </ul>
+            </div>
+        </div>
+
+        <h3>Πίνακας Β (Απάντηση)</h3>
+        <div class="array-container" id="arrayB-container"></div>
+
+        <div class="button-group">
+            <button class="btn-check" onclick="checkSolution()">Έλεγχος Λύσης</button>
+            <button class="btn-solution" onclick="showSolution()">Δείξε τη Λύση</button>
+            <button class="btn-reset" onclick="resetExercise()">Επαναφορά</button>
+        </div>
+        
+        <div id="result-msg"></div>
+    </div>
+
+    <script>
+        // --- Configuration ---
+        // Using 1-based Indexing simulation logic for the exercise steps
+        const arrayA_data = [5, 2, 3, 8, 7, 4, 10, 12]; // Internal 0-based storage
+        const sizeB = 6;
+        const A = (i) => arrayA_data[i-1]; // Helper for 1-based access
+
+        // --- Initialization ---
+
+        // Render Array A
+        const containerA = document.getElementById('arrayA-container');
+        arrayA_data.forEach((val, index) => {
+            containerA.innerHTML += `
+                <div class="array-cell">
+                    <span class="index">${index + 1}</span>
+                    <div class="box">${val}</div>
+                </div>
+            `;
+        });
+
+        // Render Array B (Inputs)
+        const containerB = document.getElementById('arrayB-container');
+        for (let i = 1; i <= sizeB; i++) {
+            containerB.innerHTML += `
+                <div class="array-cell">
+                    <span class="index">${i}</span>
+                    <div class="box b-array">
+                        <input type="number" id="b-${i}" autocomplete="off">
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Logic ---
+
+        // Δεδομένα για υπολογισμό και επεξήγηση βημάτων
+        const stepsData = [
+            {
+                id: 1,
+                calcIndex: `A[1] - A[3] = 5 - 3 = 2`,
+                finalIndex: 2,
+                calcValue: `A[5] = 7`,
+                finalValue: 7
+            },
+            {
+                id: 2,
+                calcIndex: `A[7] - A[5] = 10 - 7 = 3`,
+                finalIndex: 3,
+                calcValue: `A[2] + A[7] = 2 + 10 = 12`,
+                finalValue: 12
+            },
+            {
+                id: 3,
+                calcIndex: `A[6] = 4`,
+                finalIndex: 4,
+                calcValue: `A[4] = 8`,
+                finalValue: 8
+            },
+            {
+                id: 4,
+                calcIndex: `A[1] + A[4] - A[8] = 5 + 8 - 12 = 1`,
+                finalIndex: 1,
+                calcValue: `A[3] + A[8] = 3 + 12 = 15`,
+                finalValue: 15
+            },
+            {
+                id: 5,
+                calcIndex: `A[8] DIV 2 = 12 DIV 2 = 6`,
+                finalIndex: 6,
+                calcValue: `A[3] MOD 2 = 3 MOD 2 = 1`,
+                finalValue: 1
+            },
+            {
+                id: 6,
+                calcIndex: `A[1] MOD A[4] = 5 MOD 8 = 5`,
+                finalIndex: 5,
+                calcValue: `A[6] + 4 = 4 + 4 = 8`,
+                finalValue: 8
+            }
+        ];
+
+        // Δημιουργία του αντικειμένου correctB από τα stepsData
+        let correctB = {};
+        stepsData.forEach(step => {
+            correctB[step.finalIndex] = step.finalValue;
+        });
+
+
+        // --- Functions ---
+
+        function checkSolution() {
+            let allCorrect = true;
+            let msg = document.getElementById('result-msg');
+
+            for (let i = 1; i <= sizeB; i++) {
+                let inputElem = document.getElementById(`b-${i}`);
+                let userVal = inputElem.value.trim();
+                let parentBox = inputElem.parentElement;
+
+                parentBox.classList.remove('correct', 'wrong');
+
+                // Έλεγχος αν το κελί πρέπει να έχει τιμή
+                if (correctB.hasOwnProperty(i)) {
+                    if (userVal !== "" && parseInt(userVal) === correctB[i]) {
+                        parentBox.classList.add('correct');
+                    } else {
+                        parentBox.classList.add('wrong');
+                        allCorrect = false;
+                    }
+                } else {
+                    // Περίπτωση που το κελί δεν πειράχτηκε (δεν υπάρχει σε αυτή την άσκηση, αλλά για πληρότητα)
+                    if (userVal === "") {
+                        parentBox.classList.add('correct');
+                    } else {
+                        parentBox.classList.add('wrong');
+                        allCorrect = false;
+                    }
+                }
+            }
+
+            if (allCorrect) {
+                msg.textContent = "✅ Μπράβο! Η λύση είναι απόλυτα σωστή.";
+                msg.style.color = "var(--success-color)";
+            } else {
+                msg.textContent = "❌ Υπάρχουν λάθη. Προσπάθησε ξανά.";
+                msg.style.color = "var(--error-color)";
+            }
+        }
+
+
+        function showSolution() {
+            // 1. Συμπλήρωση του πίνακα Β και χρωματισμός
+            for (let i = 1; i <= sizeB; i++) {
+                let inputElem = document.getElementById(`b-${i}`);
+                let parentBox = inputElem.parentElement;
+                
+                if (correctB.hasOwnProperty(i)) {
+                    inputElem.value = correctB[i];
+                    parentBox.classList.remove('wrong');
+                    parentBox.classList.add('correct');
+                }
+            }
+            document.getElementById('result-msg').textContent = "Η σωστή λύση εμφανίστηκε.";
+            document.getElementById('result-msg').style.color = "var(--primary-color)";
+
+            // 2. Δημιουργία και εμφάνιση της αναλυτικής λίστας βημάτων
+            const stepsListContainer = document.getElementById('detailed-steps-list');
+            stepsListContainer.innerHTML = ''; // Καθαρισμός παλιών
+
+            stepsData.forEach(step => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div class="step-calculation"><strong>Εντ. ${step.id}:</strong> Υπολ. Δείκτη: ${step.calcIndex}</div>
+                    <div class="step-calculation" style="margin-left: 55px;">Υπολ. Τιμής: ${step.calcValue}</div>
+                    <div class="step-final" style="margin-left: 55px;">→ B[${step.finalIndex}] ← ${step.finalValue}</div>
+                `;
+                stepsListContainer.appendChild(li);
+            });
+
+            // Εμφάνιση της δεξιάς στήλης
+            document.getElementById('steps-details').classList.add('visible');
+        }
+
+
+        function resetExercise() {
+            for (let i = 1; i <= sizeB; i++) {
+                let inputElem = document.getElementById(`b-${i}`);
+                inputElem.value = "";
+                inputElem.parentElement.classList.remove('correct', 'wrong');
+            }
+            document.getElementById('result-msg').textContent = "";
+             // Απόκρυψη της στήλης ανάλυσης
+            document.getElementById('steps-details').classList.remove('visible');
+        }
+    </script>
+</body>
+</html>
