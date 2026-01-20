@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Υποπρογράμματα Κεφ 10 </title>
+    <style>
+        :root {
+            --primary: #2980b9;
+            --secondary: #e67e22;
+            --success: #27ae60;
+            --error: #c0392b;
+            --bg: #f4f7f6;
+            --text: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .main-wrapper {
+            max-width: 1250px; /* Αυξήθηκε λίγο για να χωράνε άνετα οι μεγάλες γραμμές */
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+            min-height: 800px;
+        }
+
+        /* --- Tabs Navigation --- */
+        .tabs {
+            display: flex;
+            background-color: #ecf0f1;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 18px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #7f8c8d;
+            transition: all 0.3s;
+            border-bottom: 4px solid transparent;
+        }
+
+        .tab-button:hover {
+            background-color: #dfe6e9;
+            color: var(--primary);
+        }
+
+        .tab-button.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background-color: white;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+            animation: fadeIn 0.4s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Common Styles --- */
+        h2 { color: var(--primary); margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        
+        .code-snippet {
+            background-color: #fdf2e9;
+            border-left: 5px solid #e67e22;
+            padding: 15px;
+            margin-bottom: 30px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.95em;
+            overflow-x: auto;
+            border-radius: 5px;
+            line-height: 1.6;
+        }
+
+        .var-type { color: #d35400; font-weight: bold; }
+        .comment { color: #7f8c8d; font-style: italic; }
+
+        /* --- Layout Styles for Side-by-Side --- */
+        .split-view {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+        }
+        
+        .split-left {
+            flex: 1;
+            min-width: 0; 
+        }
+        
+        .split-right {
+            flex: 1.2; /* Δώσαμε λίγο παραπάνω χώρο δεξιά για να χωράνε οι μεγάλες εντολές */
+        }
+
+        @media (max-width: 1000px) {
+            .split-view {
+                flex-direction: column;
+            }
+        }
+
+        /* --- TAB 1 SPECIFIC STYLES --- */
+        .quiz-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .quiz-table th, .quiz-table td {
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            vertical-align: middle;
+        }
+
+        .quiz-table th {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        /* Η ΑΛΛΑΓΗ ΕΙΝΑΙ ΕΔΩ */
+        .statement-col {
+            font-family: 'Consolas', monospace;
+            font-weight: bold;
+            font-size: 0.85em; /* Μίκρυνση για να χωράει */
+            white-space: nowrap; /* Απαγόρευση αλλαγής γραμμής */
+        }
+
+        /* Custom Radio Buttons for Tab 1 */
+        .options {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .option-label {
+            cursor: pointer;
+            padding: 4px 8px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.85em;
+            transition: all 0.2s;
+            user-select: none;
+            display: inline-block;
+        }
+
+        .option-label:hover { border-color: #aaa; }
+
+        .options input[type="radio"] { display: none; }
+
+        .options input[type="radio"]:checked + .option-label.lbl-correct {
+            background-color: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+
+        .options input[type="radio"]:checked + .option-label.lbl-wrong {
+            background-color: var(--error);
+            color: white;
+            border-color: var(--error);
+        }
+
+        .reason-cell {
+            font-size: 0.85em;
+            color: #555;
+            font-style: italic;
+            display: none; 
+            background-color: #f9f9f9;
+            border-left: 3px solid #ccc;
+        }
+        
+        .reason-cell.visible {
+            display: table-cell;
+            animation: fadeInRight 0.5s;
+        }
+
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+
+        /* --- TAB 2 SPECIFIC STYLES --- */
+        .t2-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            table-layout: fixed;
+        }
+        
+        .t2-table th, .t2-table td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            vertical-align: middle;
+        }
+        
+        .t2-table th { background-color: var(--primary); color: white; text-align: left; }
+
+        .cmd-col-fixed {
+            font-family: 'Consolas', monospace;
+            font-weight: bold;
+            font-size: 0.85em; 
+            white-space: nowrap; 
+            width: 20%;
+        }
+
+        select, input[type="text"] {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+            font-family: 'Consolas', monospace;
+        }
+
+        input[type="text"]:focus, select:focus {
+            border-color: var(--primary);
+            outline: none;
+            background-color: #eaf2f8;
+        }
+        
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+
+        /* --- Buttons & Footer --- */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 25px;
+            padding-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        button:active { transform: translateY(2px); }
+
+        .btn-check { background-color: var(--success); }
+        .btn-check:hover { background-color: #219150; }
+
+        .btn-show { background-color: var(--primary); }
+        .btn-show:hover { background-color: #1f618d; }
+
+        .btn-reset { background-color: #95a5a6; }
+        .btn-reset:hover { background-color: #7f8c8d; }
+
+        .feedback-score {
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 1.2em;
+            min-height: 1.5em;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="main-wrapper">
+    <div class="tabs">
+        <button class="tab-button active" onclick="openTab('tab1')">Άσκηση 1: Εγκυρότητα Εντολών</button>
+        <button class="tab-button" onclick="openTab('tab2')">Άσκηση 2: Πανελλήνιες 2019 (Β2)</button>
+    </div>
+
+    <div id="tab1" class="tab-content active">
+        <h2>Έλεγχος Εγκυρότητας Εντολών</h2>
+        
+        <div class="split-view">
+            
+            <div class="split-left">
+                <div style="margin-bottom: 10px;"> Δίνεται το παρακάτω πρόγραμμα και υποπρογράμματα, με το τμήμα δηλώσεων τους: </div>
+                <div class="code-snippet">
+                    <div><strong>ΠΡΟΓΡΑΜΜΑ</strong> Ελεγχος</div>
+                    <div><strong>ΜΕΤΑΒΛΗΤΕΣ</strong></div>
+                    <div style="margin-left: 20px;">ΑΚΕΡΑΙΕΣ: <span class="var-type">α, β</span></div>
+                    <div style="margin-left: 20px;">ΠΡΑΓΜΑΤΙΚΕΣ: <span class="var-type">γ, δ</span></div>
+                    <div style="margin-left: 20px;">ΧΑΡΑΚΤΗΡΕΣ: <span class="var-type">ε1</span></div>
+                    <div><strong>ΑΡΧΗ</strong></div>
+                    <div style="margin-left: 20px; color: #7f8c8d;">...</div>
+                    <div style="margin-left: 20px; color: #7f8c8d;">...</div>
+                    <div><strong>ΤΕΛΟΣ_ΠΡΟΓΡΑΜΜΑΤΟΣ</strong></div>
+                    <br>
+                    <div><strong>ΔΙΑΔΙΚΑΣΙΑ</strong> διαδ1(α1, α2)</div>
+                    <div style="margin-left: 20px;"> α1: Ακέραια </div>
+                    <div style="margin-left: 20px;"> α2: Χαρακτήρας</div>
+                    <div><strong>ΑΡΧΗ</strong></div>
+                    <div style="margin-left: 20px; color: #7f8c8d;">...</div>
+                    <div style="margin-left: 20px; color: #7f8c8d;">...</div>
+                    <div><strong>ΤΕΛΟΣ_ΔΙΑΔΙΚΑΣΙΑΣ</strong></div>
+                    <br>
+                    <div><strong>ΣΥΝΑΡΤΗΣΗ</strong> συν1(ο1, ο2): <strong>ΠΡΑΓΜΑΤΙΚΗ</strong></div>
+                    <div style="margin-left: 20px;"> ο1, ο2: Ακέραιες</div>
+                    <div><strong>ΑΡΧΗ</strong></div>
+                    <div style="margin-left: 20px; color: #7f8c8d;">...</div>
+                    <div style="margin-left: 20px; color: #7f8c8d;">...</div>
+                    <div><strong>ΤΕΛΟΣ_ΣΥΝΑΡΤΗΣΗΣ</strong></div>
+                </div>
+            </div>
+
+            <div class="split-right">
+                <p>Ποιες από τις παρακάτω εντολές μπορούν να χρησιμοποιηθούν στο κύριο πρόγραμμα ποιες όχι και γιατί; Επιλέξτε αν κάθε εντολή είναι <strong>Σωστή</strong> ή <strong>Λάθος</strong>.</p>
+
+                <table class="quiz-table">
+                    <thead>
+                        <tr>
+                            <th>Εντολή</th>
+                            <th width="30%">Επιλογή</th>
+                            <th id="reason-header" style="display:none;">Αιτιολόγηση</th>
+                        </tr>
+                    </thead>
+                    <tbody id="q1-body">
+                        </tbody>
+                </table>
+
+                <div class="controls">
+                    <button class="btn-check" onclick="checkTab1()">Έλεγχος Απαντήσεων</button>
+                    <button class="btn-show" onclick="solveTab1()">Δείξε Λύση & Αιτιολόγηση</button>
+                    <button class="btn-reset" onclick="resetTab1()">Επαναφορά</button>
+                </div>
+                <div id="score1" class="feedback-score"></div>
+            </div>
+        </div> 
+        </div>
+
+
+    <div id="tab2" class="tab-content">
+        <h2>Θέμα Β2 - Πανελλήνιες 2019</h2>
+        <p>Εντοπίστε το λάθος και γράψτε τη σωστή εντολή.</p>
+        
+        <div class="grid-container">
+            <div class="code-snippet" style="margin-bottom:0;">
+                <div><strong>ΣΥΝΑΡΤΗΣΗ</strong> Α(χ, ψ): <strong>ΠΡΑΓΜΑΤΙΚΗ</strong></div>
+                <div><strong>ΜΕΤΑΒΛΗΤΕΣ</strong></div>
+                <div style="margin-left: 15px;">ΑΚΕΡΑΙΕΣ: χ</div>
+                <div style="margin-left: 15px;">ΧΑΡΑΚΤΗΡΕΣ: ψ[10]</div>
+            </div>
+            <div class="code-snippet" style="margin-bottom:0;">
+                <div><strong>ΔΙΑΔΙΚΑΣΙΑ</strong> Β(χ, ψ, ζ)</div>
+                <div><strong>ΜΕΤΑΒΛΗΤΕΣ</strong></div>
+                <div style="margin-left: 15px;">ΑΚΕΡΑΙΕΣ: ψ</div>
+                <div style="margin-left: 15px;">ΠΡΑΓΜΑΤΙΚΕΣ: χ, ζ</div>
+            </div>
+        </div>
+        
+        <div class="code-snippet">
+            <div><strong>Τμήμα δηλώσεων ΚΥΡΙΟΥ ΠΡΟΓΡΑΜΜΑΤΟΣ:</strong></div>
+            <div><strong>ΜΕΤΑΒΛΗΤΕΣ</strong></div>
+            <div style="margin-left: 20px;">ΑΚΕΡΑΙΕΣ: <span class="var-type">κ, λ[10], μ</span></div>
+            <div style="margin-left: 20px;">ΠΡΑΓΜΑΤΙΚΕΣ: <span class="var-type">π, ρ[10], γ</span></div>
+            <div style="margin-left: 20px;">ΧΑΡΑΚΤΗΡΕΣ: <span class="var-type">θ[10], υ</span></div>
+        </div>
+
+        <table class="t2-table">
+            <thead>
+                <tr>
+                    <th class="cmd-col-fixed">Εντολή</th>
+                    <th width="35%">α) Είδος Λάθους</th>
+                    <th width="45%">β) Σωστή Εντολή</th>
+                </tr>
+            </thead>
+            <tbody id="q2-body">
+                </tbody>
+        </table>
+
+        <div class="controls">
+            <button class="btn-check" onclick="checkTab2()">Έλεγχος</button>
+            <button class="btn-show" onclick="solveTab2()">Λύση</button>
+            <button class="btn-reset" onclick="resetTab2()">Επαναφορά</button>
+        </div>
+        <div id="score2" class="feedback-score"></div>
+    </div>
+
+</div>
+
+<script>
+    // --- Global Tab Logic ---
+    function openTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+        
+        document.getElementById(tabId).classList.add('active');
+        // Activate button matching the index
+        const buttons = document.querySelectorAll('.tab-button');
+        if(tabId === 'tab1') buttons[0].classList.add('active');
+        if(tabId === 'tab2') buttons[1].classList.add('active');
+    }
+
+    /* =========================================
+       LOGIC FOR TAB 1 (Exact Restoration)
+       ========================================= */
+    const questions1 = [
+        { label: "i.", text: "συν1(α,β)", isCorrect: false, reason: "Μια συνάρτηση επιστρέφει τιμή και δεν μπορεί να στέκεται μόνη της ως εντολή." },
+        { label: "ii.", text: "ε1 ← συν1(α,β)", isCorrect: false, reason: "Ασυμβατότητα τύπων: Η ε1 είναι Χαρακτήρας, ενώ η συνάρτηση επιστρέφει Πραγματική τιμή." },
+        { label: "iii.", text: "δ ← συν1(α,β)", isCorrect: true, reason: "Σωστό. Η δ είναι Πραγματική και η συνάρτηση επιστρέφει Πραγματική." },
+        { label: "iv.", text: "διαδ1(β, δ)", isCorrect: false, reason: "Λάθος σύνταξη (λείπει το 'ΚΑΛΕΣΕ'). Επιπλέον, το 2ο όρισμα (δ) είναι Πραγματικό ενώ η διαδικασία περιμένει Χαρακτήρα." },
+        { label: "v.", text: "δ ← διαδ1(β,δ)", isCorrect: false, reason: "Η διαδικασία δεν επιστρέφει τιμή, άρα δεν μπορεί να χρησιμοποιηθεί σε εντολή εκχώρησης." },
+        { label: "vi.", text: "κάλεσε διαδ1(β,δ)", isCorrect: false, reason: "Ασυμβατότητα τύπων παραμέτρων: Το 2ο όρισμα (δ) είναι Πραγματικό, ενώ η τυπική παράμετρος (α2) είναι Χαρακτήρας." },
+        { label: "vii.", text: "γράψε συν1(α,β)", isCorrect: true, reason: "Σωστό. Η τιμή που επιστρέφει η συνάρτηση μπορεί να εμφανιστεί άμεσα." },
+        { label: "i (2).", text: "κάλεσε διαδ1(β,δ,α)", isCorrect: false, reason: "Λάθος πλήθος ορισμάτων: Η διαδικασία ορίστηκε με 2 παραμέτρους, αλλά καλείται με 3." },
+        { label: "ii (2).", text: "δ ← 5*συν1(α,β)^2 + 1", isCorrect: true, reason: "Σωστό. Η συνάρτηση χρησιμοποιείται έγκυρα μέσα σε αριθμητική έκφραση." },
+        { label: "iii (2).", text: "κάλεσε διαδ1(β,ε1)", isCorrect: true, reason: "Σωστό. Τα ορίσματα (β: Ακέραιος, ε1: Χαρακτήρας) ταιριάζουν απόλυτα με τις παραμέτρους." },
+        { label: "iv (2).", text: "δ ← συν1(α,Α_Μ(γ))", isCorrect: true, reason: "Σωστό. Η Α_Μ(γ) επιστρέφει ακέραιο, οπότε τα ορίσματα (α, Ακέραιος) είναι συμβατά." },
+        { label: "v (2).", text: "Αν συν1(α,β)<=α τότε", isCorrect: true, reason: "Σωστό. Επιτρέπεται η σύγκριση Πραγματικού με Ακέραιο." },
+        { label: "vi (2).", text: "Αν συν1(α,β)>κάλεσε διαδ1(β,δ)", isCorrect: false, reason: "Συντακτικό λάθος: Δεν μπορεί να γίνει σύγκριση με μια εντολή κλήσης διαδικασίας." },
+        { label: "vii (2).", text: "Για ι από συν1(α,β) μέχρι 15 ...", isCorrect: true, reason: "Σωστό (συντακτικά). Οι εντολές επανάληψης δέχονται πραγματικές τιμές στα όρια." }
+    ];
+
+    const q1Body = document.getElementById('q1-body');
+    
+    questions1.forEach((q, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="statement-col">
+                <span style="color:#7f8c8d; margin-right:5px;">${q.label}</span>
+                ${q.text}
+            </td>
+            <td>
+                <div class="options">
+                    <label>
+                        <input type="radio" name="q1_${index}" value="true">
+                        <span class="option-label lbl-correct">Σωστό</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="q1_${index}" value="false">
+                        <span class="option-label lbl-wrong">Λάθος</span>
+                    </label>
+                </div>
+            </td>
+            <td class="reason-cell" id="reason-${index}">
+                ${q.reason}
+            </td>
+        `;
+        q1Body.appendChild(tr);
+    });
+
+    function checkTab1() {
+        let score = 0;
+        let answered = 0;
+
+        questions1.forEach((q, index) => {
+            const radios = document.getElementsByName(`q1_${index}`);
+            let selectedVal = null;
+            let parentTd = radios[0].closest('td');
+
+            for (const radio of radios) {
+                if (radio.checked) {
+                    selectedVal = radio.value === 'true';
+                    break;
+                }
+            }
+
+            // Reset background
+            parentTd.style.backgroundColor = 'transparent';
+
+            if (selectedVal !== null) {
+                answered++;
+                if (selectedVal === q.isCorrect) {
+                    score++;
+                    parentTd.style.backgroundColor = '#d4edda';
+                } else {
+                    parentTd.style.backgroundColor = '#f8d7da';
+                }
+            }
+        });
+
+        const scoreDiv = document.getElementById('score1');
+        if (answered === 0) {
+            scoreDiv.textContent = "Παρακαλώ επιλέξτε απαντήσεις.";
+            scoreDiv.style.color = "orange";
+        } else {
+            scoreDiv.textContent = `Σκορ: ${score} / ${questions1.length}`;
+            scoreDiv.style.color = score === questions1.length ? "green" : "#2c3e50";
+        }
+    }
+
+    function solveTab1() {
+        // Show header
+        document.getElementById('reason-header').style.display = 'table-cell';
+        
+        questions1.forEach((q, index) => {
+            // Show reason text
+            const reasonCell = document.getElementById(`reason-${index}`);
+            reasonCell.classList.add('visible');
+
+            // Select correct answer and disable
+            const radios = document.getElementsByName(`q1_${index}`);
+            for (const radio of radios) {
+                const val = radio.value === 'true';
+                if (val === q.isCorrect) {
+                    radio.checked = true;
+                }
+                radio.disabled = true; 
+            }
+            // Reset colors for clean look
+            radios[0].closest('td').style.backgroundColor = 'transparent';
+        });
+
+        const scoreDiv = document.getElementById('score1');
+        scoreDiv.textContent = "Εμφάνιση Λύσεων";
+        scoreDiv.style.color = "var(--primary)";
+    }
+
+    function resetTab1() {
+        questions1.forEach((q, index) => {
+            const radios = document.getElementsByName(`q1_${index}`);
+            for (const radio of radios) {
+                radio.checked = false;
+                radio.disabled = false;
+            }
+            const reasonCell = document.getElementById(`reason-${index}`);
+            reasonCell.classList.remove('visible');
+            reasonCell.closest('tr').querySelectorAll('td')[1].style.backgroundColor = 'transparent';
+        });
+
+        document.getElementById('reason-header').style.display = 'none';
+        document.getElementById('score1').textContent = "";
+    }
+
+
+    /* =========================================
+       LOGIC FOR TAB 2 (Panhellenic 2019)
+       ========================================= */
+    const questions2 = [
+        { 
+            cmd: "1. π ← Α(κ, υ)", 
+            errId: "type", 
+            solutions: ["π←Α(κ,θ)", "γ←Α(κ,θ)", "π<-Α(κ,θ)", "γ<-Α(κ,θ)"] 
+        },
+        { 
+            cmd: "2. ΚΑΛΕΣΕ Α(μ, θ)", 
+            errId: "func_call", 
+            solutions: ["π←Α(μ,θ)", "γ←Α(μ,θ)", "π<-Α(μ,θ)", "γ<-Α(μ,θ)"] 
+        },
+        { 
+            cmd: "3. ΚΑΛΕΣΕ Β(π, μ)", 
+            errId: "args_num", 
+            solutions: ["ΚΑΛΕΣΕΒ(π,μ,γ)", "ΚΑΛΕΣΕΒ(π,μ,π)", "ΚΑΛΕΣΕΒ(π,μ,ρ[1])", "ΚΑΛΕΣΕΒ(γ,μ,γ)"] 
+        },
+        { 
+            cmd: "4. υ ← Α(μ, θ)", 
+            errId: "assign_type", 
+            solutions: ["π←Α(μ,θ)", "γ←Α(μ,θ)", "π<-Α(μ,θ)", "γ<-Α(μ,θ)"] 
+        },
+        { 
+            cmd: "5. κ ← Β(π, μ, ρ[1])", 
+            errId: "proc_assign", 
+            solutions: ["ΚΑΛΕΣΕΒ(π,μ,ρ[1])", "ΚΑΛΕΣΕΒ(π,μ,γ)", "ΚΑΛΕΣΕΒ(γ,μ,ρ[1])"] 
+        }
+    ];
+
+    const errorOptions = {
+        "none": "Επιλέξτε λάθος...",
+        "type": "Λάθος Τύπος Ορίσματος",
+        "args_num": "Λάθος Πλήθος Ορισμάτων",
+        "func_call": "Η Συνάρτηση καλείται με ΚΑΛΕΣΕ",
+        "proc_assign": "Η Διαδικασία δεν επιστρέφει τιμή",
+        "assign_type": "Ασυμβατότητα εκχώρησης"
+    };
+
+    const q2Body = document.getElementById('q2-body');
+    questions2.forEach((item, i) => {
+        let opts = "";
+        for (const [key, val] of Object.entries(errorOptions)) {
+            opts += `<option value="${key}">${val}</option>`;
+        }
+
+        q2Body.innerHTML += `
+            <tr id="t2-row-${i}">
+                <td class="cmd-col-fixed">${item.cmd}</td>
+                <td>
+                    <select id="t2-err-${i}">${opts}</select>
+                </td>
+                <td>
+                    <input type="text" id="t2-sol-${i}" placeholder="Γράψε τη σωστή εντολή...">
+                </td>
+            </tr>
+        `;
+    });
+
+    function normalize(str) {
+        return str.replace(/\s+/g, '').toUpperCase().replace('<-', '←');
+    }
+
+    function checkTab2() {
+        let score = 0;
+        let totalChecks = questions2.length * 2;
+
+        questions2.forEach((item, i) => {
+            const errSelect = document.getElementById(`t2-err-${i}`);
+            const solInput = document.getElementById(`t2-sol-${i}`);
+            
+            let isErrCorrect = (errSelect.value === item.errId);
+            
+            let userSol = normalize(solInput.value);
+            let isSolCorrect = item.solutions.some(s => normalize(s) === userSol);
+
+            errSelect.style.backgroundColor = isErrCorrect ? '#d4edda' : '#f8d7da';
+            solInput.style.backgroundColor = isSolCorrect ? '#d4edda' : '#f8d7da';
+            
+            if(errSelect.value === 'none') errSelect.style.backgroundColor = 'white';
+            if(solInput.value === '') solInput.style.backgroundColor = 'white';
+
+            if(isErrCorrect) score++;
+            if(isSolCorrect) score++;
+        });
+
+        let msg = document.getElementById('score2');
+        if(score === totalChecks) {
+            msg.textContent = "Άριστα! Όλες οι απαντήσεις είναι σωστές.";
+            msg.style.color = "green";
+        } else {
+            msg.textContent = `Σωστές απαντήσεις: ${score} / ${totalChecks}`;
+            msg.style.color = "#c0392b";
+        }
+    }
+
+    function solveTab2() {
+        questions2.forEach((item, i) => {
+            const errSelect = document.getElementById(`t2-err-${i}`);
+            errSelect.value = item.errId;
+            errSelect.style.backgroundColor = '#d4edda';
+
+            const solInput = document.getElementById(`t2-sol-${i}`);
+            let niceSol = item.solutions[0]; 
+            niceSol = niceSol.replace(/,/g, ', ').replace(/←/g, ' ← ').replace(/<-/g, ' ← ');
+            if (niceSol.startsWith('ΚΑΛΕΣΕΒ')) niceSol = niceSol.replace('ΚΑΛΕΣΕΒ', 'ΚΑΛΕΣΕ Β'); 
+            
+            solInput.value = niceSol;
+            solInput.style.backgroundColor = '#d4edda';
+        });
+        document.getElementById('score2').textContent = "Εμφάνιση Λύσης";
+        document.getElementById('score2').style.color = "var(--primary)";
+    }
+
+    function resetTab2() {
+        questions2.forEach((item, i) => {
+            const errSelect = document.getElementById(`t2-err-${i}`);
+            const solInput = document.getElementById(`t2-sol-${i}`);
+            errSelect.value = 'none';
+            solInput.value = '';
+            errSelect.style.backgroundColor = 'white';
+            solInput.style.backgroundColor = 'white';
+        });
+        document.getElementById('score2').textContent = "";
+    }
+</script>
+
+</body>
+</html>
