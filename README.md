@@ -133,8 +133,12 @@
 - Εκτελέσεις με υποπρογράμματα από Πανελλαδικές 
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Run-the-subprograms.html)
 
-- Πανελλαδικές 2007, θέμα Β (μετατροπή συνάρτησης σε διαδικασία κλπ 
+- Πανελλαδικές 2007, θέμα Β (μετατροπή συνάρτησης σε διαδικασία κλπ) 
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/pan-B-07.html)
+
+  - Πανελλαδικές 2024, θέμα Β (μετατροπή διαδικασίας σε συνάρτηση) 
+  [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Tranform-subs.html)
+
 
 
 
