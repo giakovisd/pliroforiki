@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="el">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Διαδραστικό Εργαστήριο | Μετατροπές Υποπρογραμμάτων</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #1e293b;
+            --panel-bg: #f8fafc;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --text-dark: #334155;
+            --text-light: #94a3b8;
+            --code-bg: #0f172a;
+            --highlight: #f59e0b;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+            margin: 0;
+            padding: 10px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden; /* Όχι scroll στη σελίδα */
+        }
+
+        h1 {
+            color: var(--primary-bg);
+            margin: 5px 0 2px 0;
+            font-size: 1.3rem;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .subtitle {
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        /* --- Main Layout --- */
+        .app-container {
+            background: rgba(255, 255, 255, 0.99);
+            width: 98%;
+            max-width: 1400px;
+            height: 90vh;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        /* --- Top Tabs --- */
+        .top-tabs {
+            display: flex;
+            background: #e2e8f0;
+            padding: 0;
+            flex-shrink: 0;
+        }
+
+        .ex-tab {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .ex-tab.active {
+            background: #fff;
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .ex-tab:hover:not(.active) {
+            background: #cbd5e1;
+            color: var(--text-dark);
+        }
+
+        /* --- Content Area --- */
+        .content-area {
+            flex: 1;
+            position: relative;
+            display: none;
+            padding: 10px 15px;
+            overflow: hidden;
+        }
+        .content-area.active { display: flex; flex-direction: column; }
+
+        /* --- Inner Navigation --- */
+        .inner-nav {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
+
+        .stage-btn {
+            padding: 5px 12px;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            background: #fff;
+            color: var(--text-dark);
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.85rem;
+        }
+
+        .stage-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+        }
+
+        /* --- Workspace --- */
+        .workspace {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+            min-height: 0; /* Επιτρέπει στα παιδιά να συρρικνωθούν αν χρειαστεί */
+        }
+
+        .panel {
+            flex: 1;
+            background: var(--panel-bg);
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 5px 10px;
+            background: #eef2ff;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 700;
+            color: var(--accent);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .code-container {
+            flex: 1;
+            background: var(--code-bg);
+            padding: 8px;
+            /* Κρύβουμε το scrollbar αλλά επιτρέπουμε περιεχόμενο.
+               Η γραμματοσειρά ρυθμίζεται ώστε να χωράει. */
+            overflow-y: hidden; 
+            font-family: 'Fira Code', monospace;
+            font-size: 0.78rem; /* Μικρή γραμματοσειρά για να χωράνε όλα */
+            color: #e2e8f0;
+            line-height: 1.35;
+        }
+
+        /* --- Code Elements --- */
+        .line {
+            display: block;
+            padding: 0 4px;
+            border-radius: 2px;
+            white-space: pre; 
+        }
+        .kw { color: #c678dd; font-weight: bold; }
+        .fn { color: #61afef; }
+        .var { color: #e06c75; }
+        .op { color: #56b6c2; }
+        .num { color: #d19a66; }
+        .cm { color: #5c6370; font-style: italic; }
+        
+        .highlight-line {
+            background: rgba(245, 158, 11, 0.2);
+            border-left: 3px solid var(--highlight);
+        }
+
+        /* --- Transitions --- */
+        .fade-hidden {
+            display: none;
+            opacity: 0;
+        }
+        .fade-in {
+            display: block;
+            animation: fadeIn 0.8s forwards;
+        }
+        .fade-in-inline {
+            display: inline;
+            animation: fadeIn 0.8s forwards;
+        }
+        .fade-out {
+            animation: fadeOut 0.8s forwards;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+        /* --- Narrator --- */
+        .narrator {
+            background: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border-left: 4px solid var(--highlight);
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            font-size: 0.9rem;
+            flex-shrink: 0;
+            min-height: 35px;
+        }
+
+        /* --- Controls --- */
+        .control-bar {
+            padding: 8px;
+            background: #fff;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 6px 15px;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+        }
+        .btn:hover { background: var(--accent-hover); transform: translateY(-1px); }
+        .btn:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; }
+        .btn.secondary { background: white; color: var(--text-light); border: 2px solid #cbd5e1; }
+        .btn.secondary:hover { border-color: var(--text-dark); color: var(--text-dark); }
+
+        .audio-btn {
+            width: 30px; height: 30px; border-radius: 50%;
+            border: 2px solid var(--highlight);
+            background: white; color: var(--highlight);
+            font-size: 0.9rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .audio-btn.active { background: var(--highlight); color: white; }
+
+        /* --- Memory Visualization --- */
+        .mem-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 6px;
+            padding: 6px;
+        }
+        .mem-card {
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 4px;
+            text-align: center;
+        }
+        .mem-label { font-size: 0.65rem; color: var(--text-light); font-weight: bold; text-transform: uppercase; }
+        .mem-val { font-size: 0.9rem; color: var(--text-dark); font-weight: bold; font-family: 'Fira Code'; }
+        
+        /* Changed animation class */
+        .changed {
+            animation: flash 1s;
+            color: #fbbf24; 
+            font-weight: bold;
+        }
+        @keyframes flash {
+            0% { background: rgba(251, 191, 36, 0.5); }
+            100% { background: transparent; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Εργαστήριο Υποπρογραμμάτων</h1>
+    <p class="subtitle">Μετατροπές: Συνάρτηση ↔ Διαδικασία</p>
+
+    <div class="app-container">
+        <div class="top-tabs">
+            <button class="ex-tab active" onclick="switchEx(1)">Άσκηση 1: Συνάρτηση → Διαδικασία</button>
+            <button class="ex-tab" onclick="switchEx(2)">Άσκηση 2: Διαδικασία → Συνάρτηση</button>
+        </div>
+
+        <div id="ex1" class="content-area active">
+            <div class="inner-nav">
+                <button class="stage-btn active" onclick="switchStage(1, 'transform')">1. Μετατροπή</button>
+                <button class="stage-btn" onclick="switchStage(1, 'simulate')">2. Εκτέλεση (Διαδικασία)</button>
+            </div>
+
+            <div class="narrator">
+                <span style="font-size: 1.2rem;">🤖</span>
+                <span id="nar-1">Καλωσήρθες! Πάτησε "Επόμενο Βήμα" για να δεις τη μετατροπή της συνάρτησης σε διαδικασία.</span>
+            </div>
+
+            <div class="workspace">
+                <div class="panel">
+                    <div class="panel-header">ΚΥΡΙΟ ΠΡΟΓΡΑΜΜΑ</div>
+                    <div class="code-container" id="code-main-1">
+                        <div class="line"><span class="kw">ΠΡΟΓΡΑΜΜΑ</span> Κύριο</div>
+                        <div class="line"><span class="kw">ΜΕΤΑΒΛΗΤΕΣ</span></div>
+                        <div class="line">  <span class="kw">ΑΚΕΡΑΙΕΣ:</span> <span class="var">Α</span>, <span class="var">Β</span><span id="decl-res-1" class="fade-hidden"><span class="kw">,</span> <span class="var changed">Res</span></span></div>
+                        <div class="line"><span class="kw">ΑΡΧΗ</span></div>
+                        <div class="line">  <span class="kw">ΔΙΑΒΑΣΕ</span> <span class="var">Α</span>, <span class="var">Β</span></div>
+                        
+                        <div class="line" id="line-call-func-1">  <span class="kw">ΓΡΑΨΕ</span> <span class="fn">ΠΑΡ</span>(<span class="var">Α</span>, <span class="var">Β</span>)</div>
+                        
+                        <div class="line fade-hidden" id="line-call-proc-1">  <span class="kw changed">ΚΑΛΕΣΕ</span> <span class="fn">Δ1</span>(<span class="var">Α</span>, <span class="var">Β</span>, <span class="var changed">Res</span>)</div>
+                        <div class="line fade-hidden" id="line-write-res-1">  <span class="kw">ΓΡΑΨΕ</span> <span class="var changed">Res</span></div>
+                        
+                        <div class="line">  <span class="kw">ΓΡΑΨΕ</span> <span class="var">Α</span>, <span class="var">Β</span></div>
+                        <div class="line"><span class="kw">ΤΕΛΟΣ_ΠΡΟΓΡΑΜΜΑΤΟΣ</span></div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">ΥΠΟΠΡΟΓΡΑΜΜΑ</div>
+                    <div class="code-container" id="code-sub-1">
+                        <div class="line" id="head-func-1"><span class="kw">ΣΥΝΑΡΤΗΣΗ</span> <span class="fn">ΠΑΡ</span>(<span class="var">Χ</span>, <span class="var">Υ</span>): <span class="kw">ΑΚΕΡΑΙΑ</span></div>
+                        <div class="line fade-hidden" id="head-proc-1"><span class="kw changed">ΔΙΑΔΙΚΑΣΙΑ</span> <span class="fn">Δ1</span>(<span class="var">Χ</span>, <span class="var">Υ</span>, <span class="var changed">Result</span>)</div>
+                        <div class="line"><span class="kw">ΜΕΤΑΒΛΗΤΕΣ</span></div>
+                        <div class="line">  <span class="kw">ΑΚΕΡΑΙΕΣ:</span> <span class="var">Χ</span>, <span class="var">Υ</span>, <span class="var">Ζ</span><span class="fade-hidden" id="decl-res-sub-1"><span class="kw">,</span> <span class="var changed">Result</span></span></div>
+                        <div class="line"><span class="kw">ΑΡΧΗ</span></div>
+                        <div class="line">  <span class="var">Ζ</span> <span class="op">←</span> <span class="num">0</span></div>
+                        <div class="line" id="L-loop-start">  <span class="kw">ΟΣΟ</span> <span class="var">Χ</span> > <span class="num">0</span> <span class="kw">ΕΠΑΝΑΛΑΒΕ</span></div>
+                        <div class="line" id="L-if">    <span class="kw">ΑΝ</span> <span class="var">Χ</span> <span class="op">MOD</span> <span class="num">2</span> = <span class="num">1</span> <span class="kw">ΤΟΤΕ</span></div>
+                        <div class="line" id="L-z-calc">      <span class="var">Ζ</span> <span class="op">←</span> <span class="var">Ζ</span> + <span class="var">Υ</span></div>
+                        <div class="line">    <span class="kw">ΤΕΛΟΣ_ΑΝ</span></div>
+                        <div class="line" id="L-x-calc">    <span class="var">Χ</span> <span class="op">←</span> <span class="var">Χ</span> <span class="op">DIV</span> <span class="num">2</span></div>
+                        <div class="line" id="L-y-calc">    <span class="var">Υ</span> <span class="op">←</span> <span class="var">Υ</span> * <span class="num">2</span></div>
+                        <div class="line" id="L-loop-end">  <span class="kw">ΤΕΛΟΣ_ΕΠΑΝΑΛΗΨΗΣ</span></div>
+                        <div class="line" id="ret-func-1">  <span class="fn">ΠΑΡ</span> <span class="op">←</span> <span class="var">Ζ</span></div>
+                        <div class="line fade-hidden" id="ret-proc-1">  <span class="var changed">Result</span> <span class="op">←</span> <span class="var">Ζ</span></div>
+                        <div class="line" id="end-sub-1"><span class="kw">ΤΕΛΟΣ_ΣΥΝΑΡΤΗΣΗΣ</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-bar">
+                <button class="audio-btn" id="audio-1" onclick="toggleAudio(1)">🔇</button>
+                <button class="btn" id="btn-next-1" onclick="nextStep1()">👣 Επόμενο Βήμα</button>
+                <button class="btn secondary" onclick="reset1()">🔄 Επαναφορά</button>
+                
+                <div id="sim-controls-1" class="fade-hidden" style="display:none; gap:10px;">
+                    <div style="border-left: 2px solid #cbd5e1; height: 25px; margin: 0 5px;"></div>
+                    <button class="btn secondary" onclick="initSim1(3, 4)">A=3, B=4</button>
+                    <button class="btn secondary" onclick="initSim1(5, 2)">A=5, B=2</button>
+                    <button class="btn" id="sim-step-1" onclick="stepSim1()" disabled>▶ Βήμα</button>
+                </div>
+            </div>
+            
+            <div id="ram-1" class="panel fade-hidden" style="flex: 0; min-height: 120px; margin-top: 10px; display:none;">
+                <div class="panel-header">ΜΝΗΜΗ & ΕΞΟΔΟΣ</div>
+                <div style="display:flex; padding:8px; gap:15px;">
+                    <div style="flex:1">
+                        <div style="font-size:0.7rem; font-weight:bold; color:#64748b; margin-bottom:4px;">ΚΥΡΙΟ ΠΡΟΓΡΑΜΜΑ</div>
+                        <div class="mem-grid" id="mem-main-1"></div>
+                    </div>
+                    <div style="flex:1; border-left:1px solid #e2e8f0; padding-left:10px;">
+                        <div style="font-size:0.7rem; font-weight:bold; color:#64748b; margin-bottom:4px;">ΔΙΑΔΙΚΑΣΙΑ Δ1</div>
+                        <div class="mem-grid" id="mem-sub-1"></div>
+                    </div>
+                    <div style="flex:1; background:#000; border-radius:4px; padding:8px; color:#10b981; font-family:'Fira Code'; font-size:0.85rem;" id="console-1">_</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="ex2" class="content-area">
+            <div class="inner-nav">
+                <button class="stage-btn active" onclick="switchStage(2, 'transform')">1. Μετατροπή</button>
+                <button class="stage-btn" onclick="switchStage(2, 'simulate')">2. Εκτέλεση (Συνάρτηση)</button>
+            </div>
+
+            <div class="narrator">
+                <span style="font-size: 1.2rem;">🤖</span>
+                <span id="nar-2">Πάτησε "Επόμενο Βήμα" για να δεις τη μετατροπή της Διαδικασίας σε Συνάρτηση.</span>
+            </div>
+
+            <div class="workspace">
+                <div class="panel">
+                    <div class="panel-header">ΚΥΡΙΟ ΠΡΟΓΡΑΜΜΑ</div>
+                    <div class="code-container" id="code-main-2">
+                        <div class="line"><span class="kw">ΠΡΟΓΡΑΜΜΑ</span> Κύριο2</div>
+                        <div class="line"><span class="kw">ΜΕΤΑΒΛΗΤΕΣ</span></div>
+                        <div class="line">  <span class="kw">ΠΡΑΓΜΑΤΙΚΕΣ:</span> <span class="var">a</span>, <span class="var">b</span></div>
+                        <div class="line"><span class="kw">ΑΡΧΗ</span></div>
+                        <div class="line">  <span class="kw">ΔΙΑΒΑΣΕ</span> <span class="var">a</span></div>
+                        <div class="line" id="line-call-proc-2">  <span class="kw">ΚΑΛΕΣΕ</span> <span class="fn">Διαδ</span>(<span class="var">a</span>, <span class="var">b</span>)</div>
+                        <div class="line fade-hidden" id="line-call-func-2">  <span class="var">b</span> <span class="op">←</span> <span class="fn changed">F</span>(<span class="var">a</span>)</div>
+                        <div class="line">  <span class="kw">ΓΡΑΨΕ</span> <span class="var">a</span>, <span class="var">b</span></div>
+                        <div class="line"><span class="kw">ΤΕΛΟΣ_ΠΡΟΓΡΑΜΜΑΤΟΣ</span></div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">ΥΠΟΠΡΟΓΡΑΜΜΑ</div>
+                    <div class="code-container" id="code-sub-2">
+                        <div class="line" id="head-proc-2"><span class="kw">ΔΙΑΔΙΚΑΣΙΑ</span> <span class="fn">Διαδ</span>(<span class="var">x</span>, <span class="var">y</span>)</div>
+                        <div class="line fade-hidden" id="head-func-2"><span class="kw changed">ΣΥΝΑΡΤΗΣΗ</span> <span class="fn">F</span>(<span class="var">x</span>): <span class="kw">ΠΡΑΓΜΑΤΙΚΗ</span></div>
+                        <div class="line"><span class="kw">ΜΕΤΑΒΛΗΤΕΣ</span></div>
+                        <div class="line">  <span class="kw">ΑΚΕΡΑΙΕΣ:</span> <span class="var">x</span></div>
+                        <div class="line" id="decl-proc-2">  <span class="kw">ΠΡΑΓΜΑΤΙΚΕΣ:</span> <span class="var">y</span>, <span class="var">a</span></div>
+                        <div class="line fade-hidden" id="decl-func-2">  <span class="kw">ΠΡΑΓΜΑΤΙΚΕΣ:</span> <span class="var">a</span> <span class="cm">! Το y φεύγει</span></div>
+                        <div class="line"><span class="kw">ΑΡΧΗ</span></div>
+                        <div class="line" id="local-a-2">  <span class="var">a</span> <span class="op">←</span> <span class="num">10.5</span> <span class="cm">! Τοπική</span></div>
+                        <div class="line" id="ret-proc-2">  <span class="var">y</span> <span class="op">←</span> <span class="var">x</span>^<span class="num">2</span> + <span class="num">4</span>*<span class="var">a</span></div>
+                        <div class="line fade-hidden" id="ret-func-2">  <span class="fn changed">F</span> <span class="op">←</span> <span class="var">x</span>^<span class="num">2</span> + <span class="num">4</span>*<span class="var">a</span></div>
+                        <div class="line" id="end-sub-2"><span class="kw">ΤΕΛΟΣ_ΔΙΑΔΙΚΑΣΙΑΣ</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-bar">
+                <button class="audio-btn" id="audio-2" onclick="toggleAudio(2)">🔇</button>
+                <button class="btn" id="btn-next-2" onclick="nextStep2()">👣 Επόμενο Βήμα</button>
+                <button class="btn secondary" onclick="reset2()">🔄 Επαναφορά</button>
+
+                <div id="sim-controls-2" class="fade-hidden" style="display:none; gap:10px;">
+                    <div style="border-left: 2px solid #cbd5e1; height: 25px; margin: 0 5px;"></div>
+                    <button class="btn secondary" onclick="initSim2(2)">a=2</button>
+                    <button class="btn secondary" onclick="initSim2(5)">a=5</button>
+                    <button class="btn" id="sim-step-2" onclick="stepSim2()" disabled>▶ Βήμα</button>
+                </div>
+            </div>
+
+            <div id="ram-2" class="panel fade-hidden" style="flex: 0; min-height: 120px; margin-top: 10px; display:none;">
+                <div class="panel-header">ΜΝΗΜΗ & ΕΞΟΔΟΣ</div>
+                <div style="display:flex; padding:8px; gap:15px;">
+                    <div style="flex:1">
+                        <div style="font-size:0.7rem; font-weight:bold; color:#64748b; margin-bottom:4px;">ΚΥΡΙΟ ΠΡΟΓΡΑΜΜΑ</div>
+                        <div class="mem-grid" id="mem-main-2"></div>
+                    </div>
+                    <div style="flex:1; border-left:1px solid #e2e8f0; padding-left:10px;">
+                        <div style="font-size:0.7rem; font-weight:bold; color:#64748b; margin-bottom:4px;">ΣΥΝΑΡΤΗΣΗ F</div>
+                        <div class="mem-grid" id="mem-sub-2"></div>
+                    </div>
+                    <div style="flex:1; background:#000; border-radius:4px; padding:8px; color:#10b981; font-family:'Fira Code'; font-size:0.85rem;" id="console-2">_</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- UTILS ---
+        let audioState = {1: false, 2: false};
+        let synth = window.speechSynthesis;
+
+        function toggleAudio(ex) {
+            audioState[ex] = !audioState[ex];
+            const btn = document.getElementById(`audio-${ex}`);
+            btn.innerText = audioState[ex] ? '🔊' : '🔇';
+            btn.classList.toggle('active', audioState[ex]);
+            if(audioState[ex]) speak("Η αφήγηση ενεργοποιήθηκε.");
+            else synth.cancel();
+        }
+
+        function speak(text) {
+            let activeEx = document.getElementById('ex1').classList.contains('active') ? 1 : 2;
+            if(!audioState[activeEx]) return;
+            synth.cancel();
+            let utt = new SpeechSynthesisUtterance(text);
+            utt.lang = 'el-GR';
+            utt.rate = 1.1;
+            synth.speak(utt);
+        }
+
+        function updateNar(ex, text) {
+            document.getElementById(`nar-${ex}`).innerHTML = text;
+            let clean = text.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").replace(/->/g, " σε ").replace(/<-/g, " παίρνει τιμή ");
+            speak(clean);
+        }
+
+        function switchEx(ex) {
+            document.querySelectorAll('.ex-tab').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.ex-tab')[ex-1].classList.add('active');
+            document.querySelectorAll('.content-area').forEach(c => c.classList.remove('active'));
+            document.getElementById(`ex${ex}`).classList.add('active');
+            synth.cancel();
+        }
+
+        function switchStage(ex, stage) {
+            const nav = document.getElementById(`ex${ex}`).querySelector('.inner-nav');
+            nav.querySelectorAll('.stage-btn').forEach(b => b.classList.remove('active'));
+            nav.children[stage === 'transform' ? 0 : 1].classList.add('active');
+
+            const simControls = document.getElementById(`sim-controls-${ex}`);
+            const ramPanel = document.getElementById(`ram-${ex}`);
+            
+            if (stage === 'simulate') {
+                simControls.style.display = 'flex';
+                simControls.classList.add('fade-in');
+                ramPanel.style.display = 'block';
+                ramPanel.classList.add('fade-in');
+                updateNar(ex, "Επίλεξε τιμές εισόδου για να δεις την εκτέλεση του νέου κώδικα.");
+            } else {
+                simControls.style.display = 'none';
+                ramPanel.style.display = 'none';
+                resetEx(ex);
+            }
+        }
+
+        function updateMem(ex, loc, name, val) {
+            const container = document.getElementById(`mem-${loc}-${ex}`);
+            // Simple unique ID logic is skipped for simplicity, clearing and rebuilding often works better for small sims,
+            // but here we just append/update.
+            let card = Array.from(container.children).find(c => c.getAttribute('data-name') === name);
+            if (val === null) { if(card) card.remove(); return; }
+            if (!card) {
+                let card = document.createElement('div');
+                card.className = 'mem-card';
+                card.setAttribute('data-name', name);
+                card.innerHTML = `<div class="mem-label">${name}</div><div class="mem-val">${val}</div>`;
+                container.appendChild(card);
+            } else {
+                let valEl = card.querySelector('.mem-val');
+                if(valEl.innerText != val) {
+                    valEl.innerText = val;
+                    valEl.classList.add('changed');
+                    setTimeout(() => valEl.classList.remove('changed'), 500);
+                }
+            }
+        }
+
+        // --- EXERCISE 1 ---
+        let stepState1 = 0;
+        function nextStep1() {
+            stepState1++;
+            const btn = document.getElementById('btn-next-1');
+            if (stepState1 === 1) {
+                updateNar(1, "1. Στη Διαδικασία, αλλάζουμε τον τίτλο και προσθέτουμε μια παράμετρο <code>Result</code>.");
+                document.getElementById('head-func-1').classList.add('fade-out');
+                setTimeout(() => {
+                    document.getElementById('head-func-1').classList.add('fade-hidden');
+                    document.getElementById('head-proc-1').classList.remove('fade-hidden');
+                    document.getElementById('head-proc-1').classList.add('fade-in');
+                    document.getElementById('decl-res-sub-1').classList.remove('fade-hidden');
+                    document.getElementById('decl-res-sub-1').classList.add('fade-in-inline');
+                    // Change End Tag
+                    document.getElementById('end-sub-1').innerHTML = '<span class="kw changed">ΤΕΛΟΣ_ΔΙΑΔΙΚΑΣΙΑΣ</span>';
+                }, 600);
+            } else if (stepState1 === 2) {
+                updateNar(1, "2. Αντικαθιστούμε την εκχώρηση στο όνομα με εκχώρηση στην παράμετρο <code>Result</code>.");
+                document.getElementById('ret-func-1').classList.add('fade-out');
+                setTimeout(() => {
+                    document.getElementById('ret-func-1').classList.add('fade-hidden');
+                    document.getElementById('ret-proc-1').classList.remove('fade-hidden');
+                    document.getElementById('ret-proc-1').classList.add('fade-in');
+                }, 600);
+            } else if (stepState1 === 3) {
+                updateNar(1, "3. Στο Κύριο Πρόγραμμα, δηλώνουμε τη μεταβλητή <code>Res</code>.");
+                document.getElementById('decl-res-1').classList.remove('fade-hidden');
+                document.getElementById('decl-res-1').classList.add('fade-in-inline');
+            } else if (stepState1 === 4) {
+                updateNar(1, "4. Αντικαθιστούμε την κλήση με <code>ΚΑΛΕΣΕ</code> και <code>ΓΡΑΨΕ</code>.");
+                document.getElementById('line-call-func-1').classList.add('fade-out');
+                setTimeout(() => {
+                    document.getElementById('line-call-func-1').classList.add('fade-hidden');
+                    document.getElementById('line-call-proc-1').classList.remove('fade-hidden');
+                    document.getElementById('line-call-proc-1').classList.add('fade-in');
+                    document.getElementById('line-write-res-1').classList.remove('fade-hidden');
+                    document.getElementById('line-write-res-1').classList.add('fade-in');
+                }, 600);
+                btn.disabled = true;
+            }
+        }
+
+        function reset1() {
+            stepState1 = 0;
+            document.getElementById('btn-next-1').disabled = false;
+            updateNar(1, "Επαναφορά. Πάτησε 'Επόμενο Βήμα'.");
+            const resetEl = (id, hide) => {
+                let el = document.getElementById(id);
+                el.classList.remove('fade-in', 'fade-in-inline', 'fade-out', 'fade-hidden');
+                if(hide) el.classList.add('fade-hidden');
+            };
+            resetEl('head-func-1', false); resetEl('head-proc-1', true);
+            resetEl('decl-res-sub-1', true); resetEl('ret-func-1', false);
+            resetEl('ret-proc-1', true); resetEl('decl-res-1', true);
+            resetEl('line-call-func-1', false); resetEl('line-call-proc-1', true);
+            resetEl('line-write-res-1', true);
+            document.getElementById('end-sub-1').innerHTML = '<span class="kw">ΤΕΛΟΣ_ΣΥΝΑΡΤΗΣΗΣ</span>';
+        }
+
+        let sim1 = { state: 0, A:0, B:0, X:0, Y:0, Z:0, Res:0 };
+        function initSim1(a, b) {
+            sim1 = { state: 0, A:a, B:b, X:0, Y:0, Z:0, Res:0 };
+            document.getElementById('mem-main-1').innerHTML = '';
+            document.getElementById('mem-sub-1').innerHTML = '';
+            document.getElementById('console-1').innerText = '_';
+            updateMem(1, 'main', 'A', a); updateMem(1, 'main', 'B', b); updateMem(1, 'main', 'Res', '?');
+            document.getElementById('sim-step-1').disabled = false;
+            if(stepState1 < 4) { stepState1 = 4; nextStep1(); } 
+            updateNar(1, `Έναρξη με Α=${a}, Β=${b}. Πάτησε 'Βήμα'.`);
+        }
+
+        function stepSim1() {
+            sim1.state++;
+            const hl = (id) => {
+                document.querySelectorAll('.highlight-line').forEach(e => e.classList.remove('highlight-line'));
+                if(id) document.getElementById(id).classList.add('highlight-line');
+            }
+            switch(sim1.state) {
+                case 1: hl('line-call-proc-1'); updateNar(1, "Κλήση της διαδικασίας Δ1."); break;
+                case 2: hl('head-proc-1'); sim1.X = sim1.A; sim1.Y = sim1.B; sim1.Z = 0;
+                        updateMem(1, 'sub', 'X', sim1.X); updateMem(1, 'sub', 'Y', sim1.Y);
+                        updateMem(1, 'sub', 'Z', 0); updateMem(1, 'sub', 'Result', '?');
+                        updateNar(1, `Μεταφορά τιμών: X=${sim1.X}, Y=${sim1.Y}`); break;
+                case 3: 
+                    if (sim1.X > 0) { hl('L-loop-start'); updateNar(1, `Έλεγχος: ${sim1.X} > 0 Αληθές.`); }
+                    else { sim1.state = 20; stepSim1(); }
+                    break;
+                case 4: hl('L-if'); 
+                    if (sim1.X % 2 === 1) updateNar(1, `Το ${sim1.X} είναι περιττός.`);
+                    else { updateNar(1, `Το ${sim1.X} είναι άρτιος. Skip.`); sim1.state = 6; } break;
+                case 5: hl('L-z-calc'); sim1.Z += sim1.Y; updateMem(1, 'sub', 'Z', sim1.Z); updateNar(1, `Z ← Z + Y (${sim1.Z})`); break;
+                case 6: sim1.state = 7; stepSim1(); break;
+                case 7: hl('L-x-calc'); sim1.X = Math.floor(sim1.X / 2); updateMem(1, 'sub', 'X', sim1.X); updateNar(1, `Χ div 2 = ${sim1.X}`); break;
+                case 8: hl('L-y-calc'); sim1.Y *= 2; updateMem(1, 'sub', 'Y', sim1.Y); updateNar(1, `Υ * 2 = ${sim1.Y}`); break;
+                case 9: hl('L-loop-end'); sim1.state = 2; stepSim1(); break;
+                case 21: hl('ret-proc-1'); sim1.Res = sim1.Z; updateMem(1, 'sub', 'Result', sim1.Res); updateNar(1, `Επιστροφή αποτελέσματος: ${sim1.Res}`); break;
+                case 22: hl('line-write-res-1'); document.getElementById('mem-sub-1').innerHTML = ''; updateMem(1, 'main', 'Res', sim1.Res); document.getElementById('console-1').innerText += ` ${sim1.Res}`; updateNar(1, "Εμφάνιση αποτελέσματος."); break;
+                case 23: hl(''); document.getElementById('console-1').innerText += `\n${sim1.A} ${sim1.B}`; updateNar(1, "Εμφάνιση Α, Β. Τέλος."); document.getElementById('sim-step-1').disabled = true; break;
+            }
+        }
+
+        // --- EXERCISE 2 ---
+        let stepState2 = 0;
+        function nextStep2() {
+            stepState2++;
+            const btn = document.getElementById('btn-next-2');
+            if (stepState2 === 1) {
+                updateNar(2, "1. Αλλάζουμε τη Διαδικασία σε Συνάρτηση F και αφαιρούμε την παράμετρο y.");
+                document.getElementById('head-proc-2').classList.add('fade-out');
+                document.getElementById('decl-proc-2').classList.add('fade-out');
+                setTimeout(() => {
+                    document.getElementById('head-proc-2').classList.add('fade-hidden');
+                    document.getElementById('decl-proc-2').classList.add('fade-hidden');
+                    document.getElementById('head-func-2').classList.remove('fade-hidden');
+                    document.getElementById('head-func-2').classList.add('fade-in');
+                    document.getElementById('decl-func-2').classList.remove('fade-hidden');
+                    document.getElementById('decl-func-2').classList.add('fade-in');
+                    document.getElementById('end-sub-2').innerHTML = '<span class="kw changed">ΤΕΛΟΣ_ΣΥΝΑΡΤΗΣΗΣ</span>';
+                }, 600);
+            } else if (stepState2 === 2) {
+                updateNar(2, "2. Αντί για y, εκχωρούμε στο όνομα της συνάρτησης F.");
+                document.getElementById('ret-proc-2').classList.add('fade-out');
+                setTimeout(() => {
+                    document.getElementById('ret-proc-2').classList.add('fade-hidden');
+                    document.getElementById('ret-func-2').classList.remove('fade-hidden');
+                    document.getElementById('ret-func-2').classList.add('fade-in');
+                }, 600);
+            } else if (stepState2 === 3) {
+                updateNar(2, "3. Στο Κύριο Πρόγραμμα, αντικαθιστούμε το ΚΑΛΕΣΕ με εκχώρηση.");
+                document.getElementById('line-call-proc-2').classList.add('fade-out');
+                setTimeout(() => {
+                    document.getElementById('line-call-proc-2').classList.add('fade-hidden');
+                    document.getElementById('line-call-func-2').classList.remove('fade-hidden');
+                    document.getElementById('line-call-func-2').classList.add('fade-in');
+                }, 600);
+                btn.disabled = true;
+            }
+        }
+
+        function reset2() {
+            stepState2 = 0;
+            document.getElementById('btn-next-2').disabled = false;
+            updateNar(2, "Επαναφορά.");
+            const resetEl = (id, hide) => {
+                let el = document.getElementById(id);
+                el.classList.remove('fade-in', 'fade-out', 'fade-hidden');
+                if(hide) el.classList.add('fade-hidden');
+            };
+            resetEl('head-proc-2', false); resetEl('head-func-2', true);
+            resetEl('decl-proc-2', false); resetEl('decl-func-2', true);
+            resetEl('ret-proc-2', false); resetEl('ret-func-2', true);
+            resetEl('line-call-proc-2', false); resetEl('line-call-func-2', true);
+            document.getElementById('end-sub-2').innerHTML = '<span class="kw">ΤΕΛΟΣ_ΔΙΑΔΙΚΑΣΙΑΣ</span>';
+        }
+
+        function resetEx(ex) { if(ex===1) reset1(); else reset2(); }
+
+        let sim2 = { state: 0, a_main: 0, b_main: 0, x: 0, a_local: 0, f_val: 0 };
+        function initSim2(val) {
+            sim2 = { state: 0, a_main: val, b_main: 0, x: 0, a_local: 0, f_val: 0 };
+            document.getElementById('mem-main-2').innerHTML = ''; document.getElementById('mem-sub-2').innerHTML = '';
+            document.getElementById('console-2').innerText = '_';
+            updateMem(2, 'main', 'a', val); updateMem(2, 'main', 'b', '?');
+            document.getElementById('sim-step-2').disabled = false;
+            if(stepState2 < 3) { stepState2 = 3; nextStep2(); } 
+            updateNar(2, `Έναρξη με a=${val}. Πάτησε 'Βήμα'.`);
+        }
+
+        function stepSim2() {
+            sim2.state++;
+            const hl = (id) => {
+                document.querySelectorAll('.highlight-line').forEach(e => e.classList.remove('highlight-line'));
+                if(id) document.getElementById(id).classList.add('highlight-line');
+            }
+            switch(sim2.state) {
+                case 1: hl('line-call-func-2'); updateNar(2, "Κλήση της συνάρτησης F(a)."); break;
+                case 2: hl('head-func-2'); sim2.x = sim2.a_main;
+                        updateMem(2, 'sub', 'x', sim2.x); updateMem(2, 'sub', 'a', '?'); updateMem(2, 'sub', 'F', '?');
+                        updateNar(2, `Πέρασμα παραμέτρων: x ← ${sim2.x}.`); break;
+                case 3: hl('local-a-2'); sim2.a_local = 10.5; updateMem(2, 'sub', 'a', sim2.a_local);
+                        updateNar(2, "ΠΡΟΣΟΧΗ! Το 'a' εδώ είναι ΤΟΠΙΚΗ μεταβλητή."); break;
+                case 4: hl('ret-func-2'); sim2.f_val = Math.pow(sim2.x, 2) + (4 * sim2.a_local);
+                        updateMem(2, 'sub', 'F', sim2.f_val); updateNar(2, `Υπολογισμός: ${sim2.f_val}.`); break;
+                case 5: hl('line-call-func-2'); sim2.b_main = sim2.f_val; updateMem(2, 'main', 'b', sim2.b_main);
+                        document.getElementById('mem-sub-2').innerHTML = ''; 
+                        updateNar(2, `Επιστροφή. Το b παίρνει την τιμή ${sim2.b_main}.`); break;
+                case 6: hl(''); document.getElementById('console-2').innerText = `${sim2.a_main}  ${sim2.b_main}`;
+                        updateNar(2, "Εμφάνιση αποτελεσμάτων."); document.getElementById('sim-step-2').disabled = true; break;
+            }
+        }
+    </script>
+</body>
+</html>
