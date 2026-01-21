@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="el">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Εργαστήριο Υποπρογραμμάτων | Πανελλήνιες 2007 (Final Fix)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #c0392b;
+            --text-main: #2c3e50;
+            --text-light: #7f8c8d;
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --glass-bg: rgba(255, 255, 255, 0.98);
+            --code-bg: #282c34;
+        }
+
+        /* Base Styles */
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin: 10px 0 5px;
+            font-size: 1.8rem;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .subtitle {
+            color: var(--text-main);
+            margin-bottom: 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        /* Container */
+        .main-container {
+            background: var(--glass-bg);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            width: 95%;
+            max-width: 1300px;
+            min-height: 750px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navigation Tabs */
+        .nav {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: #ecf0f1;
+            padding: 6px;
+            border-radius: 50px;
+            align-self: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .nav-btn.active {
+            background: white;
+            color: var(--accent-color);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-btn:hover:not(.active) {
+            color: var(--accent-color);
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Scenes */
+        .scene {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            gap: 20px;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .scene.active {
+            display: flex;
+        }
+
+        /* Editors */
+        .editor-wrapper {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .code-box {
+            flex: 1;
+            min-width: 400px;
+            background: var(--code-bg);
+            border-radius: 12px;
+            padding: 20px;
+            color: #abb2bf;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            position: relative;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            border: 2px solid transparent;
+            transition: border-color 0.3s;
+        }
+
+        .code-title {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: rgba(255,255,255,0.1);
+            padding: 4px 10px;
+            font-size: 0.8em;
+            border-bottom-left-radius: 10px;
+            color: #ccc;
+        }
+
+        .code-line {
+            padding: 2px 5px;
+            border-radius: 4px;
+            transition: background 0.3s, opacity 0.8s ease-in-out, transform 0.5s;
+            white-space: pre-wrap;
+            opacity: 1;
+        }
+
+        /* Syntax Highlighting */
+        .kwd { color: #c678dd; font-weight: bold; }
+        .fn { color: #61afef; }
+        .vr { color: #e06c75; }
+        .op { color: #56b6c2; }
+        .num { color: #d19a66; }
+        .cm { color: #5c6370; font-style: italic; }
+
+        /* Animation States */
+        .hidden {
+            display: none;
+            opacity: 0;
+        }
+        
+        /* Για ολόκληρες γραμμές κώδικα */
+        .fading-in {
+            display: block; 
+            animation: fadeInRow 1.5s forwards;
+        }
+        
+        /* ΝΕΟ: Για inline στοιχεία (όπως μεταβλητές) ώστε να μην αλλάζουν γραμμή */
+        .fading-in-inline {
+            display: inline;
+            animation: fadeInRow 1.5s forwards;
+        }
+
+        .fading-out {
+            animation: fadeOutRow 1s forwards;
+        }
+
+        @keyframes fadeInRow {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeOutRow {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.9); }
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            flex-wrap: wrap;
+        }
+
+        button.action-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        button.action-btn:hover {
+            transform: translateY(-2px);
+            background: #2980b9;
+        }
+
+        button.action-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        button.action-btn.secondary {
+            background: white;
+            color: var(--text-light);
+            border: 2px solid #bdc3c7;
+        }
+
+        /* Audio Button */
+        .audio-btn {
+            background: #fff;
+            border: 2px solid var(--warning-color);
+            color: var(--warning-color);
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        .audio-btn.active {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        /* RAM Visualization */
+        .ram-panel {
+            flex: 0.5;
+            background: #dfe6e9;
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 250px;
+        }
+
+        .frame-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+            font-weight: 700;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 3px;
+        }
+
+        .var-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 8px;
+        }
+
+        .var-card {
+            background: #f1f2f6;
+            border-radius: 6px;
+            padding: 5px;
+            text-align: center;
+            border: 1px solid #ced6e0;
+            transition: all 0.5s;
+        }
+        
+        .var-card.changed {
+            background: #ffeaa7;
+            transform: scale(1.1);
+        }
+
+        .var-name { font-size: 0.7rem; color: #7f8c8d; font-weight: bold; }
+        .var-val { font-size: 1rem; color: #2d3436; font-weight: bold; font-family: 'Fira Code', monospace; }
+
+        .output-screen {
+            background: #2d3436;
+            color: #2ecc71;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: 'Fira Code', monospace;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Narrator */
+        .narrator {
+            background: #fff;
+            padding: 15px 20px;
+            border-radius: 10px;
+            border-left: 5px solid var(--accent-color);
+            color: var(--secondary-color);
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            min-height: 60px;
+        }
+
+        .highlight-line {
+            background: rgba(255, 255, 255, 0.15);
+            border-left: 3px solid var(--warning-color);
+        }
+
+        .highlight-word {
+            background: rgba(241, 196, 15, 0.4);
+            padding: 2px 4px;
+            border-radius: 3px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(241, 196, 15, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0); }
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+    </style>
+</head>
+
+<body>
+
+    <h1>Εργαστήριο: Υποπρογράμματα (Πανελλήνιες 2007)</h1>
+    <p class="subtitle">Μετατροπή Συνάρτησης σε Διαδικασία & Ενσωμάτωση Κώδικα</p>
+
+    <div class="main-container">
+
+        <div class="nav">
+            <button class="nav-btn active" onclick="switchTab('scene-transform', this)">1. Μετατροπή σε Διαδικασία (Ερώτημα α)</button>
+            <button class="nav-btn" onclick="switchTab('scene-inline', this)">2. Χωρίς Υποπρόγραμμα (Ερώτημα β)</button>
+            <button class="nav-btn" onclick="switchTab('scene-simulate', this)">3. Εκτέλεση (Ερώτημα γ)</button>
+        </div>
+
+        <div id="scene-transform" class="scene active">
+            <div class="narrator">
+                <span>💡</span>
+                <span id="narrator-a">Πάτησε "Επόμενο Βήμα" για να ξεκινήσεις τη διαδικασία μετατροπής.</span>
+            </div>
+
+            <div class="editor-wrapper">
+                <div class="code-box" id="code-box-a">
+                    <div class="code-title">ΚΥΡΙΟ ΠΡΟΓΡΑΜΜΑ</div>
+                    <div class="code-line"><span class="kwd">ΠΡΟΓΡΑΜΜΑ</span> Υπολογισμοί</div>
+                    <div class="code-line"><span class="kwd"> ΜΕΤΑΒΛΗΤΕΣ</span></div>
+                    <div class="code-line"> &nbsp;&nbsp;<span class="kwd">ΠΡΑΓΜΑΤΙΚΕΣ:</span> <span class="vr">α</span>, <span class="vr">β</span>, <span class="vr">γ</span><span class="hidden" id="temp-var-decl">, <span class="vr" style="color:#f39c12">temp</span></span></div>
+                    <div class="code-line"><span class="kwd">ΑΡΧΗ</span></div>
+                    <div class="code-line"> &nbsp;&nbsp;<span class="kwd">ΔΙΑΒΑΣΕ</span> <span class="vr">α</span>, <span class="vr">β</span></div>
+                    <div class="code-line" id="line-call-a"> &nbsp;&nbsp;<span class="vr">γ</span> <span class="op">←</span> <span class="vr">α</span> <span class="op">+</span> <span class="fn">Πράξη</span>(<span class="vr">α</span>, <span class="vr">β</span>)</div>
+                    <div class="code-line hidden" id="line-proc-call"> &nbsp;&nbsp;<span class="kwd" style="color:#f39c12">ΚΑΛΕΣΕ</span> <span class="fn">Πράξη_Διαδ</span>(<span class="vr">α</span>, <span class="vr">β</span>, <span class="vr" style="color:#f39c12">temp</span>)</div>
+                    <div class="code-line hidden" id="line-calc-new"> &nbsp;&nbsp;<span class="vr">γ</span> <span class="op">←</span> <span class="vr">α</span> <span class="op">+</span> <span class="vr" style="color:#f39c12">temp</span></div>
+                    <div class="code-line"> &nbsp;&nbsp;<span class="kwd">ΓΡΑΨΕ</span> <span class="vr">γ</span></div>
+                    <div class="code-line"><span class="kwd">ΤΕΛΟΣ_ΠΡΟΓΡΑΜΜΑΤΟΣ</span></div>
+                </div>
+
+                <div class="code-box" style="flex: 0.8; border-color: var(--secondary-color);">
+                    <div class="code-title">ΥΠΟΠΡΟΓΡΑΜΜΑ</div>
+                    <div id="func-def-header" class="code-line"><span class="kwd">ΣΥΝΑΡΤΗΣΗ</span> <span class="fn">Πράξη</span>(<span class="vr">χ</span>, <span class="vr">ψ</span>): <span class="kwd">ΠΡΑΓΜΑΤΙΚΗ</span></div>
+                    <div id="proc-def-header" class="code-line hidden"><span class="kwd" style="color:#f39c12">ΔΙΑΔΙΚΑΣΙΑ</span> <span class="fn">Πράξη_Διαδ</span>(<span class="vr">χ</span>, <span class="vr">ψ</span>, <span class="vr" style="color:#f39c12">αποτέλεσμα</span>)</div>
+                    <div class="code-line"><span class="kwd"> ΜΕΤΑΒΛΗΤΕΣ</span></div>
+                    <div class="code-line"> &nbsp;&nbsp;<span class="kwd">ΠΡΑΓΜΑΤΙΚΕΣ:</span> <span class="vr">χ</span>, <span class="vr">ψ</span><span class="hidden" id="proc-var-decl">, <span class="vr" style="color:#f39c12">αποτέλεσμα</span></span></div>
+                    <div class="code-line"><span class="kwd">ΑΡΧΗ</span></div>
+                    <div class="code-line"> &nbsp;&nbsp;<span class="kwd">ΑΝ</span> <span class="vr">χ</span> >= <span class="vr">ψ</span> <span class="kwd">ΤΟΤΕ</span></div>
+                    <div class="code-line" id="func-ret-1"> &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">Πράξη</span> <span class="op">←</span> <span class="vr">χ</span> <span class="op">-</span> <span class="vr">ψ</span></div>
+                    <div class="code-line hidden" id="proc-ass-1"> &nbsp;&nbsp;&nbsp;&nbsp;<span class="vr" style="color:#f39c12">αποτέλεσμα</span> <span class="op">←</span> <span class="vr">χ</span> <span class="op">-</span> <span class="vr">ψ</span></div>
+                    <div class="code-line"> &nbsp;&nbsp;<span class="kwd">ΑΛΛΙΩΣ</span></div>
+                    <div class="code-line" id="func-ret-2"> &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">Πράξη</span> <span class="op">←</span> <span class="vr">χ</span> <span class="op">+</span> <span class="vr">ψ</span></div>
+                    <div class="code-line hidden" id="proc-ass-2"> &nbsp;&nbsp;&nbsp;&nbsp;<span class="vr" style="color:#f39c12">αποτέλεσμα</span> <span class="op">←</span> <span class="vr">χ</span> <span class="op">+</span> <span class="vr">ψ</span></div>
+                    <div class="code-line"> &nbsp;&nbsp;<span class="kwd">ΤΕΛΟΣ_ΑΝ</span></div>
+                    <div class="code-line"><span class="kwd">ΤΕΛΟΣ_...</span></div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="audio-btn" id="audio-toggle-a" onclick="toggleAudio('a')" title="Ενεργοποίηση/Απενεργοποίηση Αφήγησης">🔇</button>
+                <button class="action-btn" id="btn-step-a" onclick="nextStepA()">👣 Επόμενο Βήμα</button>
+                <button class="action-btn secondary" onclick="resetA()">🔄 Επαναφορά</button>
+            </div>
+        </div>
+
+        <div id="scene-inline" class="scene">
+            <div class="narrator">
+                <span>📦</span>
+                <span id="narrator-b">Πάτησε "Μεταφορά Κώδικα" για να ενσωματώσεις τη λογική στο κύριο πρόγραμμα.</span>
+            </div>
+
+            <div class="editor-wrapper">
+                <div class="code-box" id="code-main-b">
+                    <div class="code-title">ΚΥΡΙΟ ΠΡΟΓΡΑΜΜΑ (Χωρίς Υποπρόγραμμα)</div>
+                    <div class="code-line"><span class="kwd">ΠΡΟΓΡΑΜΜΑ</span> Υπολογισμοί_Ενιαίο</div>
+                    <div class="code-line"><span class="kwd"> ΜΕΤΑΒΛΗΤΕΣ</span></div>
+                    <div class="code-line"> &nbsp;&nbsp;<span class="kwd">ΠΡΑΓΜΑΤΙΚΕΣ:</span> <span class="vr">α</span></div>
+                    <div class="code-line"> &nbsp;&nbsp;<span class="kwd">ΠΡΑΓΜΑΤΙΚΕΣ:</span> <span class="vr">β</span>, <span class="vr">γ</span><span class="hidden" id="temp-decl-b">, <span class="vr" style="color:#f39c12">temp</span></span></div>
+                    <div class="code-line"><span class="kwd">ΑΡΧΗ</span></div>
+                    <div class="code-line"> &nbsp;&nbsp;<span class="kwd">ΔΙΑΒΑΣΕ</span> <span class="vr">α</span>, <span class="vr">β</span></div>
+                    
+                    <div id="placeholder-b" style="border: 2px dashed #7f8c8d; padding: 10px; margin: 10px 0; border-radius: 8px; color: #7f8c8d; text-align: center;">
+                        (εδώ θα μπει ο κώδικας)
+                    </div>
+
+                    <div class="code-line"> &nbsp;&nbsp;<span class="vr">γ</span> <span class="op">←</span> <span class="vr">α</span> <span class="op">+</span> <span class="vr" id="res-var-b" style="color:#f39c12">temp</span></div>
+                    <div class="code-line"> &nbsp;&nbsp;<span class="kwd">ΓΡΑΨΕ</span> <span class="vr">γ</span></div>
+                    <div class="code-line"><span class="kwd">ΤΕΛΟΣ_ΠΡΟΓΡΑΜΜΑΤΟΣ</span></div>
+                </div>
+
+                <div class="code-box" style="border-color: var(--warning-color);">
+                    <div class="code-title">ΣΩΜΑ ΣΥΝΑΡΤΗΣΗΣ</div>
+                    <div id="movable-code" style="transition: transform 1s ease-in-out, opacity 0.5s;">
+                        <div class="code-line"><span class="kwd"> ΑΝ</span> <span class="vr change-x">χ</span> >= <span class="vr change-y">ψ</span> <span class="kwd">ΤΟΤΕ</span></div>
+                        <div class="code-line"> &nbsp;&nbsp;<span class="fn change-res">Πράξη</span> <span class="op">←</span> <span class="vr change-x">χ</span> <span class="op">-</span> <span class="vr change-y">ψ</span></div>
+                        <div class="code-line"><span class="kwd"> ΑΛΛΙΩΣ</span></div>
+                        <div class="code-line"> &nbsp;&nbsp;<span class="fn change-res">Πράξη</span> <span class="op">←</span> <span class="vr change-x">χ</span> <span class="op">+</span> <span class="vr change-y">ψ</span></div>
+                        <div class="code-line"><span class="kwd"> ΤΕΛΟΣ_ΑΝ</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="audio-btn" id="audio-toggle-b" onclick="toggleAudio('b')" title="Ενεργοποίηση/Απενεργοποίηση Αφήγησης">🔇</button>
+                <button class="action-btn" id="btn-anim-b" onclick="animateB()">📦 Μεταφορά Κώδικα</button>
+                <button class="action-btn secondary" onclick="location.reload()">🔄 Επαναφορά</button>
+            </div>
+        </div>
+
+        <div id="scene-simulate" class="scene">
+            <div class="narrator">
+                <span>⚙️</span>
+                <span id="narrator-c">Επίλεξε τιμές εισόδου για να ξεκινήσεις την εκτέλεση (Ερώτημα γ).</span>
+            </div>
+
+            <div class="controls" style="justify-content: flex-start; margin-bottom: 20px;">
+                <button class="action-btn secondary" onclick="initSim(10, 5)">i. α=10, β=5</button>
+                <button class="action-btn secondary" onclick="initSim(5, 5)">ii. α=5, β=5</button>
+                <button class="action-btn secondary" onclick="initSim(3, 5)">iii. α=3, β=5</button>
+            </div>
+
+            <div class="editor-wrapper">
+                <div class="code-box" id="exec-code" style="flex: 1.2;">
+                    <div class="code-line" id="L1"><span class="kwd">ΠΡΟΓΡΑΜΜΑ</span> Υπολογισμοί</div>
+                    <div class="code-line" id="L2"><span class="kwd">ΑΡΧΗ</span></div>
+                    <div class="code-line" id="L3"> &nbsp;&nbsp;<span class="kwd">ΔΙΑΒΑΣΕ</span> <span class="vr">α</span>, <span class="vr">β</span></div>
+                    <div class="code-line" id="L4"> &nbsp;&nbsp;<span class="vr">γ</span> <span class="op">←</span> <span class="vr">α</span> <span class="op">+</span> <span class="fn">Πράξη</span>(<span class="vr">α</span>, <span class="vr">β</span>)</div>
+                    <div class="code-line" id="L5"> &nbsp;&nbsp;<span class="kwd">ΓΡΑΨΕ</span> <span class="vr">γ</span></div>
+                    <div class="code-line" id="L6"><span class="kwd">ΤΕΛΟΣ_ΠΡΟΓΡΑΜΜΑΤΟΣ</span></div>
+                    <div class="code-line"> </div>
+                    <div class="code-line" id="L7"><span class="kwd">ΣΥΝΑΡΤΗΣΗ</span> <span class="fn">Πράξη</span>(<span class="vr">χ</span>, <span class="vr">ψ</span>): <span class="kwd">ΠΡΑΓΜΑΤΙΚΗ</span></div>
+                    <div class="code-line" id="L8"><span class="kwd">ΑΡΧΗ</span></div>
+                    <div class="code-line" id="L9"> &nbsp;&nbsp;<span class="kwd">ΑΝ</span> <span class="vr">χ</span> >= <span class="vr">ψ</span> <span class="kwd">ΤΟΤΕ</span></div>
+                    <div class="code-line" id="L10"> &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">Πράξη</span> <span class="op">←</span> <span class="vr">χ</span> <span class="op">-</span> <span class="vr">ψ</span></div>
+                    <div class="code-line" id="L11"> &nbsp;&nbsp;<span class="kwd">ΑΛΛΙΩΣ</span></div>
+                    <div class="code-line" id="L12"> &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">Πράξη</span> <span class="op">←</span> <span class="vr">χ</span> <span class="op">+</span> <span class="vr">ψ</span></div>
+                    <div class="code-line" id="L13"> &nbsp;&nbsp;<span class="kwd">ΤΕΛΟΣ_ΑΝ</span></div>
+                    <div class="code-line" id="L14"><span class="kwd">ΤΕΛΟΣ_ΣΥΝΑΡΤΗΣΗΣ</span></div>
+                </div>
+
+                <div class="ram-panel">
+                    <div class="frame-title">ΜΝΗΜΗ ΚΥΡΙΟΥ ΠΡΟΓΡΑΜΜΑΤΟΣ</div>
+                    <div class="var-container" id="mem-main"></div>
+                    
+                    <div class="memory-stack" id="stack-func" style="opacity: 0.5; margin-top: 20px;">
+                        <div class="frame-title">ΣΤΟΙΒΑ ΣΥΝΑΡΤΗΣΗΣ (Πράξη)</div>
+                        <div class="var-container" id="mem-func"></div>
+                    </div>
+
+                    <div style="margin-top: auto;">
+                        <div class="frame-title">ΟΘΟΝΗ ΕΞΟΔΟΥ</div>
+                        <div class="output-screen">
+                            <span id="output-val" style="margin-left: 10px;">_</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="audio-btn" id="audio-toggle-c" onclick="toggleAudio('c')" title="Ενεργοποίηση/Απενεργοποίηση Αφήγησης">🔇</button>
+                <button class="action-btn" id="btn-next" onclick="stepSim()" disabled>▶ Επόμενη Εντολή</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- AUDIO SYSTEM ---
+        let audioEnabled = { a: false, b: false, c: false };
+        let synth = window.speechSynthesis;
+
+        function toggleAudio(scene) {
+            audioEnabled[scene] = !audioEnabled[scene];
+            const btn = document.getElementById(`audio-toggle-${scene}`);
+            if (audioEnabled[scene]) {
+                btn.classList.add('active');
+                btn.innerText = '🔊';
+                speak("Η αφήγηση ενεργοποιήθηκε.", true);
+            } else {
+                btn.classList.remove('active');
+                btn.innerText = '🔇';
+                synth.cancel();
+            }
+        }
+
+        function speak(text, force = false) {
+            // Find active scene to check audio setting
+            let activeScene = 'a';
+            if(document.getElementById('scene-inline').classList.contains('active')) activeScene = 'b';
+            if(document.getElementById('scene-simulate').classList.contains('active')) activeScene = 'c';
+
+            if (!audioEnabled[activeScene] && !force) return;
+
+            synth.cancel();
+            let utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = "el-GR";
+            utterance.rate = 0.9;
+            synth.speak(utterance);
+        }
+
+        // --- UTILS ---
+        function switchTab(id, btn) {
+            document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            synth.cancel(); // Stop speaking when switching
+        }
+
+        // --- SCENE 1: STEP-BY-STEP TRANSFORMATION ---
+        let stepA = 0;
+        
+        function updateNarratorA(text) {
+            const el = document.getElementById('narrator-a');
+            el.innerHTML = text;
+            // Clean HTML tags for speech
+            const cleanText = text.replace(/<[^>]*>/g, ""); 
+            speak(cleanText);
+        }
+
+        function nextStepA() {
+            stepA++;
+            const btn = document.getElementById('btn-step-a');
+
+            if (stepA === 1) {
+                updateNarratorA("Βήμα 1: Δηλώνουμε μια νέα βοηθητική μεταβλητή temp για να κρατήσει το αποτέλεσμα.");
+                
+                const tempDecl = document.getElementById('temp-var-decl');
+                tempDecl.classList.remove('hidden');
+                // Use new INLINE class to avoid line break
+                tempDecl.classList.add('fading-in-inline');
+                
+                document.getElementById('line-call-a').classList.add('highlight-word');
+            } 
+            else if (stepA === 2) {
+                updateNarratorA("Βήμα 2: Αλλάζουμε την επικεφαλίδα σε ΔΙΑΔΙΚΑΣΙΑ και προσθέτουμε μια 3η παράμετρο για το αποτέλεσμα.");
+                
+                const oldHead = document.getElementById('func-def-header');
+                const newHead = document.getElementById('proc-def-header');
+                const procVar = document.getElementById('proc-var-decl');
+
+                oldHead.classList.add('fading-out');
+                setTimeout(() => {
+                    oldHead.classList.add('hidden');
+                    newHead.classList.remove('hidden');
+                    newHead.classList.add('fading-in');
+                    procVar.classList.remove('hidden');
+                    // Use new INLINE class here too
+                    procVar.classList.add('fading-in-inline');
+                }, 800);
+            }
+            else if (stepA === 3) {
+                updateNarratorA("Βήμα 3: Αντικαθιστούμε την εκχώρηση στο όνομα της συνάρτησης με εκχώρηση στην παράμετρο αποτέλεσμα.");
+                
+                const fRet1 = document.getElementById('func-ret-1');
+                const fRet2 = document.getElementById('func-ret-2');
+                const pAss1 = document.getElementById('proc-ass-1');
+                const pAss2 = document.getElementById('proc-ass-2');
+
+                fRet1.classList.add('fading-out');
+                fRet2.classList.add('fading-out');
+
+                setTimeout(() => {
+                    fRet1.classList.add('hidden');
+                    fRet2.classList.add('hidden');
+                    pAss1.classList.remove('hidden');
+                    pAss2.classList.remove('hidden');
+                    pAss1.classList.add('fading-in');
+                    pAss2.classList.add('fading-in');
+                }, 800);
+            }
+            else if (stepA === 4) {
+                updateNarratorA("Βήμα 4: Στο κύριο πρόγραμμα, αντικαθιστούμε την κλήση με την εντολή ΚΑΛΕΣΕ και χρησιμοποιούμε τη μεταβλητή temp.");
+                
+                const oldCall = document.getElementById('line-call-a');
+                const newCall = document.getElementById('line-proc-call');
+                const newCalc = document.getElementById('line-calc-new');
+
+                oldCall.classList.add('fading-out');
+                setTimeout(() => {
+                    oldCall.classList.add('hidden');
+                    newCall.classList.remove('hidden');
+                    newCalc.classList.remove('hidden');
+                    newCall.classList.add('fading-in');
+                    newCalc.classList.add('fading-in');
+                }, 800);
+                
+                btn.disabled = true;
+                btn.innerText = "Ολοκληρώθηκε";
+            }
+        }
+
+        function resetA() {
+            stepA = 0;
+            document.getElementById('btn-step-a').disabled = false;
+            document.getElementById('btn-step-a').innerText = "👣 Επόμενο Βήμα";
+            updateNarratorA("Πάτησε 'Επόμενο Βήμα' για να ξεκινήσεις...");
+            
+            // Revert Classes manually
+            // Temp Decl
+            let el = document.getElementById('temp-var-decl');
+            el.classList.add('hidden'); el.classList.remove('fading-in-inline');
+            
+            // Main Call
+            el = document.getElementById('line-call-a');
+            el.classList.remove('hidden', 'highlight-word', 'fading-out');
+            document.getElementById('line-proc-call').classList.add('hidden', 'fading-in');
+            document.getElementById('line-calc-new').classList.add('hidden', 'fading-in');
+            
+            // Header
+            document.getElementById('func-def-header').classList.remove('hidden', 'fading-out');
+            document.getElementById('proc-def-header').classList.add('hidden', 'fading-in');
+            document.getElementById('proc-var-decl').classList.add('hidden', 'fading-in-inline');
+            
+            // Body
+            document.getElementById('func-ret-1').classList.remove('hidden', 'fading-out');
+            document.getElementById('func-ret-2').classList.remove('hidden', 'fading-out');
+            document.getElementById('proc-ass-1').classList.add('hidden', 'fading-in');
+            document.getElementById('proc-ass-2').classList.add('hidden', 'fading-in');
+        }
+
+        // --- SCENE 2: INLINE ANIMATION ---
+        function animateB() {
+            const btn = document.getElementById('btn-anim-b');
+            const narrator = document.getElementById('narrator-b');
+            const movable = document.getElementById('movable-code');
+            const placeholder = document.getElementById('placeholder-b');
+
+            if(btn.disabled) return;
+            btn.disabled = true;
+
+            function narB(t) {
+                narrator.innerHTML = t;
+                const clean = t.replace(/<[^>]*>/g, "").replace(/->/g, " σε ");
+                speak(clean);
+            }
+
+            // 1. Rename Variables
+            narB("1. Μετονομασία τυπικών παραμέτρων: <code>χ->α</code>, <code>ψ->β</code>, <code>Πράξη->temp</code>.");
+            
+            document.querySelectorAll('.change-x').forEach(el => { el.innerText = "α"; el.style.color = "#e67e22"; });
+            document.querySelectorAll('.change-y').forEach(el => { el.innerText = "β"; el.style.color = "#e67e22"; });
+            document.querySelectorAll('.change-res').forEach(el => { el.innerText = "temp"; el.style.color = "#f39c12"; });
+
+            // Declare temp
+            setTimeout(() => {
+                document.getElementById('temp-decl-b').classList.remove('hidden');
+                document.getElementById('temp-decl-b').classList.add('fading-in-inline');
+            }, 1000);
+
+            // 2. Move Block
+            setTimeout(() => {
+                narB("2. Μεταφορά του κώδικα στο σημείο κλήσης.");
+                
+                // Get positions
+                const sourceRect = movable.getBoundingClientRect();
+                const targetRect = placeholder.getBoundingClientRect();
+                
+                const deltaX = targetRect.left - sourceRect.left;
+                const deltaY = targetRect.top - sourceRect.top;
+
+                movable.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+                
+                // 3. Finalize
+                setTimeout(() => {
+                    placeholder.innerHTML = movable.innerHTML;
+                    placeholder.style.border = "2px solid #27ae60";
+                    placeholder.style.color = "#2c3e50";
+                    placeholder.style.background = "#eafaf1";
+                    placeholder.style.textAlign = "left"; 
+                    
+                    movable.style.opacity = "0"; 
+                    narB("✅ Ο κώδικας ενσωματώθηκε! Τώρα το πρόγραμμα είναι ενιαίο.");
+                }, 1000);
+
+            }, 3000);
+        }
+
+        // --- SCENE 3: SIMULATION ---
+        let simState = { step: 0, a: 0, b: 0, g: null, x: null, y: null, res: null };
+
+        function updateVarCard(containerId, name, val) {
+            const container = document.getElementById(containerId);
+            let card = Array.from(container.children).find(c => c.dataset.name === name);
+
+            if (val === null) {
+                if (card) card.remove();
+                return;
+            }
+
+            if (!card) {
+                card = document.createElement('div');
+                card.className = 'var-card';
+                card.dataset.name = name;
+                card.innerHTML = `<div class="var-name">${name}</div><div class="var-val">${val}</div>`;
+                container.appendChild(card);
+                // Slight fade in
+                card.style.animation = "fadeIn 0.5s";
+            } else {
+                const valEl = card.querySelector('.var-val');
+                if (valEl.innerText != val) {
+                    valEl.innerText = val;
+                    card.classList.add('changed');
+                    setTimeout(() => card.classList.remove('changed'), 500);
+                }
+            }
+        }
+
+        function initSim(a, b) {
+            simState = { step: 0, a: a, b: b, g: '?', x: null, y: null, res: null };
+            
+            // Reset UI
+            document.getElementById('mem-main').innerHTML = '';
+            document.getElementById('mem-func').innerHTML = '';
+            document.getElementById('output-val').innerText = "_";
+            document.getElementById('stack-func').style.opacity = '0.5';
+            
+            // Init Main Vars
+            updateVarCard('mem-main', 'α', '?');
+            updateVarCard('mem-main', 'β', '?');
+            updateVarCard('mem-main', 'γ', '?');
+
+            document.getElementById('btn-next').disabled = false;
+            const msg = `Εκκίνηση με <b>α=${a}</b>, <b>β=${b}</b>. Πάτησε "Επόμενη Εντολή".`;
+            document.getElementById('narrator-c').innerHTML = msg;
+            speak(`Εκκίνηση με άλφα ίσον ${a} και βήτα ίσον ${b}.`);
+            
+            // Clear highlights
+            document.querySelectorAll('.highlight-line').forEach(l => l.classList.remove('highlight-line'));
+        }
+
+        function stepSim() {
+            simState.step++;
+            const hl = (id) => {
+                document.querySelectorAll('.highlight-line').forEach(l => l.classList.remove('highlight-line'));
+                document.getElementById(id).classList.add('highlight-line');
+            };
+            const nar = (t) => {
+                document.getElementById('narrator-c').innerHTML = t;
+                const clean = t.replace(/<[^>]*>/g, "").replace(/=/g, " ίσον ").replace(/-/g, " μείον ").replace(/\+/g, " συν ").replace(/>=/g, " μεγαλύτερο ή ίσο ");
+                speak(clean);
+            };
+
+            switch (simState.step) {
+                case 1: // Start
+                    hl('L2'); nar("Αρχή προγράμματος.");
+                    break;
+                case 2: // Read
+                    hl('L3'); 
+                    updateVarCard('mem-main', 'α', simState.a);
+                    updateVarCard('mem-main', 'β', simState.b);
+                    nar(`Διάβασμα τιμών: α=${simState.a}, β=${simState.b}`);
+                    break;
+                case 3: // Call preparation
+                    hl('L4'); 
+                    nar("Κλήση της συνάρτησης Πράξη. Ο έλεγχος περνάει στο υποπρόγραμμα.");
+                    break;
+                case 4: // Function Start
+                    hl('L7');
+                    document.getElementById('stack-func').style.opacity = '1';
+                    simState.x = simState.a;
+                    simState.y = simState.b;
+                    updateVarCard('mem-func', 'χ', simState.x);
+                    updateVarCard('mem-func', 'ψ', simState.y);
+                    updateVarCard('mem-func', 'Πράξη', '?');
+                    nar(`Αντιγραφή τιμών στις παραμέτρους: χ ίσον ${simState.a}, ψ ίσον ${simState.b}`);
+                    break;
+                case 5: // IF
+                    hl('L9');
+                    const condition = simState.x >= simState.y;
+                    nar(`Έλεγχος: ${simState.x} >= ${simState.y}; -> <b>${condition ? 'ΑΛΗΘΗΣ' : 'ΨΕΥΔΗΣ'}</b>`);
+                    if (!condition) simState.step = 6; // Jump to Else
+                    break;
+                case 6: // True Branch
+                    hl('L10');
+                    simState.res = simState.x - simState.y;
+                    updateVarCard('mem-func', 'Πράξη', simState.res);
+                    nar(`Εκτέλεση: Πράξη ίσον ${simState.x} μείον ${simState.y} ίσον ${simState.res}`);
+                    simState.step = 7; // Jump to End Func
+                    break;
+                case 7: // False Branch Logic Jump
+                    simState.step = 7; stepSim(); return; 
+                case 8: // Else (Physical Step 7 via jump)
+                    hl('L11'); 
+                    nar("Η συνθήκη είναι ψευδής. Πάμε στο Αλλιώς.");
+                    break;
+                case 9: // False Branch Calc
+                    hl('L12');
+                    simState.res = simState.x + simState.y;
+                    updateVarCard('mem-func', 'Πράξη', simState.res);
+                    nar(`Εκτέλεση: Πράξη ίσον ${simState.x} συν ${simState.y} ίσον ${simState.res}`);
+                    break;
+                case 10: // End Func
+                    hl('L14'); 
+                    nar(`Τέλος Συνάρτησης. Επιστροφή τιμής: <b>${simState.res}</b>`);
+                    break;
+                case 11: // Back to main calc
+                    hl('L4');
+                    // Destroy func
+                    document.getElementById('mem-func').innerHTML = '';
+                    document.getElementById('stack-func').style.opacity = '0.5';
+                    
+                    simState.g = simState.a + simState.res;
+                    updateVarCard('mem-main', 'γ', simState.g);
+                    nar(`Υπολογισμός γ: ${simState.a} συν ${simState.res} ίσον <b>${simState.g}</b>`);
+                    break;
+                case 12: // Print
+                    hl('L5');
+                    document.getElementById('output-val').innerText = simState.g;
+                    nar(`Εκτύπωση του γ. Τιμή: ${simState.g}`);
+                    break;
+                case 13: // End
+                    hl('L6');
+                    nar("Τέλος Προγράμματος.");
+                    document.getElementById('btn-next').disabled = true;
+                    break;
+            }
+        }
+    </script>
+</body>
+
+</html>
