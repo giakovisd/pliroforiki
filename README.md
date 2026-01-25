@@ -51,8 +51,11 @@
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/One-Dimensional%20Tables%20%CE%92%202004.html)
 
 - Μονοδιάστατοι πίνακες - Λειτουργία Αντιγραφής (Διάφορες υλοποιήσεις)
+
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/copy-1.html)
+
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/copy-2.html)
+
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/One-dimensional%20arrays%20Copy%20Function.html)
 
 - Μονοδιάστατοι πίνακες - Λειτουργία Συγχώνευσης 
