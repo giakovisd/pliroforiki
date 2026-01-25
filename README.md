@@ -113,9 +113,12 @@
 [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Stack-Queue-Exercises.html)
 
 ---
-## Δένδρα
+## Δένδρα - Γράφοι
 
 - Δένδρα (Παράγραφος 3.1.2 - Συμπληρωματικό υλικό)  
+  [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Trees-Enotita-1.html)
+
+- Γράφοι (Παράγραφος 3.1.3 - Συμπληρωματικό υλικό)  
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Trees-Enotita-1.html)
 
 ---
