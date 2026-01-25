@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Αντιγραφή σε Πίνακα — ΟΝ_Α από ΟΝ & Φ (12)</title>
+  <style>
+    :root{
+      --bg:#f4f5f7;
+      --panel:#ffffff;
+      --text:#111;
+      --muted:#666;
+      --border:#d7dbe0;
+      --shadow:0 10px 25px rgba(0,0,0,.08);
+
+      --accent:#2563eb;
+      --good:#16a34a;
+      --warn:#f59e0b;
+
+      --cell:#ffffff;
+      --cell2:#fafafa;
+
+      --hl:#fff7cc;       /* highlight check */
+      --hl2:#dbeafe;      /* highlight code */
+      --hlGood:#dcfce7;   /* highlight copy success */
+      --targetGlow: 0 0 0 2px rgba(34,197,94,.65), 0 0 18px rgba(34,197,94,.35);
+      --focusGlow: 0 0 0 2px rgba(37,99,235,.55), 0 0 18px rgba(37,99,235,.25);
+      --checkGlow: 0 0 0 2px rgba(245,158,11,.55), 0 0 18px rgba(245,158,11,.25);
+      --outGlow:   0 0 0 2px rgba(147,51,234,.55), 0 0 18px rgba(147,51,234,.25);
+    }
+    [data-theme="dark"]{
+      --bg:#0b0f17;
+      --panel:#111827;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --border:#263042;
+      --shadow:0 10px 25px rgba(0,0,0,.35);
+
+      --cell:#0f172a;
+      --cell2:#0b1222;
+
+      --hl:#2a230c;
+      --hl2:#0b2a55;
+      --hlGood:#0b2a18;
+      --targetGlow: 0 0 0 2px rgba(34,197,94,.75), 0 0 18px rgba(34,197,94,.25);
+      --focusGlow: 0 0 0 2px rgba(59,130,246,.7), 0 0 18px rgba(59,130,246,.25);
+      --checkGlow: 0 0 0 2px rgba(245,158,11,.7), 0 0 18px rgba(245,158,11,.2);
+      --outGlow:   0 0 0 2px rgba(168,85,247,.65), 0 0 18px rgba(168,85,247,.2);
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    .app{
+      max-width: 1240px;
+      margin: 22px auto;
+      padding: 0 16px 40px;
+      position: relative;
+    }
+
+    header{
+      display:flex;
+      gap:14px;
+      align-items:flex-start;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      margin-bottom: 14px;
+    }
+
+    .titleblock h1{
+      margin:0;
+      font-size: 22px;
+      letter-spacing:.2px;
+    }
+    .titleblock p{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size: 16px;
+      line-height: 1.65;
+      font-weight: 500;
+    }
+
+    .controls{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    button{
+      border:1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 10px;
+      cursor:pointer;
+      box-shadow: 0 1px 0 rgba(0,0,0,.02);
+      font-size: 13px;
+      transition: transform .06s ease, background .2s ease, border-color .2s ease;
+      user-select:none;
+    }
+    button:hover{ transform: translateY(-1px); }
+    button:active{ transform: translateY(0px); }
+    button.primary{
+      background: linear-gradient(180deg, rgba(37,99,235,.16), rgba(37,99,235,.05));
+      border-color: rgba(37,99,235,.45);
+    }
+    button.good{
+      background: linear-gradient(180deg, rgba(34,197,94,.16), rgba(34,197,94,.05));
+      border-color: rgba(34,197,94,.45);
+    }
+    button.warn{
+      background: linear-gradient(180deg, rgba(245,158,11,.18), rgba(245,158,11,.05));
+      border-color: rgba(245,158,11,.45);
+    }
+    button:disabled{ opacity:.55; cursor:not-allowed; transform:none; }
+
+    .panel{
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns: 1fr 420px;
+      gap: 14px;
+      align-items: start;
+    }
+    @media (max-width: 1060px){
+      .layout{ grid-template-columns: 1fr; }
+    }
+
+    .viz{ position: relative; overflow: hidden; }
+
+    .grid3{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+    @media (max-width: 1060px){
+      .grid3{ grid-template-columns: 1fr; }
+    }
+
+    .arr{
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      background: rgba(255,255,255,0);
+    }
+    .arr header{
+      padding: 10px 12px;
+      margin:0;
+      background: linear-gradient(180deg, rgba(0,0,0,.03), rgba(0,0,0,0));
+      border-bottom: 1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .arr header .name{ font-weight: 700; font-size: 13px; }
+    .arr header .sub{ font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+    .cells{
+      padding: 10px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .cell{
+      height: 34px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 0 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--cell);
+      font-size: 13px;
+      position: relative;
+    }
+    .cell:nth-child(even){ background: var(--cell2); }
+
+    .idx{
+      font-variant-numeric: tabular-nums;
+      color: var(--muted);
+      font-size: 12px;
+      margin-right: 8px;
+      width: 18px;
+      text-align:right;
+      flex: 0 0 auto;
+    }
+    .val{
+      flex: 1 1 auto;
+      padding-left: 10px;
+      border-left: 1px dashed rgba(148,163,184,.35);
+      margin-left: 10px;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .badge{
+      flex: 0 0 auto;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: rgba(0,0,0,.02);
+    }
+
+    .cell.hl-check{
+      background: var(--hl);
+      box-shadow: var(--checkGlow);
+      border-color: rgba(245,158,11,.45);
+    }
+    .cell.hl-src{
+      box-shadow: var(--focusGlow);
+      border-color: rgba(37,99,235,.45);
+    }
+    .cell.hl-target{
+      background: var(--hlGood);
+      box-shadow: var(--targetGlow);
+      border-color: rgba(34,197,94,.55);
+    }
+    .cell.hl-out{
+      box-shadow: var(--outGlow);
+      border-color: rgba(168,85,247,.55);
+    }
+
+    /* Code panel */
+    .codebox{ position: sticky; top: 12px; }
+    .codehead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom: 10px;
+    }
+    .vars{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .vars .pill{
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.02);
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    pre{
+      margin:0;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(0,0,0,.02);
+      overflow:auto;
+      font-size: 13px;
+      line-height: 0.78;
+      max-height: 320px;
+    }
+    .codeline{
+      display:block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      white-space: pre;
+    }
+    .codeline.active{
+      background: var(--hl2);
+      border: 1px solid rgba(37,99,235,.35);
+    }
+
+    .status{
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(0,0,0,.02);
+      font-size: 13px;
+      color: var(--muted);
+      min-height: 64px;
+    }
+    .status strong{ color: var(--text); }
+
+    .output{
+      margin-top: 12px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      background: rgba(0,0,0,.02);
+    }
+    .output .outhead{
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      background: linear-gradient(180deg, rgba(0,0,0,.03), rgba(0,0,0,0));
+    }
+    .output .outhead .t{ font-weight: 700; font-size: 13px; }
+    .output .outhead .s{ color: var(--muted); font-size: 12px; }
+    .outlist{
+      padding: 10px 12px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-height: 140px;
+      max-height: 240px;
+      overflow:auto;
+    }
+    .outitem{
+      border: 1px solid var(--border);
+      background: var(--panel);
+      padding: 8px 10px;
+      border-radius: 12px;
+      font-size: 13px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .outitem .n{
+      font-variant-numeric: tabular-nums;
+      color: var(--muted);
+      font-size: 12px;
+      width: 26px;
+      text-align:right;
+      flex: 0 0 auto;
+    }
+    .outitem .v{ flex: 1 1 auto; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .outitem.active{
+      box-shadow: var(--outGlow);
+      border-color: rgba(168,85,247,.55);
+    }
+
+    /* Speed */
+    .speed{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid var(--border);
+      background: var(--panel);
+      padding: 7px 10px;
+      border-radius: 10px;
+    }
+    .speed label{
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    input[type="range"]{ width: 150px; }
+
+    /* Overlay arrow + moving token */
+    .overlay{ position:absolute; inset:0; pointer-events:none; }
+    svg{ position:absolute; inset:0; }
+    .token{
+      position:absolute;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      font-size: 12px;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      transition: opacity .12s ease;
+      max-width: 260px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .token.show{ opacity: 1; }
+
+    /* Signature */
+    .sig{
+      position: fixed;
+      right: 14px;
+      bottom: 10px;
+      font-size: 12px;
+      color: rgba(127,127,127,.55);
+      user-select:none;
+      pointer-events:none;
+      text-align:right;
+    }
+    [data-theme="dark"] .sig{ color: rgba(200,200,200,.18); }
+  </style>
+</head>
+
+<body data-theme="light">
+  <div class="app">
+    <header>
+      <div class="titleblock">
+        <h1>Λειτουργία της Αντιγραφής σε μονοδιάστατο πίνακα </h1>
+        <p>
+          Να γραφεί τμήμα αλγορίθμου που με δεδομένους τους πίνακες ΟΝ[12] και Φ[12] που περιέχουν όνομα, και φύλο για κάθε έναν από τους 12 μαθητές ενός σχολείου, να δημιουργεί και εμφανίζει νέο πίνακα που θα περιέχει τα ονόματα των αγοριών του σχολείου.
+        </p>
+      </div>
+
+      <div class="controls">
+        <button id="btnStep" class="primary">Βήμα-βήμα</button>
+        <button id="btnAuto" class="good">Αυτόματη εκτέλεση</button>
+        <button id="btnPause" class="warn" disabled>Παύση</button>
+        <button id="btnReset">Επαναφορά</button>
+        <button id="btnRandom">Νέα δεδομένα</button>
+
+        <div class="speed" title="Ρύθμιση ταχύτητας αυτόματης εκτέλεσης">
+          <label for="speed">Ταχύτητα</label>
+          <input id="speed" type="range" min="0.25" max="2.5" step="0.05" value="1.2">
+          <span id="speedVal" style="font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;">1.20×</span>
+        </div>
+
+        <button id="btnTheme">Night</button>
+        <button id="btnCode">Απόκρυψη κώδικα</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <div class="panel viz">
+        <div class="grid3">
+          <section class="arr">
+            <header>
+              <div class="name">ΟΝ[12]</div>
+              <div class="sub">Όνομα μαθητή</div>
+            </header>
+            <div class="cells" id="colON"></div>
+          </section>
+
+          <section class="arr">
+            <header>
+              <div class="name">Φ[12]</div>
+              <div class="sub">Φύλο ('Α' / 'Κ')</div>
+            </header>
+            <div class="cells" id="colF"></div>
+          </section>
+
+          <section class="arr">
+            <header>
+              <div class="name">ΟΝ_Α[12]</div>
+              <div class="sub">Ονόματα αγοριών</div>
+            </header>
+            <div class="cells" id="colONA"></div>
+          </section>
+        </div>
+
+        <div class="overlay">
+          <svg id="svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <defs>
+              <marker id="arrowHead" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                <path d="M0,0 L8,4 L0,8 Z" fill="currentColor"></path>
+              </marker>
+            </defs>
+            <path id="arrowPath" d="" fill="none" stroke="currentColor" stroke-width="2.2"
+                  marker-end="url(#arrowHead)" opacity="0"></path>
+          </svg>
+          <div class="token" id="token"></div>
+        </div>
+      </div>
+
+      <aside class="panel codebox" id="codePanel">
+        <div class="codehead">
+          <div style="font-weight:700">Κώδικας</div>
+          <div class="vars">
+            <div class="pill">i: <span id="varI">—</span></div>
+            <div class="pill">k: <span id="varK">0</span></div>
+            <div class="pill">Φάση: <span id="varPhase">Αντιγραφή</span></div>
+          </div>
+        </div>
+
+        <pre id="code">
+<span class="codeline" data-line="1">k &larr; 0</span>
+<span class="codeline" data-line="2">Για i από 1 μέχρι 12</span>
+<span class="codeline" data-line="3">   Αν Φ[i] = 'Α' τότε</span>
+<span class="codeline" data-line="4">      k &larr; k + 1</span>
+<span class="codeline" data-line="5">      ΟΝ_Α[k] &larr; ΟΝ[i]</span>
+<span class="codeline" data-line="6">   Τέλος_αν</span>
+<span class="codeline" data-line="7">Τέλος_επανάληψης</span>
+
+<span class="codeline" data-line="8"></span>
+<span class="codeline" data-line="9">Για i από 1 μέχρι k</span>
+<span class="codeline" data-line="10">   Γράψε ΟΝ_Α[i]</span>
+<span class="codeline" data-line="11">Τέλος_επανάληψης</span>
+        </pre>
+
+        <div class="status" id="status">
+          <strong>Κατάσταση:</strong> Πάτησε <strong>Βήμα-βήμα</strong> ή <strong>Αυτόματη εκτέλεση</strong>.
+        </div>
+
+        <div class="output" aria-label="Οθόνη Εκτύπωσης">
+          <div class="outhead">
+            <div class="t">Οθόνη εκτύπωσης</div>
+            <div class="s">Εμφάνιση ονομάτων του ΟΝ_Α</div>
+          </div>
+          <div class="outlist" id="outList"></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <div class="sig">Ιδέα + Υλοποίηση Δημήτρης Γιακοβής, Ευτυχία Δουφέκα</div>
+
+<script>
+(() => {
+  // ---------- Realistic names ----------
+  const maleNames = [
+    "Γιώργος","Νίκος","Δημήτρης","Κώστας","Αλέξανδρος","Παναγιώτης",
+    "Χρήστος","Βασίλης","Γιάννης","Στέλιος","Μιχάλης","Θοδωρής",
+    "Αντώνης","Πέτρος","Σωτήρης","Λευτέρης","Μάριος","Σπύρος"
+  ];
+  const femaleNames = [
+    "Μαρία","Ελένη","Άννα","Σοφία","Κατερίνα","Γεωργία",
+    "Δήμητρα","Αναστασία","Ιωάννα","Χριστίνα","Ευαγγελία","Παρασκευή",
+    "Αθηνά","Βασιλική","Νικολέτα","Σταυρούλα","Ιφιγένεια","Κυριακή"
+  ];
+
+  const N = 12;
+
+  let ON = [];
+  let F  = [];
+  let ONA = new Array(N).fill("");
+  let printed = []; // lines shown in output
+
+  // ---------- DOM ----------
+  const colON  = document.getElementById("colON");
+  const colF   = document.getElementById("colF");
+  const colONA = document.getElementById("colONA");
+
+  const btnStep  = document.getElementById("btnStep");
+  const btnAuto  = document.getElementById("btnAuto");
+  const btnPause = document.getElementById("btnPause");
+  const btnReset = document.getElementById("btnReset");
+  const btnTheme = document.getElementById("btnTheme");
+  const btnCode  = document.getElementById("btnCode");
+  const btnRandom= document.getElementById("btnRandom");
+
+  const speed = document.getElementById("speed");
+  const speedVal = document.getElementById("speedVal");
+
+  const varI = document.getElementById("varI");
+  const varK = document.getElementById("varK");
+  const varPhase = document.getElementById("varPhase");
+
+  const status = document.getElementById("status");
+  const codePanel = document.getElementById("codePanel");
+  const codeLines = Array.from(document.querySelectorAll(".codeline"));
+
+  const outList = document.getElementById("outList");
+
+  const svg = document.getElementById("svg");
+  const arrowPath = document.getElementById("arrowPath");
+  const token = document.getElementById("token");
+
+  // ---------- Runtime state ----------
+  let steps = [];
+  let stepIndex = 0;
+
+  let running = false;
+  let timer = null;
+
+  let i = 1;
+  let k = 0;
+
+  // phases: "copy" then "print"
+  let phase = "copy";
+
+  // ---------- Helpers ----------
+  const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
+
+  function setStatus(html){
+    status.innerHTML = `<strong>Κατάσταση:</strong> ${html}`;
+  }
+
+  function clearHighlights(){
+    document.querySelectorAll(".cell").forEach(c=>{
+      c.classList.remove("hl-check","hl-src","hl-target","hl-out");
+    });
+    codeLines.forEach(l=>l.classList.remove("active"));
+    document.querySelectorAll(".outitem").forEach(o=>o.classList.remove("active"));
+    arrowPath.setAttribute("opacity","0");
+    arrowPath.setAttribute("d","");
+    token.classList.remove("show");
+  }
+
+  function activateCodeLine(n){
+    codeLines.forEach(l => l.classList.toggle("active", Number(l.dataset.line) === n));
+  }
+
+  function cellId(prefix, idx){ return `${prefix}-${idx}`; }
+
+  function getCell(prefix, idx){
+    return document.getElementById(cellId(prefix, idx));
+  }
+
+  function setVarUI(){
+    varI.textContent = (i>=1 && i<=N) ? i : "—";
+    varK.textContent = k;
+    varPhase.textContent = (phase === "copy") ? "Αντιγραφή" : "Εκτύπωση";
+  }
+
+  function makeCell(prefix, idx, value, badgeText){
+    const div = document.createElement("div");
+    div.className = "cell";
+    div.id = cellId(prefix, idx);
+
+    const left = document.createElement("div");
+    left.style.display = "flex";
+    left.style.alignItems = "center";
+    left.style.minWidth = "0";
+
+    const idxEl = document.createElement("div");
+    idxEl.className = "idx";
+    idxEl.textContent = idx;
+
+    const valEl = document.createElement("div");
+    valEl.className = "val";
+    valEl.textContent = value ?? "";
+
+    left.appendChild(idxEl);
+    left.appendChild(valEl);
+
+    const badge = document.createElement("div");
+    badge.className = "badge";
+    badge.textContent = badgeText;
+
+    div.appendChild(left);
+    div.appendChild(badge);
+    return div;
+  }
+
+  function render(){
+    colON.innerHTML = "";
+    colF.innerHTML = "";
+    colONA.innerHTML = "";
+
+    for(let idx=1; idx<=N; idx++){
+      colON.appendChild(makeCell("ON", idx, ON[idx-1], "ΟΝ"));
+      colF.appendChild(makeCell("F", idx, F[idx-1], "Φ"));
+      colONA.appendChild(makeCell("ONA", idx, ONA[idx-1] || "", "ΟΝ_Α"));
+    }
+  }
+
+  function renderOutput(){
+    outList.innerHTML = "";
+    if(printed.length === 0){
+      const empty = document.createElement("div");
+      empty.style.color = "var(--muted)";
+      empty.style.fontSize = "13px";
+      empty.textContent = "— (Δεν έχει γίνει εκτύπωση ακόμη)";
+      outList.appendChild(empty);
+      return;
+    }
+    printed.forEach((name, idx) => {
+      const row = document.createElement("div");
+      row.className = "outitem";
+      row.id = `out-${idx+1}`;
+      row.innerHTML = `<div class="n">${idx+1}.</div><div class="v">${name}</div>`;
+      outList.appendChild(row);
+    });
+  }
+
+  function randPick(arr){
+    return arr[Math.floor(Math.random()*arr.length)];
+  }
+
+  function randData(){
+    // Create consistent name+gender pairs
+    ON = [];
+    F  = [];
+
+    // random genders, ensure both exist for realism
+    const genders = Array.from({length:N}, () => (Math.random() < 0.55 ? "Α" : "Κ"));
+    if(!genders.includes("Α")) genders[Math.floor(Math.random()*N)] = "Α";
+    if(!genders.includes("Κ")) genders[Math.floor(Math.random()*N)] = "Κ";
+
+    for(let t=0;t<N;t++){
+      const g = genders[t];
+      F.push(g);
+      ON.push(g === "Α" ? randPick(maleNames) : randPick(femaleNames));
+    }
+
+    ONA = new Array(N).fill("");
+    printed = [];
+
+    i = 1; k = 0; phase = "copy";
+    stepIndex = 0;
+    steps = buildSteps();
+
+    render();
+    renderOutput();
+    setVarUI();
+    clearHighlights();
+    setStatus("Πάτησε <strong>Βήμα-βήμα</strong> ή <strong>Αυτόματη εκτέλεση</strong>.");
+  }
+
+  function buildSteps(){
+    // Step schema:
+    // { line, kind, idx, message, animate? }
+    const s = [];
+
+    // init
+    s.push({ line:1, kind:"init", message:"Αρχικοποίηση: k ← 0" });
+
+    // COPY PHASE
+    for(let idx=1; idx<=N; idx++){
+      s.push({ line:2, kind:"loop", idx, message:`Επανάληψη (αντιγραφή): i = ${idx}` });
+      s.push({ line:3, kind:"check", idx, message:`Έλεγχος: Φ[${idx}] = '${F[idx-1]}'` });
+
+      if(F[idx-1] === "Α"){
+        s.push({ line:4, kind:"inc", idx, message:"Είναι 'Α' → αύξηση k (k ← k+1)" });
+        s.push({ line:5, kind:"copy", idx, message:"Αντιγραφή: ΟΝ_Α[k] ← ΟΝ[i]", animate:true });
+      } else {
+        s.push({ line:6, kind:"skip", idx, message:"Δεν είναι 'Α' → δεν αντιγράφουμε" });
+      }
+    }
+    s.push({ line:7, kind:"endCopy", message:"Τέλος_επανάληψης (αντιγραφή) — ο ΟΝ_Α συμπληρώθηκε." });
+
+    // PRINT PHASE
+    s.push({ line:9, kind:"startPrint", message:"Έναρξη εκτύπωσης: Για i από 1 μέχρι k" });
+
+    // if k==0 we still show end print
+    // runtime will handle bounds
+    // We'll create 12 print-loop steps; execution will stop at i>k
+    for(let idx=1; idx<=N; idx++){
+      s.push({ line:9, kind:"printLoop", idx, message:`Επανάληψη (εκτύπωση): i = ${idx}` });
+      s.push({ line:10, kind:"print", idx, message:`Γράψε ΟΝ_Α[${idx}]` });
+    }
+    s.push({ line:11, kind:"endPrint", message:"Τέλος_επανάληψης (εκτύπωση)." });
+
+    return s;
+  }
+
+  function layoutPoint(el){
+    const r = el.getBoundingClientRect();
+    const pr = document.querySelector(".viz").getBoundingClientRect();
+    return {
+      x: (r.left + r.right)/2 - pr.left,
+      y: (r.top + r.bottom)/2 - pr.top
+    };
+  }
+
+  async function animateTokenAlong(fromEl, toEl, text){
+    // Token moves along the arrow; destination array updates ONLY after arrival.
+    const from = layoutPoint(fromEl);
+    const to   = layoutPoint(toEl);
+
+    const w = document.querySelector(".viz").clientWidth;
+    const h = document.querySelector(".viz").clientHeight;
+    svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+
+    const d = `M ${from.x} ${from.y} L ${to.x} ${to.y}`;
+    arrowPath.setAttribute("d", d);
+    arrowPath.setAttribute("opacity","1");
+
+    token.textContent = text;
+    token.style.left = from.x + "px";
+    token.style.top  = from.y + "px";
+    token.style.transition = `opacity 120ms ease`;
+    token.classList.add("show");
+
+    const duration = clamp(760 / Number(speed.value), 260, 1400);
+
+    await new Promise(resolve => {
+      requestAnimationFrame(() => {
+        token.style.transition = `left ${duration}ms ease, top ${duration}ms ease, opacity 120ms ease`;
+        token.style.left = to.x + "px";
+        token.style.top  = to.y + "px";
+        setTimeout(resolve, duration);
+      });
+    });
+
+    await new Promise(resolve => {
+      setTimeout(() => {
+        token.classList.remove("show");
+        arrowPath.setAttribute("opacity","0");
+        resolve();
+      }, 140);
+    });
+  }
+
+  async function applyStep(s){
+    clearHighlights();
+    activateCodeLine(s.line);
+
+    // Init
+    if(s.kind === "init"){
+      phase = "copy";
+      k = 0;
+      i = 1;
+      ONA = new Array(N).fill("");
+      printed = [];
+      render();
+      renderOutput();
+      setVarUI();
+      setStatus(s.message);
+      return;
+    }
+
+    // Copy phase steps
+    if(["loop","check","inc","copy","skip","endCopy"].includes(s.kind)){
+      phase = "copy";
+      if(s.kind === "loop") i = s.idx;
+
+      // highlight currently inspected ON[i], F[i]
+      if(s.idx){
+        const cON = getCell("ON", s.idx);
+        const cF  = getCell("F",  s.idx);
+        if(cON) cON.classList.add("hl-src");
+        if(cF)  cF.classList.add("hl-check");
+      }
+
+      if(s.kind === "inc"){
+        k = k + 1;
+        const target = getCell("ONA", k);
+        if(target) target.classList.add("hl-target"); // cell that will receive the name
+      }
+
+      if(s.kind === "copy"){
+        // animate along arrow, then write into ONA[k]
+        const src = getCell("ON", i);
+        const dst = getCell("ONA", k);
+
+        if(dst) dst.classList.add("hl-target");
+
+        if(src && dst){
+          await animateTokenAlong(src, dst, ON[i-1]);
+        }
+
+        // write AFTER animation
+        ONA[k-1] = ON[i-1];
+        render();
+
+        // restore highlights after re-render
+        const cON = getCell("ON", i);
+        const cF  = getCell("F",  i);
+        const cDst = getCell("ONA", k);
+        if(cON) cON.classList.add("hl-src");
+        if(cF)  cF.classList.add("hl-check");
+        if(cDst) cDst.classList.add("hl-target");
+      }
+
+      if(s.kind === "endCopy"){
+        // Show filled cells gently
+        for(let idx=1; idx<=N; idx++){
+          if(ONA[idx-1]) getCell("ONA", idx).classList.add("hl-target");
+        }
+      }
+
+      setVarUI();
+      setStatus(s.message + (s.kind === "endCopy"
+        ? `<br><strong>Έτοιμο:</strong> Θα ακολουθήσει εκτύπωση των ΟΝ_Α[1..k].`
+        : ""));
+      return;
+    }
+
+    // Print phase steps
+    if(["startPrint","printLoop","print","endPrint"].includes(s.kind)){
+      phase = "print";
+
+      if(s.kind === "startPrint"){
+        i = 1;
+        printed = [];
+        renderOutput();
+        setVarUI();
+        setStatus(s.message + (k===0 ? "<br><strong>Σημείωση:</strong> k=0, άρα δεν θα εκτυπωθεί κανένα όνομα." : ""));
+        return;
+      }
+
+      if(s.kind === "printLoop"){
+        i = s.idx;
+
+        // stop early if i>k
+        if(i > k){
+          setVarUI();
+          setStatus(`Εφόσον i=${i} > k=${k}, η εκτύπωση σταματά.`);
+          return;
+        }
+
+        // highlight ONA[i]
+        const c = getCell("ONA", i);
+        if(c) c.classList.add("hl-out");
+
+        setVarUI();
+        setStatus(s.message);
+        return;
+      }
+
+      if(s.kind === "print"){
+        // stop early if i>k
+        if(i > k){
+          setVarUI();
+          setStatus(`Εφόσον i=${i} > k=${k}, δεν εκτελείται η εντολή εκτύπωσης.`);
+          return;
+        }
+
+        // highlight ONA[i]
+        const c = getCell("ONA", i);
+        if(c) c.classList.add("hl-out");
+
+        // simulate printing by adding a line
+        printed.push(ONA[i-1]);
+        renderOutput();
+
+        // highlight last printed row
+        const row = document.getElementById(`out-${printed.length}`);
+        if(row) row.classList.add("active");
+
+        setVarUI();
+        setStatus(`Εκτύπωση: εμφανίστηκε το <strong>${ONA[i-1]}</strong> στην οθόνη.`);
+        return;
+      }
+
+      if(s.kind === "endPrint"){
+        setVarUI();
+        setStatus("Τέλος_επανάληψης (εκτύπωση) — ολοκληρώθηκε η εμφάνιση των ονομάτων.");
+        return;
+      }
+    }
+  }
+
+  async function stepOnce(){
+    if(stepIndex >= steps.length){
+      setStatus("Έχει ολοκληρωθεί. Πάτησε <strong>Επαναφορά</strong> για να ξανατρέξεις.");
+      return false;
+    }
+
+    const s = steps[stepIndex];
+    stepIndex++;
+
+    // Special handling: during print phase, if we already stopped (i>k),
+    // we still allow user to continue stepping, but steps will no-op.
+    await applyStep(s);
+    return true;
+  }
+
+  function autoRun(){
+    if(running) return;
+    running = true;
+    btnAuto.disabled = true;
+    btnPause.disabled = false;
+
+    const tick = async () => {
+      if(!running) return;
+
+      await stepOnce();
+
+      const base = 720;
+      const delay = clamp(base / Number(speed.value), 140, 1600);
+      timer = setTimeout(tick, delay);
+    };
+    tick();
+  }
+
+  function stopAuto(){
+    running = false;
+    btnAuto.disabled = false;
+    btnPause.disabled = true;
+    if(timer){ clearTimeout(timer); timer = null; }
+  }
+
+  function resetAll(){
+    stopAuto();
+    i = 1; k = 0; phase = "copy";
+    ONA = new Array(N).fill("");
+    printed = [];
+    stepIndex = 0;
+
+    render();
+    renderOutput();
+    clearHighlights();
+    setVarUI();
+    setStatus("Έγινε επαναφορά. Πάτησε <strong>Βήμα-βήμα</strong> ή <strong>Αυτόματη εκτέλεση</strong>.");
+  }
+
+  // ---------- Events ----------
+  btnStep.addEventListener("click", async () => {
+    stopAuto();
+    await stepOnce();
+  });
+
+  btnAuto.addEventListener("click", () => autoRun());
+  btnPause.addEventListener("click", () => stopAuto());
+  btnReset.addEventListener("click", () => resetAll());
+  btnRandom.addEventListener("click", () => { stopAuto(); randData(); });
+
+  speed.addEventListener("input", () => {
+    speedVal.textContent = Number(speed.value).toFixed(2) + "×";
+  });
+
+  btnTheme.addEventListener("click", () => {
+    const body = document.body;
+    const isDark = body.getAttribute("data-theme") === "dark";
+    body.setAttribute("data-theme", isDark ? "light" : "dark");
+    btnTheme.textContent = isDark ? "Night" : "Day";
+  });
+
+  btnCode.addEventListener("click", () => {
+    const hidden = codePanel.style.display === "none";
+    codePanel.style.display = hidden ? "block" : "none";
+    btnCode.textContent = hidden ? "Απόκρυψη κώδικα" : "Εμφάνιση κώδικα";
+  });
+
+  window.addEventListener("resize", () => {
+    const w = document.querySelector(".viz").clientWidth;
+    const h = document.querySelector(".viz").clientHeight;
+    svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+  });
+
+  // ---------- Init ----------
+  randData();
+})();
+</script>
+</body>
+</html>

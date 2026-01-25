@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<title>Επιδημία – Διαδραστικό Animation</title>
+<style>
+    body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f5f5f5;
+        margin: 0;
+        padding: 20px;
+    }
+
+    h1 {
+        margin-top: 0;
+        text-align: center;
+    }
+
+    .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        background: #ffffff;
+        border-radius: 10px;
+        padding: 20px 24px 28px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .top-info {
+        font-size: 0.9rem;
+        margin-bottom: 16px;
+        color: #444;
+    }
+
+    .array-container {
+        margin: 18px 0 10px;
+    }
+
+    .array-label {
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .array-row {
+        display: grid;
+        grid-template-columns: repeat(20, 1fr);
+        gap: 4px;
+    }
+
+    .cell {
+        border: 1px solid #ccc;
+        background: #fafafa;
+        border-radius: 4px;
+        text-align: center;
+        padding: 8px 0;
+        font-size: 0.9rem;
+        cursor: pointer;
+        user-select: none;
+        position: relative;
+        transition: background 0.2s, transform 0.1s, border-color 0.2s;
+    }
+
+    .cell-index {
+        position: absolute;
+        top: 2px;
+        left: 4px;
+        font-size: 0.65rem;
+        color: #666;
+    }
+
+    .cell.infected {
+        background: #ffe5e5;
+        border-color: #d80000;
+        font-weight: 600;
+    }
+
+    .cell.healthy {
+        background: #e8f7ff;
+        border-color: #1e88e5;
+    }
+
+    .cell.derived {
+        background: #f0ecff;
+        border-color: #5e35b1;
+    }
+
+    .cell.current {
+        box-shadow: 0 0 0 3px #1e88e5;
+        transform: translateY(-2px);
+    }
+
+    .cell.neighbor {
+        box-shadow: 0 0 0 3px #ff9800;
+    }
+
+    .tabs {
+        display: flex;
+        gap: 8px;
+        margin-top: 18px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+    }
+
+    .tab-btn {
+        border: 1px solid #ccc;
+        background: #f2f2f2;
+        padding: 6px 12px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: background 0.2s, border-color 0.2s;
+    }
+
+    .tab-btn.active {
+        background: #1e88e5;
+        color: #fff;
+        border-color: #1565c0;
+    }
+
+    .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 8px 0 12px;
+    }
+
+    button {
+        border-radius: 20px;
+        border: 1px solid #ccc;
+        padding: 6px 12px;
+        cursor: pointer;
+        background: #f8f8f8;
+        font-size: 0.9rem;
+        transition: background 0.2s, border-color 0.2s, transform 0.05s;
+    }
+
+    button:hover {
+        background: #e0e0e0;
+    }
+
+    button:active {
+        transform: translateY(1px);
+    }
+
+    button.primary {
+        background: #1e88e5;
+        color: white;
+        border-color: #1565c0;
+    }
+
+    button.danger {
+        background: #e53935;
+        color: white;
+        border-color: #c62828;
+    }
+
+    .status-area {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(0, 1.5fr);
+        gap: 16px;
+        margin-top: 10px;
+        align-items: flex-start;
+    }
+
+    @media (max-width: 900px) {
+        .status-area {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .panel {
+        background: #fafafa;
+        border-radius: 8px;
+        padding: 10px 12px;
+        border: 1px solid #e0e0e0;
+    }
+
+    .panel-title {
+        font-weight: 600;
+        margin-bottom: 4px;
+        font-size: 0.95rem;
+    }
+
+    .variables-table {
+        font-size: 0.9rem;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    .variables-table td {
+        padding: 2px 4px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .variables-table td:first-child {
+        font-weight: 600;
+        width: 80px;
+    }
+
+    .code-block {
+        font-family: "Fira Code", Consolas, monospace;
+        font-size: 0.8rem;
+        background: #111827;
+        color: #e5e7eb;
+        border-radius: 8px;
+        padding: 8px 10px;
+        overflow-x: auto;
+        border: 1px solid #374151;
+    }
+
+    .code-block .kw {
+        color: #93c5fd;
+        font-weight: 600;
+    }
+
+    .code-block .cm {
+        color: #9ca3af;
+    }
+
+    .code-block .var {
+        color: #facc15;
+    }
+
+    .code-block .op {
+        color: #f97316;
+    }
+
+    .code-line {
+        display: block;
+        padding: 1px 4px;
+        border-left: 4px solid transparent;
+        margin-left: -4px;
+        margin-right: -4px;
+    }
+
+    .code-line.active {
+        background: rgba(250, 204, 21, 0.35); /* πιο έντονο κίτρινο */
+        border-left-color: #facc15;
+        font-weight: 700;
+        box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.7);
+    }
+
+    .log {
+        font-size: 0.82rem;
+        max-height: 140px;
+        overflow-y: auto;
+        border-top: 1px solid #e0e0e0;
+        margin-top: 6px;
+        padding-top: 4px;
+    }
+
+    .log-entry {
+        margin-bottom: 2px;
+    }
+
+    .log-entry span.step {
+        font-weight: 600;
+        color: #1e88e5;
+    }
+
+    .msg-final {
+        margin-top: 6px;
+        font-weight: 600;
+    }
+
+    .msg-final.ok {
+        color: #2e7d32;
+    }
+
+    .msg-final.no {
+        color: #c62828;
+    }
+
+    .small-note {
+        font-size: 0.8rem;
+        color: #666;
+        margin-top: 4px;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>Επιδημία – Διαδραστικό Animation πίνακα Μ[20]</h1>
+    <div class="top-info">
+        0 = υγιές άτομο, -1 = μολυσμένο άτομο. Κάνε κλικ σε ένα κελί για να αλλάξεις 0 ⇄ -1.
+        Ο αλγόριθμος εκτελείται σε τρία μέρη: Δ1, Δ2, Δ3.
+    </div>
+
+    <div class="array-container">
+        <div class="array-label">Πίνακας Μ[20] (τρέχουσα κατάσταση):</div>
+        <div id="arrayRow" class="array-row"></div>
+        <div class="small-note">
+            Tip: Μπορείς να ορίσεις μια «αρχική κατάσταση» και μετά να πατάς μόνο «Επαναφορά» για να ξανατρέχει το animation.
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-mode="D1">Δ1 – Πλήθος μολυσμένων</button>
+        <button class="tab-btn" data-mode="D2">Δ2 – Γειτονικά μολυσμένα (για υγιή)</button>
+        <button class="tab-btn" data-mode="D3">Δ3 – Σημαντική εστία μόλυνσης</button>
+    </div>
+
+    <div class="controls">
+        <button id="btnRandom">Τυχαία αρχικοποίηση</button>
+        <button id="btnClear">Όλα υγιή (0)</button>
+        <button id="btnSaveInitial">Αποθήκευση ως αρχική κατάσταση</button>
+        <button id="btnRestoreInitial">Επαναφορά αρχικής κατάστασης</button>
+    </div>
+
+    <div class="controls">
+        <button id="btnPlay" class="primary">Αναπαραγωγή</button>
+        <button id="btnStep">Επόμενο βήμα</button>
+        <button id="btnReset" class="danger">Επαναφορά animation (για το τρέχον Δ)</button>
+        <button id="btnToggleCode">Απόκρυψη κώδικα</button>
+    </div>
+
+    <div class="status-area">
+        <div class="panel">
+            <div class="panel-title">Κατάσταση εκτέλεσης</div>
+            <table class="variables-table">
+                <tbody>
+                <tr><td>i</td><td id="var_i">–</td></tr>
+                <tr><td>πλ</td><td id="var_pl">–</td></tr>
+                <tr><td>done</td><td id="var_done">–</td></tr>
+                <tr><td>θ</td><td id="var_theta">–</td></tr>
+                </tbody>
+            </table>
+
+            <div class="log" id="log"></div>
+            <div id="finalMessage" class="msg-final"></div>
+        </div>
+
+        <div id="codePanel" class="panel">
+            <div class="panel-title">Τμήμα αλγορίθμου (ανά ερώτημα)</div>
+            <pre id="codeBlock" class="code-block"></pre>
+        </div>
+    </div>
+</div>
+
+<script>
+    const N = 20;
+    let M = new Array(N).fill(0);
+    let initialM = M.slice();
+    let mode = "D1";
+
+    let iVar = null;
+    let pl = null;
+    let done = null;
+    let theta = null;
+
+    let phase = null;
+    let d2Stage = "inspect";
+    let playing = false;
+    let intervalId = null;
+    let stepCounter = 0;
+
+    const arrayRowEl = document.getElementById("arrayRow");
+    const logEl = document.getElementById("log");
+    const finalMessageEl = document.getElementById("finalMessage");
+
+    const var_i = document.getElementById("var_i");
+    const var_pl = document.getElementById("var_pl");
+    const var_done = document.getElementById("var_done");
+    const var_theta = document.getElementById("var_theta");
+    const codeBlockEl = document.getElementById("codeBlock");
+    const codePanelEl = document.getElementById("codePanel");
+    const btnToggleCode = document.getElementById("btnToggleCode");
+
+    function createArrayUI() {
+        arrayRowEl.innerHTML = "";
+        for (let idx = 0; idx < N; idx++) {
+            const cell = document.createElement("div");
+            cell.className = "cell";
+            cell.dataset.index = idx;
+            const idxSpan = document.createElement("div");
+            idxSpan.className = "cell-index";
+            idxSpan.textContent = idx + 1;
+            const valueSpan = document.createElement("div");
+            valueSpan.className = "cell-value";
+            cell.appendChild(idxSpan);
+            cell.appendChild(valueSpan);
+
+            cell.addEventListener("click", () => {
+                if (M[idx] === 0) {
+                    M[idx] = -1;
+                } else if (M[idx] === -1) {
+                    M[idx] = 0;
+                } else {
+                    M[idx] = (M[idx] === 1 || M[idx] === 2) ? 0 : M[idx];
+                }
+                renderArray();
+            });
+
+            arrayRowEl.appendChild(cell);
+        }
+        renderArray();
+    }
+
+    function renderArray(currentIndex = null, neighborIndices = []) {
+        const cells = arrayRowEl.querySelectorAll(".cell");
+        cells.forEach((cell, idx) => {
+            const val = M[idx];
+            const valEl = cell.querySelector(".cell-value");
+            valEl.textContent = val;
+
+            cell.classList.remove("infected", "healthy", "derived", "current", "neighbor");
+
+            if (val === -1) {
+                cell.classList.add("infected");
+            } else if (val === 0) {
+                cell.classList.add("healthy");
+            } else {
+                cell.classList.add("derived");
+            }
+
+            if (idx === currentIndex) {
+                cell.classList.add("current");
+            }
+            if (neighborIndices.includes(idx)) {
+                cell.classList.add("neighbor");
+            }
+        });
+    }
+
+    function setActiveCodeLine(id) {
+        if (!codeBlockEl) return;
+        const lines = codeBlockEl.querySelectorAll(".code-line");
+        lines.forEach(l => l.classList.remove("active"));
+        if (id) {
+            const el = codeBlockEl.querySelector("#" + id);
+            if (el) el.classList.add("active");
+        }
+    }
+
+    function updateVariablesView() {
+        var_i.textContent = iVar !== null ? iVar : "–";
+        var_pl.textContent = pl !== null ? pl : "–";
+        var_done.textContent = done !== null ? String(done) : "–";
+        var_theta.textContent = theta !== null ? theta : "–";
+    }
+
+    function resetLogAndMessage() {
+        logEl.innerHTML = "";
+        finalMessageEl.textContent = "";
+        finalMessageEl.className = "msg-final";
+        stepCounter = 0;
+    }
+
+    function addLogEntry(text) {
+        stepCounter++;
+        const div = document.createElement("div");
+        div.className = "log-entry";
+        div.innerHTML = `<span class="step">[Βήμα ${stepCounter}]</span> ${text}`;
+        logEl.appendChild(div);
+        logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    const codeD1 = `
+<span class="code-line" id="d1-l1"><span class="kw">Δ1.</span>  <span class="kw">Υπολογισμός πλήθους μολυσμένων</span></span>
+<span class="code-line" id="d1-l2"><span class="kw">πλ</span> <span class="op">&larr;</span> 0</span>
+<span class="code-line" id="d1-l3"><span class="kw">Για</span> <span class="var">i</span> <span class="kw">από</span> 1 <span class="kw">μέχρι</span> 20</span>
+<span class="code-line" id="d1-l4">    <span class="kw">Αν</span> Μ[i] <span class="op">=</span> -1 <span class="kw">τότε</span></span>
+<span class="code-line" id="d1-l5">        <span class="var">πλ</span> <span class="op">&larr;</span> <span class="var">πλ</span> + 1</span>
+<span class="code-line" id="d1-l6">    <span class="kw">Τέλος_αν</span></span>
+<span class="code-line" id="d1-l7"><span class="kw">Τέλος_επανάληψης</span></span>
+<span class="code-line" id="d1-l8"><span class="cm">// Εμφανίζει το πλ (συνολικό πλήθος μολυσμένων)</span></span>`;
+
+    const codeD2 = `
+<span class="code-line" id="d2-l1"><span class="kw">Δ2.</span>  <span class="kw">Ενημέρωση υγιών κελιών με πλήθος μολυσμένων γειτόνων</span></span>
+<span class="code-line" id="d2-l2"><span class="kw">Για</span> <span class="var">i</span> <span class="kw">από</span> 2 <span class="kw">μέχρι</span> 19</span>
+<span class="code-line" id="d2-l3">    <span class="kw">Αν</span> Μ[i] <span class="op">=</span> 0 <span class="kw">τότε</span></span>
+<span class="code-line" id="d2-l4">        <span class="kw">Αν</span> Μ[i-1] <span class="op">=</span> -1 <span class="kw">και</span> Μ[i+1] <span class="op">=</span> -1 <span class="kw">τότε</span></span>
+<span class="code-line" id="d2-l5">            Μ[i] <span class="op">&larr;</span> 2</span>
+<span class="code-line" id="d2-l6">        <span class="kw">αλλιώς_αν</span> Μ[i-1] <span class="op">=</span> -1 <span class="kw">Η</span> Μ[i+1] <span class="op">=</span> -1 <span class="kw">τότε</span></span>
+<span class="code-line" id="d2-l7">            Μ[i] <span class="op">&larr;</span> 1</span>
+<span class="code-line" id="d2-l8">        <span class="kw">Τέλος_αν</span></span>
+<span class="code-line" id="d2-l9">    <span class="kw">Τέλος_αν</span></span>
+<span class="code-line" id="d2-l10"><span class="kw">Τέλος_επανάληψης</span></span>
+
+<span class="code-line" id="d2-l11"><span class="kw">Αν</span> Μ[1] <span class="op">=</span> 0 <span class="kw">και</span> Μ[2] <span class="op">=</span> -1 <span class="kw">τότε</span></span>
+<span class="code-line" id="d2-l12">    Μ[1] <span class="op">&larr;</span> 1</span>
+<span class="code-line" id="d2-l13"><span class="kw">Τέλος_αν</span></span>
+
+<span class="code-line" id="d2-l14"><span class="kw">Αν</span> Μ[20] <span class="op">=</span> 0 <span class="kw">και</span> Μ[19] <span class="op">=</span> -1 <span class="kw">τότε</span></span>
+<span class="code-line" id="d2-l15">    Μ[20] <span class="op">&larr;</span> 1</span>
+<span class="code-line" id="d2-l16"><span class="kw">Τέλος_αν</span></span>`;
+
+    const codeD3 = `
+<span class="code-line" id="d3-l1"><span class="kw">Δ3.</span>  <span class="kw">Έλεγχος σημαντικής εστίας μόλυνσης</span></span>
+<span class="code-line" id="d3-l2"><span class="var">done</span> <span class="op">&larr;</span> ΨΕΥΔΗΣ</span>
+<span class="code-line" id="d3-l3"><span class="var">i</span> <span class="op">&larr;</span> 1</span>
+
+<span class="code-line" id="d3-l4"><span class="kw">Όσο</span> i <span class="op">&lt;=</span> 19 <span class="kw">και</span> done <span class="op">=</span> ΨΕΥΔΗΣ <span class="kw">επανάλαβε</span></span>
+<span class="code-line" id="d3-l5">    <span class="kw">Αν</span> Μ[i] <span class="op">=</span> -1 <span class="kw">και</span> Μ[i+1] <span class="op">=</span> -1 <span class="kw">τότε</span></span>
+<span class="code-line" id="d3-l6">        <span class="var">done</span> <span class="op">&larr;</span> Αληθής</span>
+<span class="code-line" id="d3-l7">        <span class="var">θ</span> <span class="op">&larr;</span> i</span>
+<span class="code-line" id="d3-l8">    <span class="kw">αλλιώς</span></span>
+<span class="code-line" id="d3-l9">        <span class="var">i</span> <span class="op">&larr;</span> i + 1</span>
+<span class="code-line" id="d3-l10">    <span class="kw">Τέλος_αν</span></span>
+<span class="code-line" id="d3-l11"><span class="kw">Τέλος_επανάληψης</span></span>
+
+<span class="code-line" id="d3-l12"><span class="kw">Αν</span> done <span class="op">=</span> Αληθής <span class="kw">τότε</span></span>
+<span class="code-line" id="d3-l13">    Γράψε "Υπάρχει σημαντική εστία μόλυνσης:", θ</span>
+<span class="code-line" id="d3-l14"><span class="kw">αλλιώς</span></span>
+<span class="code-line" id="d3-l15">    Γράψε "Δεν υπάρχει σημαντική εστία μόλυνσης"</span>
+<span class="code-line" id="d3-l16"><span class="kw">Τέλος_αν</span></span>`;
+
+    function updateCodeBlock() {
+        if (mode === "D1") {
+            codeBlockEl.innerHTML = codeD1;
+            setActiveCodeLine("d1-l2");
+        } else if (mode === "D2") {
+            codeBlockEl.innerHTML = codeD2;
+            setActiveCodeLine("d2-l2");
+        } else {
+            codeBlockEl.innerHTML = codeD3;
+            setActiveCodeLine("d3-l2");
+        }
+    }
+
+    function resetAnimationForMode() {
+        if (mode === "D1") {
+            pl = 0;
+            iVar = 1;
+            done = null;
+            theta = null;
+            phase = null;
+            d2Stage = "inspect";
+            addLogEntry("Έναρξη Δ1: πλ ← 0, i ← 1.");
+            setActiveCodeLine("d1-l3");
+        } else if (mode === "D2") {
+            iVar = 2;
+            pl = null;
+            done = null;
+            theta = null;
+            phase = "loop";
+            d2Stage = "inspect";
+            addLogEntry("Έναρξη Δ2: i ← 2.");
+            setActiveCodeLine("d2-l2");
+        } else if (mode === "D3") {
+            iVar = 1;
+            pl = null;
+            done = false;
+            theta = null;
+            phase = "scan";
+            d2Stage = "inspect";
+            addLogEntry("Έναρξη Δ3: done ← ΨΕΥΔΗΣ, i ← 1.");
+            setActiveCodeLine("d3-l4");
+        }
+        renderArray();
+        updateVariablesView();
+    }
+
+    // Δ1: κάθε κλικ = έλεγχος τρέχοντος i
+    function stepD1() {
+        if (iVar === null) return;
+
+        if (iVar > 20) {
+            setActiveCodeLine("d1-l8");
+            finalMessageEl.textContent = `Συνολικός αριθμός μολυσμένων: ${pl}`;
+            finalMessageEl.className = "msg-final ok";
+            addLogEntry(`Τέλος Δ1. πλ = ${pl}.`);
+            return;
+        }
+
+        const idx = iVar - 1;
+        const val = M[idx];
+
+        renderArray(idx);
+
+        if (val === -1) {
+            setActiveCodeLine("d1-l5");
+            pl++;
+            addLogEntry(`i = ${iVar}: Μ[${iVar}] = -1 → πλ γίνεται ${pl}.`);
+        } else {
+            setActiveCodeLine("d1-l4");
+            addLogEntry(`i = ${iVar}: Μ[${iVar}] = ${val} → δεν αλλάζει το πλ (=${pl}).`);
+        }
+
+        iVar++;
+        updateVariablesView();
+
+        if (iVar > 20) {
+            setActiveCodeLine("d1-l7");
+            finalMessageEl.textContent = `Συνολικός αριθμός μολυσμένων: ${pl}`;
+            finalMessageEl.className = "msg-final ok";
+            addLogEntry(`Τέλος Δ1. πλ = ${pl}.`);
+        }
+    }
+
+    function stepD2() {
+        if (phase === "finished") return;
+
+        if (phase === "loop") {
+            if (iVar > 19) {
+                phase = "edge1";
+                setActiveCodeLine("d2-l10");
+                addLogEntry("Τέλος επανάληψης 2..19. Περνάμε στα άκρα.");
+                return;
+            }
+
+            const i = iVar;
+            const idx = i - 1;
+            const leftIdx = idx - 1;
+            const rightIdx = idx + 1;
+            const neighbors = [];
+            if (leftIdx >= 0) neighbors.push(leftIdx);
+            if (rightIdx < N) neighbors.push(rightIdx);
+
+            if (d2Stage === "inspect") {
+                setActiveCodeLine("d2-l3");
+                renderArray(idx, neighbors);
+                addLogEntry(
+                    `Επιθεώρηση i = ${i}: ελέγχουμε Μ[${i}] και τους γείτονες Μ[${i-1}], Μ[${i+1}].`
+                );
+                d2Stage = "update";
+                return;
+            }
+
+            if (d2Stage === "update") {
+                const val = M[idx];
+                const leftInf = (leftIdx >= 0 && M[leftIdx] === -1);
+                const rightInf = (rightIdx < N && M[rightIdx] === -1);
+
+                renderArray(idx, neighbors);
+
+                if (val === 0) {
+                    if (leftInf && rightInf) {
+                        setActiveCodeLine("d2-l5");
+                        M[idx] = 2;
+                        addLogEntry(
+                            `Ενημέρωση i = ${i}: Μ[${i}] = 0 με δύο μολυσμένους γείτονες → Μ[${i}] ← 2.`
+                        );
+                    } else if (leftInf || rightInf) {
+                        setActiveCodeLine("d2-l7");
+                        M[idx] = 1;
+                        addLogEntry(
+                            `Ενημέρωση i = ${i}: Μ[${i}] = 0 με έναν μολυσμένο γείτονα → Μ[${i}] ← 1.`
+                        );
+                    } else {
+                        setActiveCodeLine("d2-l9");
+                        addLogEntry(
+                            `Ενημέρωση i = ${i}: Μ[${i}] = 0 χωρίς μολυσμένους γείτονες → μένει 0.`
+                        );
+                    }
+                } else {
+                    setActiveCodeLine("d2-l9");
+                    addLogEntry(
+                        `Ενημέρωση i = ${i}: Μ[${i}] = ${val} (όχι υγιές) → δεν αλλάζει.`
+                    );
+                }
+
+                iVar++;
+                d2Stage = "inspect";
+                updateVariablesView();
+                renderArray(idx, neighbors);
+                return;
+            }
+        }
+
+        if (phase === "edge1") {
+            const idx1 = 0, idx2 = 1;
+            setActiveCodeLine("d2-l11");
+            renderArray(idx1, [idx2]);
+            if (M[idx1] === 0 && M[idx2] === -1) {
+                setActiveCodeLine("d2-l12");
+                M[idx1] = 1;
+                addLogEntry("Έλεγχος άκρου Μ[1]: Μ[1] = 0 και Μ[2] = -1 → Μ[1] ← 1.");
+            } else {
+                addLogEntry("Έλεγχος άκρου Μ[1]: δεν ικανοποιείται η συνθήκη → δεν αλλάζει.");
+            }
+            phase = "edge20";
+            return;
+        }
+
+        if (phase === "edge20") {
+            const idx20 = N - 1, idx19 = N - 2;
+            setActiveCodeLine("d2-l14");
+            renderArray(idx20, [idx19]);
+            if (M[idx20] === 0 && M[idx19] === -1) {
+                setActiveCodeLine("d2-l15");
+                M[idx20] = 1;
+                addLogEntry("Έλεγχος άκρου Μ[20]: Μ[20] = 0 και Μ[19] = -1 → Μ[20] ← 1.");
+            } else {
+                addLogEntry("Έλεγχος άκρου Μ[20]: δεν ικανοποιείται η συνθήκη → δεν αλλάζει.");
+            }
+            phase = "finished";
+            finalMessageEl.textContent = "Ο πίνακας Μ ενημερώθηκε σύμφωνα με το Δ2.";
+            finalMessageEl.className = "msg-final ok";
+            renderArray();
+            setActiveCodeLine("d2-l16");
+            return;
+        }
+    }
+
+    function stepD3() {
+        if (phase === "finished") return;
+
+        if (phase === "scan") {
+            if (done === true || iVar > 19) {
+                phase = "finished";
+                setActiveCodeLine("d3-l12");
+                if (done) {
+                    setActiveCodeLine("d3-l13");
+                    finalMessageEl.textContent = `Υπάρχει σημαντική εστία μόλυνσης στη θέση θ = ${theta}.`;
+                    finalMessageEl.className = "msg-final ok";
+                    addLogEntry(`Βρέθηκε εστία: δύο συνεχόμενα -1 στις θέσεις ${theta} και ${theta + 1}.`);
+                    renderArray(theta - 1, [theta]);
+                } else {
+                    setActiveCodeLine("d3-l15");
+                    finalMessageEl.textContent = "Δεν υπάρχει σημαντική εστία μόλυνσης.";
+                    finalMessageEl.className = "msg-final no";
+                    addLogEntry("Δεν βρέθηκαν δύο συνεχόμενα μολυσμένα κελιά.");
+                }
+                updateVariablesView();
+                return;
+            }
+
+            const i = iVar;
+            const idx = i - 1;
+            const idxNext = idx + 1;
+
+            renderArray(idx, [idxNext]);
+            setActiveCodeLine("d3-l5");
+
+            const val1 = M[idx];
+            const val2 = (idxNext < N) ? M[idxNext] : null;
+
+            if (val1 === -1 && val2 === -1) {
+                setActiveCodeLine("d3-l6");
+                done = true;
+                theta = i;
+                addLogEntry(`i = ${i}: Μ[${i}] = -1 και Μ[${i+1}] = -1 → done ← Αληθής, θ ← ${theta}.`);
+            } else {
+                setActiveCodeLine("d3-l9");
+                addLogEntry(`i = ${i}: (Μ[${i}] = ${val1}, Μ[${i+1}] = ${val2}) → δεν είναι και τα δύο -1, αυξάνουμε i.`);
+                iVar++;
+            }
+            updateVariablesView();
+        }
+    }
+
+    function doStep() {
+        if (mode === "D1") stepD1();
+        else if (mode === "D2") stepD2();
+        else stepD3();
+    }
+
+    function startPlaying() {
+        if (playing) return;
+        playing = true;
+        document.getElementById("btnPlay").textContent = "Παύση";
+        intervalId = setInterval(() => {
+            doStep();
+        }, 650);
+    }
+
+    function stopPlaying() {
+        playing = false;
+        document.getElementById("btnPlay").textContent = "Αναπαραγωγή";
+        if (intervalId) {
+            clearInterval(intervalId);
+            intervalId = null;
+        }
+    }
+
+    function setMode(newMode) {
+        if (mode === newMode) return;
+        stopPlaying();
+        mode = newMode;
+
+        document.querySelectorAll(".tab-btn").forEach(btn => {
+            btn.classList.toggle("active", btn.dataset.mode === mode);
+        });
+
+        resetLogAndMessage();
+        updateCodeBlock();
+        resetAnimationForMode();
+        updateVariablesView();
+    }
+
+    document.getElementById("btnRandom").addEventListener("click", () => {
+        for (let i = 0; i < N; i++) {
+            const r = Math.random();
+            M[i] = (r < 0.25) ? -1 : 0;
+        }
+        renderArray();
+    });
+
+    document.getElementById("btnClear").addEventListener("click", () => {
+        M = new Array(N).fill(0);
+        renderArray();
+    });
+
+    document.getElementById("btnSaveInitial").addEventListener("click", () => {
+        initialM = M.slice();
+        addLogEntry("Αποθηκεύτηκε η τρέχουσα κατάσταση ως αρχική.");
+    });
+
+    document.getElementById("btnRestoreInitial").addEventListener("click", () => {
+        M = initialM.slice();
+        renderArray();
+        addLogEntry("Επαναφορά στην αποθηκευμένη αρχική κατάσταση.");
+    });
+
+    document.getElementById("btnStep").addEventListener("click", () => {
+        doStep();
+    });
+
+    document.getElementById("btnPlay").addEventListener("click", () => {
+        if (playing) {
+            stopPlaying();
+        } else {
+            startPlaying();
+        }
+    });
+
+    document.getElementById("btnReset").addEventListener("click", () => {
+        stopPlaying();
+        resetLogAndMessage();
+        updateCodeBlock();
+        resetAnimationForMode();
+    });
+
+    btnToggleCode.addEventListener("click", () => {
+        if (codePanelEl.style.display === "none") {
+            codePanelEl.style.display = "";
+            btnToggleCode.textContent = "Απόκρυψη κώδικα";
+        } else {
+            codePanelEl.style.display = "none";
+            btnToggleCode.textContent = "Εμφάνιση κώδικα";
+        }
+    });
+
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            setMode(btn.dataset.mode);
+        });
+    });
+
+    createArrayUI();
+    updateCodeBlock();
+    resetAnimationForMode();
+    updateVariablesView();
+</script>
+</body>
+</html>

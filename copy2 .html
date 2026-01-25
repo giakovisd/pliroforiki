@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Λειτουργία: Αντιγραφή</title>
+<style>
+  :root{
+    --bg:#0f172a;
+    --card:#111827f0;
+    --muted:#94a3b8;
+    --text:#e5e7eb;
+    --accent:#38bdf8;
+    --accent2:#f59e0b;
+  }
+  html,body{height:100%}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Noto Sans",Cantarell,Arial;background:radial-gradient(1200px 800px at 70% -10%,#1e293b 0,var(--bg) 45%);color:var(--text)}
+  .wrap{max-width:1100px;margin:32px auto;padding:0 16px}
+  h1{font-size:clamp(22px,2.6vw,34px);margin:0 0 14px}
+  p.lead{color:var(--muted);margin:0 0 18px}
+  .board{display:grid;grid-template-columns:1.2fr 1fr;gap:16px}
+  @media(max-width:900px){.board{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid #1f2937;box-shadow:0 8px 30px rgba(0,0,0,.35);border-radius:18px}
+  .card h2{font-size:18px;margin:0;padding:14px 16px;border-bottom:1px solid #1f2937;color:#cbd5e1}
+  .card .body{padding:16px}
+  .cols{display:grid;grid-template-columns:repeat(3,minmax(140px,1fr));gap:14px;align-items:start}
+  .col{position:relative;background:#0b1220;border:1px solid #1f2937;border-radius:14px;overflow:hidden}
+  .col h3{margin:0;font-size:14px;font-weight:700;color:#cbd5e1;padding:10px 12px;border-bottom:1px solid #1f2937}
+  .cells{position:relative;display:grid;grid-template-rows:repeat(10,48px)}
+  .cell{position:relative;display:flex;align-items:center;justify-content:center;margin:6px 8px;background:#0a1222;border:1px solid #1f2937;border-radius:10px;font-weight:600}
+  .cell small{position:absolute;left:8px;top:4px;font-size:11px;color:#64748b}
+  .i-active{box-shadow:0 0 0 2px var(--accent) inset,0 0 16px rgba(56,189,248,.35)}
+  .scan-pulse{outline:2px dashed #3b82f6;animation:pulse 1.2s infinite}
+  @keyframes pulse{0%{outline-offset:6px;opacity:.9}100%{outline-offset:0;opacity:.6}}
+  .k-spot{outline:2px dashed #f59e0b;box-shadow:0 0 8px rgba(245,158,11,.6)}
+  .copy-fx{position:fixed;left:0;top:0;transform:translate(-50%,-50%);padding:6px 10px;background:#052e1a;color:#a7f3d0;border:1px solid #064e3b;border-radius:999px;font-weight:700;pointer-events:none;transition:left .5s ease,top .5s ease}
+  .controls{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+  .btn{background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:10px 14px;font-weight:600;color:#e2e8f0;cursor:pointer}
+  .btn:hover{border-color:#334155}
+  .btn[disabled]{opacity:.5;cursor:not-allowed}
+  .k-badge{display:inline-flex;align-items:center;gap:6px;background:#052e1a;color:#a7f3d0;border:1px solid #064e3b;padding:4px 8px;border-radius:999px;font-size:13px}
+  .badge{border:1px solid #25324b;background:#0b1220;color:#cbd5e1;border-radius:10px;padding:6px 10px;display:inline-flex;gap:8px;align-items:center}
+  code#code{background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:16px;font-size:17px;display:block;white-space:pre;overflow:auto;line-height:1.4}
+  .hl-line{background:linear-gradient(90deg,rgba(245,158,11,.28),rgba(245,158,11,.08));border-left:3px solid var(--accent2);padding-left:8px;}
+  .hidden{display:none !important;}
+.prompt{background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:12px;margin:6px 0 16px 0;color:var(--text)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Λειτουργία: Αντιγραφή</h1>
+  <p class="prompt"><strong>Εκφώνηση:</strong> Να γραφεί τμήμα αλγορίθμου που με δεδομένους τους πίνακες ΟΝ[10] και Φ[10] που περιέχουν όνομα και φύλο για κάθε έναν από τους 10 μαθητές ενός σχολείου, να δημιουργεί και να εμφανίζει νέο πίνακα που θα περιέχει τα ονόματα των αγοριών του σχολείου.</p>
+  <p class="lead">Σάρωση του <b>Φ[10]</b> από πάνω προς τα κάτω. Θυμήσου: <b>Α = Αγόρι</b>, <b>Κ = Κορίτσι</b>. Όταν <b>Φ[i] = 'Α'</b>, αντιγράφουμε το <b>ΟΝ[i]</b> στον νέο πίνακα <b>ΟΝΑ[K]</b>. Κάθε βήμα δείχνει <b>μία-μία</b> τις εντολές που εκτελούνται.</p>
+  <div class="board">
+    <section class="card">
+      <h2>Πίνακες (Κάθετη διάταξη)</h2>
+      <div class="body">
+        <div class="cols">
+          <div class="col">
+            <h3>ΟΝ[10]</h3>
+            <div class="cells" id="colOn"></div>
+          </div>
+          <div class="col">
+            <h3>Φ[10]</h3>
+            <div class="cells" id="colF"></div>
+          </div>
+          <div class="col">
+            <h3>ΟΝΑ[10]</h3>
+            <div class="cells" id="colOna"></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap">
+          <span class="k-badge">K = <span id="kVal">0</span></span>
+          <span class="k-badge">i = <span id="iVal">—</span></span>
+          <span class="k-badge">Ενέργεια: <span id="lastAct">—</span></span>
+          <label class="badge">Ταχύτητα <input id="speed" type="range" min="250" max="1500" step="50" value="800"></label>
+        </div>
+      </div>
+    </section>
+    <section class="card" id="codeSection">
+      <h2>Κώδικας (με ΟΝΑ)</h2>
+      <div class="body">
+        <button class="btn" id="toggleCode">👁️ Απόκρυψη/Εμφάνιση Κώδικα</button>
+        <code id="code"></code>
+        <div class="log" id="log" style="margin-top:10px"></div>
+        <div class="controls">
+          <button class="btn" id="btnPlay">▶️ Εκκίνηση</button>
+          <button class="btn" id="btnPause" disabled>⏸️ Παύση</button>
+          <button class="btn" id="btnStep">⏭️ Βήμα</button>
+          <button class="btn" id="btnReset">🔄 Επαναφορά</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+<script>
+(function(){
+  const ON=["Αλέξανδρος","Μαρία","Παναγιώτης","Ελένη","Σπύρος","Κατερίνα","Θανάσης","Νίκη","Γιώργος","Χριστίνα"];
+  const F=['Α','Κ','Α','Κ','Α','Κ','Α','Κ','Α','Κ'];
+  const colOn=document.getElementById('colOn');
+  const colF=document.getElementById('colF');
+  const colOna=document.getElementById('colOna');
+  const kVal=document.getElementById('kVal');
+  const iVal=document.getElementById('iVal');
+  const lastAct=document.getElementById('lastAct');
+  const log=document.getElementById('log');
+  const code=document.getElementById('code');
+  const btnPlay=document.getElementById('btnPlay');
+  const btnPause=document.getElementById('btnPause');
+  const btnStep=document.getElementById('btnStep');
+  const btnReset=document.getElementById('btnReset');
+  const speed=document.getElementById('speed');
+  const toggleCode=document.getElementById('toggleCode');
+  const codeSection=document.getElementById('codeSection');
+  let i=0,K=0,ONA=new Array(10).fill('');
+  let timer=null,sub=0;
+  const codeLines=["Κ ← 0","Για i από 1 μέχρι 10","  Αν Φ[i] = 'Α' τότε","    Κ ← Κ + 1","    ΟΝΑ[Κ] ← ΟΝ[i]","  Τέλος_αν","Τέλος_επανάληψης","","Για i από 1 μέχρι K","  Γράψε ΟΝΑ[i]","Τέλος_επανάληψης"];
+  function renderCode(h){code.innerHTML=codeLines.map((l,x)=>`<div class='${h.includes(x)?"hl-line":""}'>${l}</div>`).join('');}
+  function makeCell(i,v,l){const c=document.createElement('div');c.className='cell';c.dataset.idx=i;c.innerHTML=`<small>${l}</small><span>${v||'—'}</span>`;return c;}
+  function draw(){[colOn,colF,colOna].forEach(c=>c.innerHTML='');for(let j=0;j<10;j++){colOn.appendChild(makeCell(j,ON[j],j+1));colF.appendChild(makeCell(j,F[j],j+1));colOna.appendChild(makeCell(j,ONA[j],j+1));}highlight();}
+  function highlight(){document.querySelectorAll('.cell').forEach(e=>e.classList.remove('i-active','scan-pulse','k-spot'));if(i<10){colF.querySelector(`[data-idx="${i}"]`)?.classList.add('i-active','scan-pulse');colOn.querySelector(`[data-idx="${i}"]`)?.classList.add('i-active');}if(K>0&&K<=10){colOna.querySelector(`[data-idx="${K-1}"]`)?.classList.add('k-spot');}kVal.textContent=K;iVal.textContent=(i<10)?i+1:'—';}
+  function logLine(t){const p=document.createElement('div');p.textContent=t;log.appendChild(p);log.scrollTop=log.scrollHeight;}
+  function flyCopy(f,t,txt,d){const r1=f.getBoundingClientRect(),r2=t.getBoundingClientRect();const fx=document.createElement('div');fx.className='copy-fx';fx.textContent=txt;document.body.appendChild(fx);fx.style.left=r1.left+r1.width/2+'px';fx.style.top=r1.top+r1.height/2+'px';requestAnimationFrame(()=>{fx.style.left=r2.left+r2.width/2+'px';fx.style.top=r2.top+r2.height/2+'px';setTimeout(()=>{fx.remove();d&&d();},Math.max(350,Number(speed.value)*0.7));});}
+  function step(){if(i<10){const isBoy=F[i]==='Α';if(sub===0){renderCode([2]);lastAct.textContent=`Έλεγχος αν Φ[${i+1}]='Α'`;sub=isBoy?1:3;return;}if(sub===1){renderCode([3]);K++;highlight();lastAct.textContent=`Αύξηση K → ${K}`;sub=2;return;}if(sub===2){renderCode([4]);const from=colOn.querySelector(`[data-idx="${i}"]`);const to=colOna.querySelector(`[data-idx="${K-1}"]`);lastAct.textContent=`Αντιγραφή \"${ON[i]}\" στο ΟΝΑ[${K}]`;flyCopy(from,to,ON[i],()=>{ONA[K-1]=ON[i];draw();sub=3;});return;}if(sub===3){renderCode([5]);lastAct.textContent=isBoy?'Τέλος_αν (αντιγραφή)':'Τέλος_αν (Φ="Κ")';i++;sub=0;draw();return;}}if(i===10){if(sub===0){renderCode([8]);lastAct.textContent='Προετοιμασία εξόδου';sub=1;return;}if(sub===1){renderCode([9]);log.innerHTML='';logLine('Έξοδος (Γράψε):');sub=2;return;}if(sub===2){renderCode([9]);logLine(`(σύνολο ${K}) → ${ONA.slice(0,K).join(', ')}`);lastAct.textContent='Τέλος';stop();i=21;return;}}}
+  function play(){if(timer)return;btnPlay.disabled=true;btnPause.disabled=false;btnStep.disabled=true;timer=setInterval(step,Number(speed.value));}
+  function pause(){if(timer){clearInterval(timer);timer=null;}btnPlay.disabled=false;btnPause.disabled=true;btnStep.disabled=false;}
+  function stop(){if(timer){clearInterval(timer);timer=null;}btnPlay.disabled=false;btnPause.disabled=true;btnStep.disabled=false;}
+  function reset(){stop();i=0;K=0;ONA=new Array(10).fill('');sub=0;lastAct.textContent='—';log.innerHTML='';renderCode([0,1]);draw();}
+  toggleCode.onclick=()=>{code.classList.toggle('hidden');log.classList.toggle('hidden');};
+  btnPlay.onclick=play;btnPause.onclick=pause;btnStep.onclick=step;btnReset.onclick=reset;speed.oninput=()=>{if(timer){stop();play();}};reset();})();
+</script>
+</body>
+</html>
