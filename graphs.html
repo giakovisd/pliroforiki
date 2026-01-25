@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Δομές Δεδομένων: Γράφοι - Διαδραστικό Μάθημα</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --purple: #9b59b6;
+            --teal: #16a085;
+            --bg-color: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* Header & Navigation */
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header h1 { margin: 0; font-size: 1.8rem; }
+        header p { margin: 5px 0 0; opacity: 0.8; font-size: 0.9rem; }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            background: #34495e;
+            padding: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        nav button {
+            background: none;
+            border: none;
+            color: var(--light);
+            padding: 8px 16px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            border-radius: 4px;
+        }
+
+        nav button:hover, nav button.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1100px; /* Λίγο πιο φαρδύ για να χωρέσει το sidebar */
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            min-height: 600px;
+        }
+
+        .section { display: none; animation: fadeIn 0.5s; }
+        .section.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Typography */
+        h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
+        h3 { color: var(--accent); margin-top: 25px; }
+        
+        /* Theory Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            transition: transform 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+
+        .card-icon {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            line-height: 60px;
+            align-self: center;
+        }
+
+        /* Exercises Card Style */
+        .exercise-card {
+            background: #fff;
+            border-left: 5px solid var(--warning);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .exercise-card h4 { margin-top: 0; color: var(--dark); }
+        .exercise-step { font-weight: bold; color: var(--accent); }
+        
+        /* SVG Styles */
+        .diagram-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin: 20px 0;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+        .diagram-box { text-align: center; margin: 10px; }
+        svg { max-width: 100%; height: auto; }
+        .node { fill: var(--accent); stroke: var(--dark); stroke-width: 2px; }
+        .node-text { fill: white; font-family: sans-serif; font-weight: bold; font-size: 14px; text-anchor: middle; dominant-baseline: middle; }
+        .edge { stroke: var(--dark); stroke-width: 2px; }
+        .arrow-head { fill: var(--dark); }
+
+        /* Konigsberg Specifics */
+        .konigsberg-container {
+            background-color: #fdfefe;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .euler-logic {
+            background-color: #e8f6f3;
+            border-left: 5px solid var(--success);
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .mini-exercise {
+            background: #fff8e1;
+            border: 1px solid #ffe082;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        /* --- PLAYGROUND LAYOUT (NEW) --- */
+        .playground-wrapper {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        
+        .main-stage {
+            flex: 3; /* Takes up 3/4 of space */
+        }
+
+        .sidebar {
+            flex: 1; /* Takes up 1/4 of space */
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        #canvas-container {
+            position: relative;
+            border: 2px dashed #bdc3c7;
+            border-radius: 8px;
+            background-color: #fafafa;
+            height: 500px;
+            overflow: hidden;
+            cursor: crosshair;
+            width: 100%;
+        }
+
+        .controls {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #eee;
+            border-radius: 5px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        /* Sidebar Panels */
+        .exercise-panel {
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .exercise-panel h4 { 
+            margin: 0 0 10px 0; 
+            font-size: 0.95rem; 
+            color: var(--primary); 
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            transition: background 0.2s;
+            font-size: 0.9rem;
+        }
+
+        /* Sidebar buttons are full width and smaller */
+        .sidebar .btn {
+            display: block;
+            width: 100%;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            padding: 6px;
+        }
+
+        .btn-primary { background-color: var(--accent); }
+        .btn-primary:hover { background-color: #2980b9; }
+        .btn-danger { background-color: var(--danger); }
+        .btn-danger:hover { background-color: #c0392b; }
+        .btn-toggle { background-color: var(--success); }
+        .btn-action { background-color: var(--warning); color: #333; }
+        .btn-check { background-color: #8e44ad; }
+        .btn-check:hover { background-color: #732d91; }
+        .btn-setup { background-color: #34495e; }
+
+        .instruction-box {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            border-left: 5px solid #ffeeba;
+        }
+        
+        .instruction-box ol { margin: 5px 0 5px 20px; padding: 0; }
+        .instruction-box li { margin-bottom: 4px; }
+
+        /* Quiz */
+        .quiz-question {
+            background: #f8f9fa;
+            border-left: 5px solid var(--accent);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        .options label {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .options label:hover { background: #f1f1f1; }
+        .options input { margin-right: 10px; }
+
+        .feedback {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+            font-weight: bold;
+        }
+
+        .feedback.correct { background-color: #d4edda; color: #155724; }
+        .feedback.wrong { background-color: #f8d7da; color: #721c24; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .playground-wrapper { flex-direction: column; }
+            .sidebar { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Δομές Δεδομένων: Γράφοι</h1>
+    <p>Μάθημα Πληροφορικής Γ' Λυκείου (Ενότητα 1.3.3)</p>
+</header>
+
+<nav>
+    <button class="active" onclick="showSection('theory')">Θεωρία</button>
+    <button onclick="showSection('examples')">Παραδείγματα</button>
+    <button onclick="showSection('konigsberg')">Οι Γέφυρες</button>
+    <button onclick="showSection('challenges')">Ασκήσεις Πράξης</button>
+    <button onclick="showSection('playground')">Εργαστήριο Γράφων</button>
+    <button onclick="showSection('quiz')">Αυτοαξιολόγηση</button>
+</nav>
+
+<div class="container">
+
+    <div id="theory" class="section active">
+        <h2>Τι είναι ο Γράφος;</h2>
+        <p>
+            Όπως μάθατε, τα δένδρα έχουν συγκεκριμένους κανόνες (ρίζα, γονείς, παιδιά, όχι κύκλοι). 
+            Τι συμβαίνει όμως αν αγνοήσουμε αυτούς τους περιορισμούς; Τότε έχουμε τον <strong>Γράφο (Graph)</strong>.
+        </p>
+        <div class="instruction-box">
+            💡 <strong>Ορισμός:</strong> Ένας γράφος είναι μία δομή που αποτελείται από ένα σύνολο <strong>κόμβων</strong> (ή κορυφών) και ένα σύνολο <strong>ακμών</strong> (γραμμών) που ενώνουν τους κόμβους.
+        </div>
+        
+        <div class="card-grid">
+            <div class="card">
+                <h3>🌲 Δένδρο vs Γράφος</h3>
+                <p>Το δένδρο είναι μια ειδική περίπτωση γράφου. </p>
+                <ul>
+                    <li><strong>Δένδρο:</strong> Έχει ρίζα, ιεραρχία, μοναδική διαδρομή, όχι κύκλους.</li>
+                    <li><strong>Γράφος:</strong> Δεν έχει ρίζα, οι κόμβοι συνδέονται ελεύθερα, μπορεί να έχει κύκλους (βρόχους).</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>➡️ Τύποι Ακμών</h3>
+                <p>Η βασική διαφορά στους γράφους είναι το είδος της σύνδεσης:</p>
+                <ul>
+                    <li><strong>Κατευθυνόμενος (Directed):</strong> Η ακμή είναι βέλος (μονόδρομος).</li>
+                    <li><strong>Μη κατευθυνόμενος (Undirected):</strong> Η ακμή είναι γραμμή (αμφίδρομος).</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3>Διάγραμμα Γράφων (Σχήματα)</h3>
+        <div class="diagram-container">
+            <div class="diagram-box">
+                <h4>Μη Κατευθυνόμενος</h4>
+                <p><small>(Π.χ. Φιλία στο Facebook)</small></p>
+                <svg width="200" height="150" viewBox="0 0 200 150">
+                    <line x1="50" y1="100" x2="100" y2="40" class="edge" />
+                    <line x1="100" y1="40" x2="150" y2="100" class="edge" />
+                    <line x1="50" y1="100" x2="150" y2="100" class="edge" />
+                    <circle cx="50" cy="100" r="15" class="node" />
+                    <text x="50" y="100" class="node-text">A</text>
+                    <circle cx="100" cy="40" r="15" class="node" />
+                    <text x="100" y="40" class="node-text">B</text>
+                    <circle cx="150" cy="100" r="15" class="node" />
+                    <text x="150" y="100" class="node-text">C</text>
+                </svg>
+            </div>
+
+            <div class="diagram-box">
+                <h4>Κατευθυνόμενος</h4>
+                <p><small>(Π.χ. Follow στο Twitter)</small></p>
+                <svg width="200" height="150" viewBox="0 0 200 150">
+                    <defs>
+                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="22" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L0,6 L9,3 z" class="arrow-head" />
+                        </marker>
+                    </defs>
+                    <line x1="50" y1="100" x2="100" y2="40" class="edge" marker-end="url(#arrow)" />
+                    <line x1="100" y1="40" x2="150" y2="100" class="edge" marker-end="url(#arrow)" />
+                    <path d="M150,100 Q100,130 50,100" class="edge" fill="none" marker-end="url(#arrow)" />
+                    <circle cx="50" cy="100" r="15" class="node" style="fill:#e67e22"/>
+                    <text x="50" y="100" class="node-text">A</text>
+                    <circle cx="100" cy="40" r="15" class="node" style="fill:#e67e22"/>
+                    <text x="100" y="40" class="node-text">B</text>
+                    <circle cx="150" cy="100" r="15" class="node" style="fill:#e67e22"/>
+                    <text x="150" y="100" class="node-text">C</text>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <div id="examples" class="section">
+        <h2>Γράφοι στην Καθημερινότητα</h2>
+        <div class="card-grid">
+            <div class="card" style="border-top: 5px solid var(--success);">
+                <div class="card-icon">🚗</div>
+                <h3>GPS & Δρόμοι</h3>
+                <p>Όταν το <strong>GPS</strong> (π.χ. Google Maps) σου δείχνει τη διαδρομή, χρησιμοποιεί γράφους:</p>
+                <ul>
+                    <li><strong>Κόμβοι:</strong> Διασταυρώσεις ή πόλεις.</li>
+                    <li><strong>Ακμές:</strong> Οι δρόμοι που τις ενώνουν.</li>
+                </ul>
+            </div>
+
+            <div class="card" style="border-top: 5px solid var(--purple);">
+                <div class="card-icon">🧪</div>
+                <h3>Χημεία (Μόρια)</h3>
+                <p>Στη Χημεία, η δομή ενός μορίου απεικονίζεται ως γράφος:</p>
+                <ul>
+                    <li><strong>Κόμβοι:</strong> Τα άτομα.</li>
+                    <li><strong>Ακμές:</strong> Οι χημικοί δεσμοί.</li>
+                </ul>
+            </div>
+
+            <div class="card" style="border-top: 5px solid var(--teal);">
+                <div class="card-icon">✈️</div>
+                <h3>Αεροπορικά Δίκτυα</h3>
+                <p>Πώς ταξιδεύουμε από τη μία χώρα στην άλλη;</p>
+                <ul>
+                    <li><strong>Κόμβοι:</strong> Τα αεροδρόμια.</li>
+                    <li><strong>Ακμές:</strong> Οι πτήσεις που συνδέουν τα αεροδρόμια.</li>
+                </ul>
+            </div>
+
+            <div class="card" style="border-top: 5px solid #3b5998;">
+                <div class="card-icon">👥</div>
+                <h3>Facebook</h3>
+                <p>Η σχέση "Φιλίας" είναι <strong>αμφίδρομη</strong> (Μη Κατευθυνόμενος).</p>
+                <div style="background: #f0f2f5; padding: 5px; text-align: center; border-radius: 5px;">
+                    <span style="font-size: 1.2rem;">A ── B</span>
+                </div>
+            </div>
+
+            <div class="card" style="border-top: 5px solid #1da1f2;">
+                <div class="card-icon">🐦</div>
+                <h3>Twitter/Instagram</h3>
+                <p>Η σχέση "Follow" είναι <strong>μονόδρομη</strong> (Κατευθυνόμενος).</p>
+                <div style="background: #f0f2f5; padding: 5px; text-align: center; border-radius: 5px;">
+                    <span style="font-size: 1.2rem;">A ➔ B</span>
+                </div>
+            </div>
+
+            <div class="card" style="border-top: 5px solid #e67e22;">
+                <div class="card-icon">🌐</div>
+                <h3>WWW (Internet)</h3>
+                <p>Οι ιστοσελίδες είναι κόμβοι και τα <strong>Links</strong> είναι οι κατευθυνόμενες ακμές.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="konigsberg" class="section">
+        <h2>Το Πρόβλημα των Γεφυρών του Königsberg</h2>
+        
+        <div class="konigsberg-container">
+            <p><strong>Το Πρόβλημα:</strong> Στην πόλη Königsberg υπήρχε ο ποταμός Pregel που χώριζε την πόλη σε 4 τμήματα γης. Αυτά συνδέονταν με <strong>7 γέφυρες</strong>.</p>
+            <p style="font-weight: bold; text-align: center; color: var(--primary);">
+                "Μπορείς να διασχίσεις και τις 7 γέφυρες ΑΚΡΙΒΩΣ ΜΙΑ ΦΟΡΑ;"
+            </p>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <svg width="400" height="250" viewBox="0 0 400 250" style="background:#e0f7fa; border-radius:8px; border:1px solid #ccc;">
+                    <path d="M0,0 L400,0 L400,60 Q200,80 0,60 Z" fill="#aed581" stroke="#558b2f" stroke-width="2"/>
+                    <text x="200" y="30" fill="#33691e" font-weight="bold" text-anchor="middle">Βόρεια Όχθη (A)</text>
+                    <path d="M0,250 L400,250 L400,190 Q200,170 0,190 Z" fill="#aed581" stroke="#558b2f" stroke-width="2"/>
+                    <text x="200" y="230" fill="#33691e" font-weight="bold" text-anchor="middle">Νότια Όχθη (B)</text>
+                    <ellipse cx="140" cy="125" rx="60" ry="30" fill="#aed581" stroke="#558b2f" stroke-width="2"/>
+                    <text x="140" y="130" fill="#33691e" font-weight="bold" text-anchor="middle">Νησί (C)</text>
+                    <ellipse cx="300" cy="125" rx="40" ry="25" fill="#aed581" stroke="#558b2f" stroke-width="2"/>
+                    <text x="300" y="130" fill="#33691e" font-weight="bold" text-anchor="middle">Νησί (D)</text>
+                    <rect x="100" y="60" width="15" height="40" fill="#e74c3c" transform="rotate(-10 100 60)" />
+                    <rect x="160" y="60" width="15" height="40" fill="#e74c3c" transform="rotate(10 160 60)" />
+                    <rect x="100" y="150" width="15" height="40" fill="#e74c3c" transform="rotate(10 100 150)" />
+                    <rect x="160" y="150" width="15" height="40" fill="#e74c3c" transform="rotate(-10 160 150)" />
+                    <rect x="200" y="118" width="60" height="15" fill="#e74c3c" />
+                    <rect x="300" y="60" width="15" height="45" fill="#e74c3c" />
+                    <rect x="300" y="145" width="15" height="45" fill="#e74c3c" />
+                </svg>
+            </div>
+
+            <h3>Η Λύση του Euler (Αφαίρεση)</h3>
+            <p>Ο Euler μετέτρεψε τον χάρτη σε <strong>Γράφο</strong>. Τα νησιά έγιναν κόμβοι και οι γέφυρες ακμές.</p>
+
+            <div style="text-align: center; margin: 20px 0;">
+                <svg width="300" height="200" viewBox="0 0 300 200" style="border:1px dashed #ccc; border-radius:8px;">
+                     <path d="M100,100 Q80,50 150,30" fill="none" stroke="#333" stroke-width="2"/>
+                     <path d="M100,100 Q120,50 150,30" fill="none" stroke="#333" stroke-width="2"/>
+                     <path d="M100,100 Q80,150 150,170" fill="none" stroke="#333" stroke-width="2"/>
+                     <path d="M100,100 Q120,150 150,170" fill="none" stroke="#333" stroke-width="2"/>
+                     <line x1="100" y1="100" x2="250" y2="100" stroke="#333" stroke-width="2"/>
+                     <line x1="150" y1="30" x2="250" y2="100" stroke="#333" stroke-width="2"/>
+                     <line x1="150" y1="170" x2="250" y2="100" stroke="#333" stroke-width="2"/>
+                     <circle cx="150" cy="30" r="15" fill="#3498db" stroke="#2c3e50"/>
+                     <text x="150" y="35" text-anchor="middle" fill="white" font-weight="bold">A</text>
+                     <circle cx="150" cy="170" r="15" fill="#3498db" stroke="#2c3e50"/>
+                     <text x="150" y="175" text-anchor="middle" fill="white" font-weight="bold">B</text>
+                     <circle cx="100" cy="100" r="15" fill="#3498db" stroke="#2c3e50"/>
+                     <text x="100" y="105" text-anchor="middle" fill="white" font-weight="bold">C</text>
+                     <circle cx="250" cy="100" r="15" fill="#3498db" stroke="#2c3e50"/>
+                     <text x="250" y="105" text-anchor="middle" fill="white" font-weight="bold">D</text>
+                </svg>
+            </div>
+
+            <div class="mini-exercise">
+                <h4>🧠 Άσκηση Κατανόησης</h4>
+                <p>Κοίταξε τον γράφο του Euler παραπάνω. Πόσες ακμές (γέφυρες) συνδέονται στον κόμβο <strong>C</strong>;</p>
+                <div class="options">
+                    <label><input type="radio" name="mini-ex" value="3"> 3 Γέφυρες</label>
+                    <label><input type="radio" name="mini-ex" value="5"> 5 Γέφυρες</label>
+                    <label><input type="radio" name="mini-ex" value="4"> 4 Γέφυρες</label>
+                </div>
+                <button class="btn btn-primary" onclick="checkMiniExercise()">Έλεγχος</button>
+                <div id="mini-feedback" class="feedback"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="challenges" class="section">
+        <h2>Ασκήσεις Σχεδίασης στο Εργαστήριο</h2>
+        <p>Διάβασε τα σενάρια και προσπάθησε να τα σχεδιάσεις στο "Εργαστήριο Γράφων"!</p>
+
+        <div class="exercise-card">
+            <h4>Άσκηση 1: "Ποιος βοηθάει ποιον;"</h4>
+            <p><strong>Τύπος Γράφου:</strong> <span style="color:#e67e22; font-weight:bold;">Κατευθυνόμενος</span></p>
+            <p>Σε μια παρέα 4 μαθητών συμβαίνουν τα εξής:</p>
+            <ul>
+                <li>Ο <strong>Κόμβος 1</strong> (Ανδρέας) βοηθάει τον <strong>Κόμβο 2</strong> (Βασίλη).</li>
+                <li>Ο <strong>Κόμβος 2</strong> (Βασίλης) βοηθάει τον <strong>Κόμβο 3</strong> (Γιώργο).</li>
+                <li>Ο <strong>Κόμβος 3</strong> (Γιώργος) βοηθάει πάλι τον <strong>Κόμβο 1</strong> (Ανδρέα).</li>
+                <li>Η <strong>Κόμβος 4</strong> (Μαρία) βοηθάει τον <strong>Κόμβο 2</strong> (Βασίλη).</li>
+            </ul>
+            <p class="exercise-step">👉 Πήγαινε στο Εργαστήριο, πάτα "Στήσιμο" στη δεξιά στήλη και σχεδίασε τις ακμές!</p>
+            <button class="btn btn-action" onclick="showSection('playground')">Πάμε στο Εργαστήριο</button>
+        </div>
+
+        <div class="exercise-card" style="border-left-color: #27ae60;">
+            <h4>Άσκηση 2: "Το Δίκτυο Υπολογιστών"</h4>
+            <p><strong>Τύπος Γράφου:</strong> <span style="color:#27ae60; font-weight:bold;">Μη Κατευθυνόμενος</span></p>
+            <p>Θέλουμε να φτιάξουμε ένα δίκτυο με 4 υπολογιστές σε τετράγωνο:</p>
+            <ul>
+                <li>Σύνδεσε: 1-2, 2-3, 3-4, 4-1.</li>
+                <li>Είναι ασφαλές δίκτυο γιατί αν κοπεί ένα καλώδιο, υπάρχει άλλη διαδρομή!</li>
+            </ul>
+            <p class="exercise-step">👉 Πήγαινε στο Εργαστήριο, πάτα "Στήσιμο" στη δεξιά στήλη και ξεκίνα.</p>
+            <button class="btn btn-action" onclick="showSection('playground')">Πάμε στο Εργαστήριο</button>
+        </div>
+    </div>
+
+    <div id="playground" class="section">
+        <h2>🛠️ Εργαστήριο Γράφων</h2>
+        
+        <div class="playground-wrapper">
+            <div class="main-stage">
+                <div class="instruction-box">
+                    <strong>Οδηγίες Χρήσης:</strong>
+                    <ol>
+                        <li>Κάντε <strong>Κλικ</strong> στον κενό χώρο για να δημιουργήσετε <strong>Κόμβους</strong>.</li>
+                        <li>Κάντε κλικ σε έναν κόμβο (θα γίνει πορτοκαλί) και μετά σε έναν άλλον για να φτιάξετε μια <strong>Ακμή</strong>.</li>
+                        <li>Χρησιμοποιήστε το κουμπί <strong>"Αλλαγή Τύπου"</strong> για να αλλάξετε τη φορά των βελών.</li>
+                    </ol>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-toggle" id="typeBtn" onclick="toggleGraphType()">Τύπος: Μη Κατευθυνόμενος</button>
+                    <button class="btn btn-danger" onclick="clearCanvas()">Καθαρισμός (Free Mode)</button>
+                    <span id="status-msg" style="margin-left: auto; font-weight: bold; color: #555;">Επιλέξτε έναν κόμβο...</span>
+                </div>
+
+                <div id="canvas-container">
+                    <canvas id="graphCanvas"></canvas>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="exercise-panel" style="border-left: 4px solid #f39c12;">
+                    <h4>Άσκηση 1 (Βοήθεια)</h4>
+                    <button class="btn btn-setup" onclick="setupExercise(1)">Στήσιμο</button>
+                    <button class="btn btn-check" onclick="checkSolution(1)">Έλεγχος</button>
+                    <button class="btn btn-action" onclick="solveExercise(1)">Λύση</button>
+                </div>
+                <div class="exercise-panel" style="border-left: 4px solid #27ae60;">
+                    <h4>Άσκηση 2 (Δίκτυο)</h4>
+                    <button class="btn btn-setup" onclick="setupExercise(2)">Στήσιμο</button>
+                    <button class="btn btn-check" onclick="checkSolution(2)">Έλεγχος</button>
+                    <button class="btn btn-action" onclick="solveExercise(2)">Λύση</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="quiz" class="section">
+        <h2>📝 Αυτοαξιολόγηση</h2>
+        <div class="quiz-question" id="q1">
+            <h3>1. Ποια είναι η βασική διαφορά μεταξύ Δένδρου και Γράφου;</h3>
+            <div class="options">
+                <label><input type="radio" name="q1" value="a"> Το δένδρο έχει κύκλους.</label>
+                <label><input type="radio" name="q1" value="b"> Ο γράφος δεν έχει απαραίτητα ρίζα ούτε ιεραρχία.</label>
+                <label><input type="radio" name="q1" value="c"> Ο γράφος έχει μόνο δύο ακμές.</label>
+            </div>
+            <button class="btn btn-primary" onclick="checkAnswer('q1', 'b')">Έλεγχος</button>
+            <div class="feedback"></div>
+        </div>
+        <div class="quiz-question" id="q2">
+            <h3>2. Ποιος τύπος γράφου περιγράφει καλύτερα τη σχέση "Φιλίας" στο Facebook;</h3>
+            <div class="options">
+                <label><input type="radio" name="q2" value="a"> Κατευθυνόμενος</label>
+                <label><input type="radio" name="q2" value="b"> Μη κατευθυνόμενος</label>
+            </div>
+            <button class="btn btn-primary" onclick="checkAnswer('q2', 'b')">Έλεγχος</button>
+            <div class="feedback"></div>
+        </div>
+        <div class="quiz-question" id="q3">
+            <h3>3. Γιατί ήταν αδύνατο να λυθεί το πρόβλημα των Γεφυρών του Königsberg;</h3>
+            <div class="options">
+                <label><input type="radio" name="q3" value="a"> Επειδή οι γέφυρες ήταν πολύ μακριά η μία από την άλλη.</label>
+                <label><input type="radio" name="q3" value="b"> Επειδή όλοι οι κόμβοι (περιοχές) είχαν περιττό (μονό) αριθμό γεφυρών.</label>
+                <label><input type="radio" name="q3" value="c"> Επειδή έπρεπε να ξεκινήσουν από το νησί.</label>
+            </div>
+            <button class="btn btn-primary" onclick="checkAnswer('q3', 'b')">Έλεγχος</button>
+            <div class="feedback"></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Navigation Logic
+    function showSection(sectionId) {
+        document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+        document.getElementById(sectionId).classList.add('active');
+        
+        document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
+        const buttons = document.querySelectorAll('nav button');
+        for(let btn of buttons) {
+            if(btn.getAttribute('onclick').includes(sectionId)) {
+                btn.classList.add('active');
+            }
+        }
+        if(sectionId === 'playground') {
+            setTimeout(resizeCanvas, 100);
+        }
+    }
+
+    // Mini Exercise
+    function checkMiniExercise() {
+        const selected = document.querySelector('input[name="mini-ex"]:checked');
+        const feedback = document.getElementById('mini-feedback');
+        feedback.style.display = 'block';
+        feedback.className = 'feedback'; 
+        if (!selected) {
+            feedback.textContent = "Διάλεξε μια απάντηση!";
+            feedback.classList.add('wrong'); return;
+        }
+        if (selected.value === "5") {
+            feedback.innerHTML = "Σωστά! Ο κόμβος C έχει 5 γέφυρες (περιττός).";
+            feedback.classList.add('correct');
+        } else {
+            feedback.textContent = "Λάθος. Ξαναμέτρα τις γραμμές.";
+            feedback.classList.add('wrong');
+        }
+    }
+
+    // Quiz Logic
+    function checkAnswer(questionId, correctAnswer) {
+        const container = document.getElementById(questionId);
+        const selected = container.querySelector(`input[name="${questionId}"]:checked`);
+        const feedback = container.querySelector('.feedback');
+        feedback.style.display = 'block';
+        feedback.className = 'feedback'; 
+        if (!selected) {
+            feedback.textContent = "Παρακαλώ επιλέξτε μια απάντηση.";
+            feedback.classList.add('wrong'); return;
+        }
+        if (selected.value === correctAnswer) {
+            feedback.textContent = "Σωστά!";
+            feedback.classList.add('correct');
+        } else {
+            feedback.textContent = "Λάθος.";
+            feedback.classList.add('wrong');
+        }
+    }
+
+    // --- GRAPH BUILDER & EXERCISES ---
+    const canvas = document.getElementById('graphCanvas');
+    const ctx = canvas.getContext('2d');
+    const statusMsg = document.getElementById('status-msg');
+    
+    let nodes = [];
+    let edges = [];
+    let isDirected = false; 
+    let selectedNodeIndex = -1;
+    const NODE_RADIUS = 20;
+
+    function resizeCanvas() {
+        const container = document.getElementById('canvas-container');
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+        draw();
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    function toggleGraphType() {
+        isDirected = !isDirected;
+        updateTypeButton();
+        draw();
+    }
+
+    function updateTypeButton() {
+        const btn = document.getElementById('typeBtn');
+        if (isDirected) {
+            btn.textContent = "Τύπος: Κατευθυνόμενος";
+            btn.style.backgroundColor = "#e67e22";
+        } else {
+            btn.textContent = "Τύπος: Μη Κατευθυνόμενος";
+            btn.style.backgroundColor = "#27ae60";
+        }
+    }
+
+    function clearCanvas() {
+        nodes = [];
+        edges = [];
+        selectedNodeIndex = -1;
+        updateStatus("Ελεύθερη Σχεδίαση. Κάντε κλικ για κόμβους.");
+        draw();
+    }
+
+    function updateStatus(text) {
+        statusMsg.textContent = text;
+    }
+
+    // --- EXERCISE LOGIC ---
+    function setupExercise(exNum) {
+        nodes = [];
+        edges = [];
+        selectedNodeIndex = -1;
+        const w = canvas.width;
+        const h = canvas.height;
+
+        if (exNum === 1) {
+            // Exercise 1: Directed, 4 nodes layout
+            isDirected = true;
+            updateTypeButton();
+            nodes.push({x: w*0.2, y: h*0.2, label: 1}); // Andreas
+            nodes.push({x: w*0.8, y: h*0.2, label: 2}); // Vasilis
+            nodes.push({x: w*0.8, y: h*0.8, label: 3}); // Giorgos
+            nodes.push({x: w*0.2, y: h*0.8, label: 4}); // Maria
+            updateStatus("Άσκηση 1: Σχεδιάστε τις ακμές (βέλη) με βάση το σενάριο.");
+        } else {
+            // Exercise 2: Undirected, 4 nodes square
+            isDirected = false;
+            updateTypeButton();
+            nodes.push({x: w*0.3, y: h*0.3, label: 1});
+            nodes.push({x: w*0.7, y: h*0.3, label: 2});
+            nodes.push({x: w*0.7, y: h*0.7, label: 3});
+            nodes.push({x: w*0.3, y: h*0.7, label: 4});
+            updateStatus("Άσκηση 2: Σχεδιάστε το δίκτυο (γραμμές) 1-2-3-4-1.");
+        }
+        draw();
+    }
+
+    function solveExercise(exNum) {
+        setupExercise(exNum); // Reset nodes
+        if (exNum === 1) {
+            // 1->2, 2->3, 3->1, 4->2
+            edges.push({from: 0, to: 1});
+            edges.push({from: 1, to: 2});
+            edges.push({from: 2, to: 0});
+            edges.push({from: 3, to: 1});
+            updateStatus("Άσκηση 1: Εμφάνιση Λύσης.");
+        } else {
+            // 1-2, 2-3, 3-4, 4-1
+            edges.push({from: 0, to: 1});
+            edges.push({from: 1, to: 2});
+            edges.push({from: 2, to: 3});
+            edges.push({from: 3, to: 0});
+            updateStatus("Άσκηση 2: Εμφάνιση Λύσης.");
+        }
+        draw();
+    }
+
+    function checkSolution(exNum) {
+        if (nodes.length === 0) {
+            updateStatus("Πατήστε πρώτα 'Στήσιμο'!");
+            return;
+        }
+
+        let correct = true;
+        let msg = "Μπράβο! Σωστή απάντηση.";
+
+        if (exNum === 1) {
+            if (!isDirected) { correct = false; msg = "Λάθος: Ο γράφος πρέπει να είναι Κατευθυνόμενος."; }
+            else {
+                const required = ["1->2", "2->3", "3->1", "4->2"];
+                const userEdges = edges.map(e => nodes[e.from].label + "->" + nodes[e.to].label);
+                
+                for(let req of required) {
+                    if(!userEdges.includes(req)) {
+                        correct = false;
+                        msg = "Λείπει η ακμή: " + req;
+                        break;
+                    }
+                }
+            }
+        } else {
+            if (isDirected) { correct = false; msg = "Λάθος: Το δίκτυο πρέπει να είναι Μη Κατευθυνόμενο."; }
+            else {
+                const required = ["1-2", "2-3", "3-4", "4-1"];
+                const hasEdge = (u, v) => {
+                    return edges.some(e => {
+                        const l1 = nodes[e.from].label;
+                        const l2 = nodes[e.to].label;
+                        return (l1==u && l2==v) || (l1==v && l2==u);
+                    });
+                };
+
+                for(let req of required) {
+                    const parts = req.split("-");
+                    if(!hasEdge(parseInt(parts[0]), parseInt(parts[1]))) {
+                        correct = false;
+                        msg = "Λείπει η σύνδεση: " + req;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if(correct) {
+            statusMsg.style.color = "green";
+        } else {
+            statusMsg.style.color = "red";
+        }
+        updateStatus(msg);
+        setTimeout(() => { statusMsg.style.color = "#555"; }, 4000);
+    }
+
+    // --- INTERACTION ---
+    canvas.addEventListener('mousedown', function(e) {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        let clickedNodeIndex = -1;
+        for (let i = 0; i < nodes.length; i++) {
+            const dx = x - nodes[i].x;
+            const dy = y - nodes[i].y;
+            if (dx*dx + dy*dy < NODE_RADIUS*NODE_RADIUS) {
+                clickedNodeIndex = i;
+                break;
+            }
+        }
+
+        if (clickedNodeIndex !== -1) {
+            if (selectedNodeIndex === -1) {
+                selectedNodeIndex = clickedNodeIndex;
+                updateStatus("Επιλέχθηκε ο Κόμβος " + nodes[selectedNodeIndex].label);
+            } else if (selectedNodeIndex === clickedNodeIndex) {
+                selectedNodeIndex = -1;
+                updateStatus("Ακύρωση επιλογής.");
+            } else {
+                const exists = edges.some(e => 
+                    (e.from === selectedNodeIndex && e.to === clickedNodeIndex) ||
+                    (!isDirected && e.from === clickedNodeIndex && e.to === selectedNodeIndex)
+                );
+
+                if (!exists) {
+                    edges.push({ from: selectedNodeIndex, to: clickedNodeIndex });
+                    updateStatus("Προστέθηκε ακμή: " + nodes[selectedNodeIndex].label + " -> " + nodes[clickedNodeIndex].label);
+                }
+                selectedNodeIndex = -1;
+            }
+        } else {
+            let collision = false;
+            for(let n of nodes) {
+                const dx = x - n.x;
+                const dy = y - n.y;
+                if(dx*dx + dy*dy < (NODE_RADIUS * 2.5)**2) collision = true;
+            }
+
+            if(!collision) {
+                nodes.push({ x: x, y: y, label: nodes.length + 1 });
+                updateStatus("Προστέθηκε κόμβος " + nodes.length);
+            }
+        }
+        draw();
+    });
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#34495e";
+
+        edges.forEach(edge => {
+            const start = nodes[edge.from];
+            const end = nodes[edge.to];
+            const dx = end.x - start.x;
+            const dy = end.y - start.y;
+            const angle = Math.atan2(dy, dx);
+            const startX = start.x + NODE_RADIUS * Math.cos(angle);
+            const startY = start.y + NODE_RADIUS * Math.sin(angle);
+            const endX = end.x - NODE_RADIUS * Math.cos(angle);
+            const endY = end.y - NODE_RADIUS * Math.sin(angle);
+
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+
+            if (isDirected) {
+                const headLen = 10;
+                ctx.beginPath();
+                ctx.moveTo(endX, endY);
+                ctx.lineTo(endX - headLen * Math.cos(angle - Math.PI / 6), endY - headLen * Math.sin(angle - Math.PI / 6));
+                ctx.lineTo(endX - headLen * Math.cos(angle + Math.PI / 6), endY - headLen * Math.sin(angle + Math.PI / 6));
+                ctx.lineTo(endX, endY);
+                ctx.fillStyle = "#34495e";
+                ctx.fill();
+            }
+        });
+
+        nodes.forEach((node, index) => {
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, NODE_RADIUS, 0, 2 * Math.PI);
+            
+            if (index === selectedNodeIndex) {
+                ctx.fillStyle = "#f39c12"; 
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = "#d35400";
+            } else {
+                ctx.fillStyle = "#3498db"; 
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "#2980b9";
+            }
+            
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = "white";
+            ctx.font = "bold 14px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(node.label, node.x, node.y);
+        });
+    }
+
+    resizeCanvas();
+</script>
+
+</body>
+</html>
