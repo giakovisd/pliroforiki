@@ -50,7 +50,9 @@
 - Μονοσιάστατοι πίνακες - Εκτέλεση Θέμα Β (2004)  (εμπεριέχεται στο Τέσσερις εκτελέσεις και συμπλήρωση κενών)
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/One-Dimensional%20Tables%20%CE%92%202004.html)
 
-- Μονοδιάστατοι πίνακες - Λειτουργία Αντιγραφής  
+- Μονοδιάστατοι πίνακες - Λειτουργία Αντιγραφής (Διάφορες υλοποιήσεις)
+  [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/copy-1.html)
+  [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/copy-2.html)
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/One-dimensional%20arrays%20Copy%20Function.html)
 
 - Μονοδιάστατοι πίνακες - Λειτουργία Συγχώνευσης 
@@ -139,6 +141,9 @@
 - Πανελλαδικές 2024, θέμα Β (μετατροπή διαδικασίας σε συνάρτηση) 
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Tranform-subs.html)
 
+## Αναπαράσταση ασκήσεων
+- Επαναληπτικές 2010, θέμα 4. Επιδημία   
+  [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/epidimia-ep-2010.html)
 
 
 
