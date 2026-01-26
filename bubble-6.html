@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ταξινόμηση Φυσαλίδας (Asc/Desc)</title>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --text-color: #1e293b;
+            --panel-bg: #ffffff;
+            --highlight-line: #fde047;
+            --array-item-bg: #3b82f6;
+            --array-item-text: #ffffff;
+            --compare-color: #f59e0b;
+            --swap-color: #ef4444;
+            --sorted-color: #10b981;
+            --water-line-color: #0ea5e9;
+            --border-color: #cbd5e1;
+            --disabled-btn: #94a3b8;
+            --pointer-color: #dc2626;
+        }
+
+        body.dark-mode {
+            --bg-color: #0f172a;
+            --text-color: #f1f5f9;
+            --panel-bg: #1e293b;
+            --highlight-line: #475569;
+            --array-item-bg: #2563eb;
+            --border-color: #334155;
+            --disabled-btn: #475569;
+            --pointer-color: #f87171;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- Header --- */
+        header {
+            background-color: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+            box-sizing: border-box;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        .header-title h1 { margin: 0; font-size: 1.1rem; }
+        .controls-area { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+        button {
+            padding: 8px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            background-color: var(--panel-bg);
+            color: var(--text-color);
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        button.primary { background-color: var(--array-item-bg); color: white; border: none; }
+        button:hover:not(:disabled) { filter: brightness(0.95); transform: translateY(-1px); }
+        button:disabled { background-color: var(--disabled-btn); color: #ccc; cursor: not-allowed; }
+
+        /* Order Button Style */
+        #btnOrder { min-width: 140px; }
+
+        .slider-container { display: flex; align-items: center; gap: 5px; font-size: 0.8rem; margin-left: 10px; }
+
+        /* --- Main Layout --- */
+        .main-container {
+            display: flex;
+            flex: 1;
+            padding: 15px;
+            gap: 15px;
+            height: calc(100% - 70px);
+            box-sizing: border-box;
+        }
+
+        /* LEFT: Code Panel */
+        .col-code {
+            flex: 0 0 420px;
+            display: flex;
+            flex-direction: column;
+            background: var(--panel-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .tabs { 
+            display: flex; 
+            flex-direction: column;
+            background: #f1f5f9; 
+            border-bottom: 1px solid var(--border-color);
+        }
+        .tab {
+            text-align: left; padding: 10px 15px; font-size: 0.85rem; cursor: pointer;
+            border-left: 4px solid transparent; color: #64748b; border-bottom: 1px solid #e2e8f0;
+        }
+        .tab:hover { background: #e2e8f0; }
+        .tab.active { background: var(--panel-bg); border-left-color: var(--array-item-bg); color: var(--text-color); font-weight: bold; }
+
+        .code-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .code-line { padding: 2px 6px; border-radius: 3px; }
+        .code-line.active { background-color: var(--highlight-line); color: #000; font-weight: bold; }
+
+        /* Notes Area */
+        .notes-area {
+            padding: 15px;
+            background-color: #f0f9ff;
+            color: #0369a1;
+            font-size: 0.85rem;
+            display: none; 
+        }
+        .notes-area.visible { display: block; }
+        .notes-area ul { margin: 5px 0 0 20px; padding: 0; }
+        .notes-area li { margin-bottom: 4px; }
+
+        /* CENTER: Visualization */
+        .col-viz {
+            flex: 1;
+            background: var(--panel-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            position: relative;
+        }
+
+        .narrative {
+            padding: 10px;
+            margin-bottom: 10px;
+            background: rgba(139, 92, 246, 0.1); 
+            border-left: 4px solid #8b5cf6;
+            font-size: 0.95rem;
+            font-style: italic;
+            min-height: 24px;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .arrays-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            overflow-y: auto; 
+            align-items: flex-start;
+            padding-top: 40px; 
+            padding-bottom: 40px;
+            padding-left: 140px; /* Space for pointers on left */
+            position: relative; 
+        }
+
+        .array-col { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2; }
+        
+        .array-header { 
+            font-weight: bold; 
+            height: 40px; 
+            display: flex; 
+            align-items: center; 
+            font-size: 1rem; 
+            color: var(--text-color); 
+        }
+
+        /* Cells */
+        .cell-wrapper {
+            position: relative;
+            height: 60px; /* Cell 50 + Margin 10 */
+            width: 120px;
+            margin-bottom: 0px; 
+            transition: transform 0.4s ease-in-out;
+        }
+
+        .cell {
+            width: 100%;
+            height: 50px;
+            margin-bottom: 10px;
+            background-color: var(--array-item-bg);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            box-sizing: border-box;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .cell-idx { position: absolute; left: -30px; font-size: 0.8rem; color: var(--text-color); opacity: 0.7; font-weight: bold; top: 15px; }
+        
+        /* States */
+        .comparing { background-color: var(--compare-color) !important; transform: scale(1.05); z-index: 10; }
+        .swapping-highlight { background-color: var(--swap-color) !important; }
+
+        /* Pointers */
+        .pointer-track {
+            position: absolute;
+            left: -140px; 
+            top: 40px; 
+            width: 100px;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .comp-pointer {
+            position: absolute;
+            right: 0;
+            height: 50px; /* Match cell height */
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            transition: top 0.3s ease-out; /* Smooth slide */
+            opacity: 0; /* Hidden by default */
+        }
+        .comp-pointer.visible { opacity: 1; }
+
+        .ptr-symbol { font-size: 2rem; color: var(--pointer-color); line-height: 0; font-weight: bold; margin-bottom: 5px; }
+        .ptr-label { font-size: 1rem; font-weight: bold; color: var(--pointer-color); font-family: monospace; margin-right: 5px; }
+
+        /* Water Line */
+        .water-line {
+            position: absolute;
+            left: -80px; 
+            width: 280px; 
+            height: 4px;
+            background-color: var(--water-line-color);
+            z-index: 1;
+            transition: top 0.5s ease-in-out;
+            box-shadow: 0 0 8px var(--water-line-color);
+            border-radius: 2px;
+        }
+        
+        /* RIGHT: Output */
+        .col-output {
+            flex: 0 0 200px;
+            background: var(--panel-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .output-header { padding: 10px; background: #f1f5f9; font-weight: bold; border-bottom: 1px solid var(--border-color); }
+        .output-log { flex: 1; padding: 10px; overflow-y: auto; font-family: monospace; font-size: 0.85rem; }
+        .log-item { border-bottom: 1px solid #eee; padding: 3px 0; }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-title">
+        <h1>Ταξινόμηση Φυσαλίδας</h1>
+    </div>
+    
+    <div class="controls-area">
+        <button onclick="toggleOrder()" id="btnOrder">📈 Αύξουσα</button>
+        <button onclick="resetSim()">🔄 Αρχή</button>
+        <button onclick="play()" id="btnPlay" class="primary">▶️ Αυτόματη Εκτέλεση</button>
+        <button onclick="step()" id="btnStep">Βήμα ⏩</button>
+        
+        <div class="slider-container">
+            <span>Ταχύτητα:</span>
+            <input type="range" min="50" max="1500" value="800" id="speedSlider" oninput="updateSpeed()">
+        </div>
+
+        <button onclick="toggleTheme()" id="btnTheme">🌙</button>
+    </div>
+</header>
+
+<div class="main-container">
+    
+    <div class="col-code">
+        <div class="tabs">
+            <div class="tab active" onclick="setSolution(1)" id="t1">1. Φυσαλίδα κλασική </div>
+            <div class="tab" onclick="setSolution(2)" id="t2">2. Έξυπνη Φυσαλίδα </div>
+            <div class="tab" onclick="setSolution(3)" id="t3">3. Φυσαλίδα από πάνω προς τα κάτω με δείκτες j και j+1 </div>
+            <div class="tab" onclick="setSolution(4)" id="t4">4. Φυσαλίδα με δείκτες j και j+1</div>
+        </div>
+        <div class="code-content" id="codeContainer"></div>
+        
+        <div class="notes-area" id="notesArea">
+            <strong>Θεωρία Φυσαλίδας:</strong>
+            <ul>
+                <li>1. Σε κάθε πέρασμα ένα στοιχείο μπαίνει στη θέση που πρέπει.</li>
+                <li>2. Όταν έχω Ν στοιχεία σ' ένα πίνακα, έχω Ν-1 περάσματα.</li>
+                <li>3. Στο 1ο πέρασμα έχω Ν-1 συγκρίσεις, στο 2ο έχω Ν-2 ... στο ι πέρασμα έχω Ν-ι συγκρίσεις.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-viz">
+        <div class="narrative" id="narrativeBox">Πατήστε εκτέλεση...</div>
+        
+        <div class="arrays-wrapper" id="arraysContainer">
+            </div>
+    </div>
+
+    <div class="col-output">
+        <div class="output-header">📺 Οθόνη Εξόδου</div>
+        <div class="output-log" id="outputLog"></div>
+    </div>
+
+</div>
+
+<script>
+    // --- Data ---
+    const SIZE = 6;
+    let data = [];
+    let isAscending = true; // State for sorting order
+
+    // --- Code Variants ---
+    // Note: We will replace '>' with '<' dynamically based on isAscending
+    const SOL_CODES = {
+        1: [
+            "Για i από 2 μέχρι 6",
+            "  Για j από 6 μέχρι i με_βήμα -1",
+            "    Αν π[j - 1] > π[j] τότε",
+            "      temp ← π[j]",
+            "      π[j] ← π[j - 1]",
+            "      π[j - 1] ← temp",
+            "    Τέλος_αν",
+            "  Τέλος_επανάληψης",
+            "Τέλος_επανάληψης",
+            "Για i από 1 μέχρι 6",
+            "  Γράψε π[i]",
+            "Τέλος_επανάληψης",
+            "Τέλος_προγράμματος"
+        ],
+        2: [
+            "i ← 2",
+            "Αρχή_επανάληψης",
+            "  done ← ΨΕΥΔΗΣ",
+            "  Για j από 6 μέχρι i με_βήμα -1",
+            "    Αν π[j - 1] > π[j] τότε",
+            "      temp ← π[j]",
+            "      π[j] ← π[j - 1]",
+            "      π[j - 1] ← temp",
+            "      done ← ΑΛΗΘΗΣ",
+            "    Τέλος_αν",
+            "  Τέλος_επανάληψης",
+            "  i ← i + 1",
+            "Μέχρις_ότου i > 6 Η done = ΨΕΥΔΗΣ",
+            "Για i από 1 μέχρι 6",
+            "  Γράψε π[i]",
+            "Τέλος_επανάληψης"
+        ],
+        3: [
+            "Για i από 1 μέχρι 5",
+            "  Για j από 1 μέχρι 5 - i",
+            "    Αν π[j] > π[j + 1] τότε",
+            "      temp ← π[j + 1]",
+            "      π[j + 1] ← π[j]",
+            "      π[j] ← temp",
+            "    Τέλος_αν",
+            "  Τέλος_επανάληψης",
+            "Τέλος_επανάληψης",
+            "Για i από 1 μέχρι 6",
+            "  Γράψε π[i]",
+            "Τέλος_επανάληψης"
+        ],
+        4: [
+            "Για i από 1 μέχρι 5",
+            "  Για j από 5 μέχρι i με_βήμα -1",
+            "    Αν π[j] > π[j + 1] τότε",
+            "      temp ← π[j]",
+            "      π[j] ← π[j + 1]",
+            "      π[j + 1] ← temp",
+            "    Τέλος_αν",
+            "  Τέλος_επανάληψης",
+            "Τέλος_επανάληψης",
+            "Για i από 1 μέχρι 6",
+            "  Γράψε π[i]",
+            "Τέλος_επανάληψης"
+        ]
+    };
+
+    // --- State ---
+    let currentSol = 1;
+    let steps = [];
+    let stepIdx = -1;
+    let timer = null;
+    let isPlaying = false;
+    let isAnimating = false;
+    let speed = 800;
+    
+    // UI Constants
+    const CELL_HEIGHT_FULL = 60; // 50px cell + 10px margin
+    const HEADER_HEIGHT = 40;
+
+    // --- Init ---
+    function init() {
+        // Random data
+        data = Array.from({length: SIZE}, () => Math.floor(Math.random() * 90) + 10);
+        
+        renderCode();
+        renderArray();
+        
+        document.getElementById('notesArea').classList.toggle('visible', currentSol === 1);
+        updateWaterLine(0, false); 
+        updatePointers(false, 0, 0); // Hide pointers initially
+    }
+
+    function toggleOrder() {
+        isAscending = !isAscending;
+        const btn = document.getElementById('btnOrder');
+        btn.innerText = isAscending ? "📈 Αύξουσα" : "📉 Φθίνουσα";
+        resetSim(); // Restart with new logic and data
+    }
+
+    function setSolution(n) {
+        currentSol = n;
+        document.querySelectorAll('.tab').forEach((t, i) => {
+            t.classList.toggle('active', i+1 === n);
+        });
+        resetSim();
+    }
+
+    function resetSim() {
+        isPlaying = false;
+        isAnimating = false;
+        clearTimeout(timer);
+        stepIdx = -1;
+        document.getElementById('outputLog').innerHTML = '';
+        document.getElementById('narrativeBox').innerText = "Πατήστε εκτέλεση...";
+        document.getElementById('btnPlay').innerText = "▶️ Αυτόματη Εκτέλεση";
+        document.querySelectorAll('.active').forEach(e => e.classList.remove('active'));
+        
+        init();
+    }
+
+    // --- Rendering ---
+    function renderCode() {
+        const lines = SOL_CODES[currentSol];
+        // Replace inequality based on order
+        const symbol = isAscending ? '>' : '<';
+        
+        const html = lines.map((l, i) => 
+            `<div class="code-line" id="line-${i}">
+                <span style="color:#888; margin-right:8px; user-select:none;">${i+1}</span>
+                ${l.replace(/>/g, symbol).replace(/ /g, '&nbsp;')}
+             </div>`
+        ).join('');
+        document.getElementById('codeContainer').innerHTML = html;
+    }
+
+    function renderArray() {
+        const con = document.getElementById('arraysContainer');
+        let html = '';
+
+        html += `<div class="array-col">
+                    <div class="array-header">Πίνακας Π</div>
+                    <div id="waterLine" class="water-line" style="display:none;"></div>
+                    <div class="pointer-track">
+                        <div id="ptr1" class="comp-pointer">
+                            <span id="lbl1" class="ptr-label"></span><span class="ptr-symbol">➡</span>
+                        </div>
+                        <div id="ptr2" class="comp-pointer">
+                            <span id="lbl2" class="ptr-label"></span><span class="ptr-symbol">➡</span>
+                        </div>
+                    </div>
+                `;
+        data.forEach((v, i) => html += createCell(i, v));
+        html += `</div>`;
+
+        con.innerHTML = html;
+    }
+
+    function createCell(idx, val) {
+        return `
+            <div class="cell-wrapper" id="wrap-${idx}" style="transform: translateY(0px);">
+                <div id="c-${idx}" class="cell">
+                    <span class="cell-idx">${idx+1}</span>
+                    <span class="cell-val">${val}</span>
+                </div>
+            </div>
+        `;
+    }
+
+    // --- Logic Helper ---
+    function mustSwap(v1, v2) {
+        if (isAscending) return v1 > v2;
+        else return v1 < v2;
+    }
+
+    // --- Logic Generation ---
+    function calcSteps() {
+        steps = [];
+        let simData = [...data];
+        const operatorStr = isAscending ? '>' : '<';
+
+        if (currentSol === 1) { 
+            // 1. Bubble (i=2..6, j-1 vs j)
+            for (let i = 2; i <= 6; i++) {
+                steps.push({ line: 0, type: 'loop_outer', i: i, msg: `Πέρασμα ${i-1} (i=${i})` });
+                steps.push({ line: 0, type: 'water_move', sortedCount: i-2 });
+                
+                for (let j = 6; j >= i; j--) {
+                    let idx1 = j - 2; 
+                    let idx2 = j - 1; 
+                    
+                    steps.push({ line: 1, type: 'loop_inner', msg: `Έλεγχος j=${j}`, p1: idx1, p2: idx2 });
+                    steps.push({ line: 2, type: 'cmp', idx1: idx1, idx2: idx2, msg: `Σύγκριση Π[${j-1}] ${operatorStr} Π[${j}];` });
+
+                    if (mustSwap(simData[idx1], simData[idx2])) {
+                        let temp = simData[idx1];
+                        simData[idx1] = simData[idx2];
+                        simData[idx2] = temp;
+                        steps.push({ line: 3, type: 'swap', idx1: idx1, idx2: idx2, msg: 'Αντιμετάθεση' });
+                    }
+                }
+            }
+            steps.push({ line: 8, type: 'water_move', sortedCount: 5 }); 
+            for(let k=0; k<6; k++) steps.push({ line: 10, type: 'print', val: simData[k] });
+            steps.push({ line: 12, type: 'finish' });
+
+        } else if (currentSol === 2) { 
+            // 2. Smart Bubble (j-1 vs j)
+            let i = 2;
+            let done = false;
+            
+            steps.push({ line: 0, type: 'info', msg: 'i ← 2' });
+
+            do {
+                steps.push({ line: 1, type: 'loop_outer', i: i, msg: `Αρχή επανάληψης (i=${i})` });
+                steps.push({ line: 2, type: 'info', msg: 'done ← ΨΕΥΔΗΣ' });
+                done = false;
+
+                for (let j = 6; j >= i; j--) {
+                    let idx1 = j - 2; 
+                    let idx2 = j - 1;
+                    
+                    steps.push({ line: 3, type: 'loop_inner', msg: `j=${j}`, p1: idx1, p2: idx2 });
+                    steps.push({ line: 4, type: 'cmp', idx1: idx1, idx2: idx2, msg: `Σύγκριση Π[${j-1}] ${operatorStr} Π[${j}];` });
+
+                    if (mustSwap(simData[idx1], simData[idx2])) {
+                        let temp = simData[idx1];
+                        simData[idx1] = simData[idx2];
+                        simData[idx2] = temp;
+                        steps.push({ line: 5, type: 'swap', idx1: idx1, idx2: idx2, msg: 'Αντιμετάθεση' });
+                        
+                        done = true;
+                        steps.push({ line: 8, type: 'info', msg: 'done ← ΑΛΗΘΗΣ' });
+                    }
+                }
+                
+                i++;
+                steps.push({ line: 11, type: 'info', msg: `i ← ${i}` });
+                
+                let stopMsg = "";
+                if(i > 6) stopMsg = "i > 6";
+                else if (!done) stopMsg = "done = ΨΕΥΔΗΣ";
+                steps.push({ line: 12, type: 'check_until', msg: `Έλεγχος: i>6 (${i>6}) Ή done=Ψευδής (${!done}); -> ${stopMsg ? 'ΝΑΙ ('+stopMsg+')' : 'ΟΧΙ'}` });
+
+            } while (i <= 6 && done); 
+
+            for(let k=0; k<6; k++) steps.push({ line: 14, type: 'print', val: simData[k] });
+            steps.push({ line: 15, type: 'finish' });
+
+        } else if (currentSol === 3) {
+             // 3. Sort (j vs j+1)
+             for (let i = 1; i <= 5; i++) {
+                steps.push({ line: 0, type: 'loop_outer', i: i, msg: `Πέρασμα ${i}` });
+                for (let j = 1; j <= 5 - i; j++) {
+                     let idx1 = j - 1; // P[j]
+                     let idx2 = j;     // P[j+1]
+                     steps.push({ line: 1, type: 'loop_inner', msg: `j=${j}`, p1: idx1, p2: idx2 });
+                     steps.push({ line: 2, type: 'cmp', idx1: idx1, idx2: idx2, msg: `Σύγκριση Π[${j}] ${operatorStr} Π[${j+1}];` });
+                     if (mustSwap(simData[idx1], simData[idx2])) {
+                         let temp = simData[idx1];
+                         simData[idx1] = simData[idx2];
+                         simData[idx2] = temp;
+                         steps.push({ line: 3, type: 'swap', idx1: idx1, idx2: idx2, msg: 'Αντιμετάθεση' });
+                     }
+                }
+            }
+            for(let k=0; k<6; k++) steps.push({ line: 9, type: 'print', val: simData[k] });
+            steps.push({ line: 11, type: 'finish' });
+        
+        } else if (currentSol === 4) {
+             // 4. Sort (j vs j+1) Backwards
+             for (let i = 1; i <= 5; i++) {
+                steps.push({ line: 0, type: 'loop_outer', i: i, msg: `Πέρασμα ${i}` });
+                for (let j = 5; j >= i; j--) {
+                    let idx1 = j - 1; // P[j]
+                    let idx2 = j;     // P[j+1]
+                    steps.push({ line: 1, type: 'loop_inner', msg: `j=${j}`, p1: idx1, p2: idx2 });
+                    steps.push({ line: 2, type: 'cmp', idx1: idx1, idx2: idx2, msg: `Σύγκριση Π[${j}] ${operatorStr} Π[${j+1}];` });
+                    if (mustSwap(simData[idx1], simData[idx2])) {
+                         let temp = simData[idx1];
+                         simData[idx1] = simData[idx2];
+                         simData[idx2] = temp;
+                         steps.push({ line: 3, type: 'swap', idx1: idx1, idx2: idx2, msg: 'Αντιμετάθεση' });
+                    }
+                }
+             }
+             for(let k=0; k<6; k++) steps.push({ line: 9, type: 'print', val: simData[k] });
+             steps.push({ line: 11, type: 'finish' });
+        }
+    }
+
+    // --- Helpers ---
+    function updateWaterLine(sortedCount, isVisible) {
+        const line = document.getElementById('waterLine');
+        if (currentSol !== 1 || !isVisible) {
+            line.style.display = 'none';
+            return;
+        }
+        line.style.display = 'block';
+        const pos = HEADER_HEIGHT + (sortedCount * CELL_HEIGHT_FULL) - 5; 
+        line.style.top = pos + 'px';
+    }
+
+    function updatePointers(show, idx1, idx2) {
+        const ptr1 = document.getElementById('ptr1');
+        const ptr2 = document.getElementById('ptr2');
+        const lbl1 = document.getElementById('lbl1');
+        const lbl2 = document.getElementById('lbl2');
+
+        if (!show) {
+            ptr1.classList.remove('visible');
+            ptr2.classList.remove('visible');
+            return;
+        }
+
+        // Set Labels based on Tab
+        if (currentSol === 1 || currentSol === 2) {
+            lbl1.innerText = "j-1";
+            lbl2.innerText = "j";
+        } else {
+            lbl1.innerText = "j";
+            lbl2.innerText = "j+1";
+        }
+
+        ptr1.style.top = (idx1 * CELL_HEIGHT_FULL) + 'px';
+        ptr2.style.top = (idx2 * CELL_HEIGHT_FULL) + 'px';
+        
+        ptr1.classList.add('visible');
+        ptr2.classList.add('visible');
+    }
+
+    // --- Animation Logic ---
+    async function swapAnimate(idx1, idx2) {
+        isAnimating = true;
+        const w1 = document.getElementById(`wrap-${idx1}`);
+        const w2 = document.getElementById(`wrap-${idx2}`);
+        
+        w1.querySelector('.cell').classList.add('swapping-highlight');
+        w2.querySelector('.cell').classList.add('swapping-highlight');
+
+        const dist = (idx2 - idx1) * CELL_HEIGHT_FULL;
+
+        w1.style.transform = `translateY(${dist}px)`;
+        w2.style.transform = `translateY(-${dist}px)`;
+
+        await new Promise(r => setTimeout(r, speed * 0.8));
+
+        w1.style.transition = 'none';
+        w2.style.transition = 'none';
+        w1.style.transform = 'translateY(0)';
+        w2.style.transform = 'translateY(0)';
+
+        const v1 = w1.querySelector('.cell-val').innerText;
+        const v2 = w2.querySelector('.cell-val').innerText;
+        w1.querySelector('.cell-val').innerText = v2;
+        w2.querySelector('.cell-val').innerText = v1;
+
+        w1.querySelector('.cell').classList.remove('swapping-highlight');
+        w2.querySelector('.cell').classList.remove('swapping-highlight');
+
+        setTimeout(() => {
+            w1.style.transition = 'transform 0.4s ease-in-out';
+            w2.style.transition = 'transform 0.4s ease-in-out';
+            isAnimating = false;
+        }, 50);
+    }
+
+    // --- Execution ---
+    function step() {
+        if (stepIdx === -1 && steps.length === 0) calcSteps();
+        if (isAnimating) return;
+
+        if (stepIdx >= steps.length - 1) {
+            isPlaying = false;
+            document.getElementById('btnPlay').innerText = "▶️ Αυτόματη Εκτέλεση";
+            return;
+        }
+        stepIdx++;
+        runStep(steps[stepIdx]);
+    }
+
+    function runStep(s) {
+        document.querySelectorAll('.code-line').forEach(e => e.classList.remove('active'));
+        if (s.line !== undefined) {
+             const lineEl = document.getElementById(`line-${s.line}`);
+             if(lineEl) lineEl.classList.add('active');
+        }
+
+        if(s.msg) document.getElementById('narrativeBox').innerText = s.msg;
+
+        document.querySelectorAll('.comparing').forEach(e => e.classList.remove('comparing'));
+
+        if (s.type === 'water_move') {
+            updateWaterLine(s.sortedCount, true);
+            // Don't hide pointers here, keep them if possible or let them stay
+        } else if (s.type === 'loop_inner') {
+            // Pre-move pointers before compare
+            if(s.p1 !== undefined) updatePointers(true, s.p1, s.p2);
+        } else if (s.type === 'cmp') {
+            document.getElementById(`c-${s.idx1}`).classList.add('comparing');
+            document.getElementById(`c-${s.idx2}`).classList.add('comparing');
+            updatePointers(true, s.idx1, s.idx2);
+        } else if (s.type === 'swap') {
+            updatePointers(true, s.idx1, s.idx2);
+            swapAnimate(s.idx1, s.idx2).then(() => {
+                isAnimating = false; 
+                if(isPlaying) timer = setTimeout(step, speed * 0.2);
+            });
+            return; 
+        } else if (s.type === 'print') {
+            const log = document.getElementById('outputLog');
+            log.innerHTML += `<div class="log-item">${s.val}</div>`;
+            log.scrollTop = log.scrollHeight;
+            updatePointers(false);
+        } else if (s.type === 'finish') {
+            updatePointers(false);
+        }
+
+        if (isPlaying) {
+            timer = setTimeout(step, speed);
+        }
+    }
+
+    function play() {
+        if (!isPlaying) {
+            isPlaying = true;
+            document.getElementById('btnPlay').innerText = "⏸ Παύση";
+            if(stepIdx === -1) calcSteps();
+            step();
+        } else {
+            isPlaying = false;
+            clearTimeout(timer);
+            document.getElementById('btnPlay').innerText = "▶️ Αυτόματη Εκτέλεση";
+        }
+    }
+
+    function updateSpeed() {
+        speed = 1550 - document.getElementById('speedSlider').value;
+    }
+
+    function toggleTheme() {
+        document.body.classList.toggle('dark-mode');
+    }
+
+    init();
+
+</script>
+</body>
+</html>
