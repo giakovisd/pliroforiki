@@ -78,7 +78,10 @@
 - Δυαδική αναζήτηση (Binary search)  
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Binary%20search.html)
 
-- Ταξινόμηση Φυσαλίδας (Bubble sort)  
+- Ταξινόμηση Φυσαλίδας (Bubble sort)
+
+  [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/bubble-6.html)
+  
   [Άνοιγμα εφαρμογής](https://giakovisd.github.io/pliroforiki/Bubble%20sort.html)
 
 - Ταξινόμηση με επιλογή (Selection sort) 
