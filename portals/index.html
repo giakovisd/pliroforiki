@@ -1,1 +1,985 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Τετραγωνικός Πίνακας </title>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --text-color: #1e293b;
+            --panel-bg: #ffffff;
+            --highlight-line: #fde047;
+            
+            --col-main: #3b82f6; 
+            --col-sec: #8b5cf6;  
+            --col-success: #10b981; 
+            
+            --scan-color: #fef08a; 
+            
+            --border-color: #cbd5e1;
+            --disabled-btn: #94a3b8;
 
+            /* Code Syntax */
+            --code-kw: #0000CD; 
+            --code-sym: #FF0000; 
+            --code-var: #000000; 
+            --code-num: #008000;
+            --code-str: #A020F0;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- Header --- */
+        header {
+            background-color: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+            box-sizing: border-box;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        .header-title h1 { margin: 0; font-size: 1.1rem; }
+        .controls-area { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+        button {
+            padding: 8px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            background-color: var(--panel-bg);
+            color: var(--text-color);
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        button.primary { background-color: var(--col-main); color: white; border: none; }
+        button:hover:not(:disabled) { filter: brightness(0.95); transform: translateY(-1px); }
+        button:disabled { background-color: var(--disabled-btn); color: #fff; cursor: not-allowed; }
+
+        .slider-container { display: flex; align-items: center; gap: 5px; font-size: 0.8rem; margin-left: 10px; }
+
+        /* --- Main Layout --- */
+        .main-container {
+            display: flex;
+            flex: 1;
+            padding: 15px;
+            gap: 15px;
+            height: calc(100% - 70px);
+            box-sizing: border-box;
+            overflow: hidden; 
+        }
+
+        /* LEFT: Code Panel */
+        .col-code {
+            flex: 0 0 500px;
+            display: flex;
+            flex-direction: column;
+            background: var(--panel-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .col-code.hidden { display: none; }
+
+        /* Tabs */
+        .tabs { 
+            display: flex; 
+            flex-direction: column;
+            background: #f1f5f9; 
+            border-bottom: 1px solid var(--border-color); 
+            padding-bottom: 5px;
+        }
+        .tab {
+            text-align: left; 
+            padding: 8px 12px; 
+            font-size: 0.85rem; 
+            cursor: pointer;
+            border-left: 4px solid transparent;
+            border-bottom: 1px solid #e2e8f0;
+            color: #64748b; 
+            font-weight: bold;
+            line-height: 1.2;
+        }
+        .tab:hover { background: #e2e8f0; }
+        .tab.active { 
+            background: var(--panel-bg); 
+            border-left-color: var(--col-main); 
+            color: var(--text-color); 
+        }
+
+        .problem-info {
+            padding: 10px 15px;
+            background-color: #fffbeb;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+        .info-header { font-weight: bold; color: #b45309; display: block; margin-bottom: 3px;}
+
+        /* ALGORITHM TOGGLE BUTTONS */
+        .algo-toggle {
+            display: none; /* Hidden by default, shown via JS */
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+            background: #f8fafc;
+            gap: 10px;
+        }
+        .toggle-btn {
+            flex: 1;
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            text-align: center;
+            border: 1px solid #cbd5e1;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #64748b;
+        }
+        .toggle-btn.active-algo {
+            background: var(--col-main);
+            color: white;
+            border-color: var(--col-main);
+            font-weight: bold;
+        }
+
+        /* Panel Content Area */
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            position: relative;
+        }
+
+        .code-content {
+            font-family: 'Consolas', monospace;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            white-space: pre; 
+        }
+        .code-line { padding: 2px 6px; border-radius: 3px; }
+        .code-line.active { background-color: var(--highlight-line); font-weight: bold; }
+
+        /* --- BUTTONS GRID (Overview) --- */
+        .overview-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .ov-btn {
+            padding: 10px;
+            text-align: left;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-color);
+            transition: all 0.2s;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 70px;
+        }
+        .ov-btn:hover { border-color: var(--col-main); background: #f0f9ff; }
+        .ov-btn.active-btn { 
+            background-color: var(--col-success); 
+            color: white; 
+            border-color: #059669; 
+        }
+        .ov-formula { 
+            display: block; 
+            font-family: monospace; 
+            opacity: 0.8; 
+            font-size: 1.1em; 
+            margin-top: 5px;
+        }
+
+        .kw { color: var(--code-kw); font-weight: bold; } 
+        .sym { color: var(--code-sym); font-weight: bold; }
+        .var { color: var(--code-var); }
+        .num { color: var(--code-num); font-weight: bold; }
+        .str { color: var(--code-str); }
+
+        /* CENTER: Visualization */
+        .col-viz {
+            flex: 1;
+            background: var(--panel-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            position: relative;
+            overflow: hidden; 
+        }
+
+        .narrative {
+            padding: 10px;
+            margin-bottom: 10px;
+            background: rgba(59, 130, 246, 0.1); 
+            border-left: 4px solid var(--col-main);
+            font-size: 0.95rem;
+            font-style: italic;
+            min-height: 24px;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .formula-box {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #fff;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--col-main);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            z-index: 50;
+        }
+
+        .scene-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center; 
+            position: relative;
+            overflow: hidden;
+            padding-top: 50px;
+        }
+
+        /* MATRIX GRID 5x5 */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(5, 70px);
+            grid-template-rows: repeat(5, 70px);
+            gap: 5px;
+            position: relative;
+            z-index: 1;
+            margin-top: 20px;
+        }
+
+        .cell {
+            width: 70px;
+            height: 70px;
+            background-color: #fff;
+            border: 2px solid #cbd5e1;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1rem;
+            color: #94a3b8; 
+            transition: all 0.2s ease;
+            position: relative;
+            z-index: 5;
+        }
+
+        .cell-coords { font-size: 0.8rem; opacity: 0.6; }
+
+        /* Animation States */
+        .cell.scanning {
+            background-color: var(--scan-color);
+            transform: scale(1.05);
+            z-index: 10;
+            color: #000;
+            border-color: #d97706;
+        }
+
+        .cell.selected {
+            background-color: var(--col-success);
+            color: white;
+            border-color: #047857;
+            transform: scale(1);
+        }
+        
+        .cell.selected-sim {
+            background-color: var(--col-main);
+            color: white;
+            border-color: #1e40af;
+        }
+
+        /* SVG Overlay for Lines */
+        #svgOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 20; 
+            pointer-events: none; 
+            overflow: visible; 
+        }
+        
+        .diag-line {
+            stroke: #dc2626; 
+            stroke-width: 5;
+            stroke-linecap: round;
+            fill: none;
+            marker-end: url(#arrowhead);
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: dash 1s forwards ease-out;
+        }
+        
+        @keyframes dash {
+            to { stroke-dashoffset: 0; }
+        }
+
+        /* RIGHT: Output */
+        .col-output {
+            flex: 0 0 200px;
+            background: var(--panel-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .output-header { padding: 10px; background: #f1f5f9; font-weight: bold; border-bottom: 1px solid var(--border-color); }
+        .output-log { flex: 1; padding: 10px; overflow-y: auto; font-family: monospace; font-size: 0.9rem; }
+        .log-item { border-bottom: 1px solid #eee; padding: 3px 0; }
+
+    </style>
+</head>
+<body>
+
+<svg style="position: absolute; width: 0; height: 0; overflow: hidden;" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrowhead" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+      <polygon points="0 0, 6 3, 0 6" fill="#dc2626" />
+    </marker>
+  </defs>
+</svg>
+
+<header>
+    <div class="header-title">
+        <h1>Ιδιότητες Τετραγωνικού Πίνακα</h1>
+    </div>
+    
+    <div class="controls-area">
+        <button onclick="init()">🔄 Αρχή</button>
+        <div id="simControls" style="display:none; gap:8px; align-items:center;">
+            <button onclick="play()" id="btnPlay" class="primary">▶️ Εκτέλεση</button>
+            <button onclick="step()" id="btnStep">Βήμα ⏩</button>
+            <button onclick="toggleCode()" id="btnCode">👁️ Απόκρυψη Κώδικα</button>
+            <div class="slider-container">
+                <span>Ταχύτητα:</span>
+                <input type="range" min="50" max="2000" value="800" id="speedSlider" oninput="updateSpeed()">
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="main-container">
+    
+    <div class="col-code">
+        <div class="tabs">
+            <div class="tab active" onclick="setMode(0)">0. Επισκόπηση & Τύποι</div>
+            <div class="tab" onclick="setMode(1)">1. Κύρια Διαγώνιος (i=j)</div>
+            <div class="tab" onclick="setMode(2)">2. Δευτερεύουσα Διαγ. (i+j=6)</div>
+            <div class="tab" onclick="setMode(3)">3. Κάτω Τρίγωνο (i > j)</div>
+            <div class="tab" onclick="setMode(4)">4. Άνω Τρίγωνο (i < j)</div>
+            <div class="tab" onclick="setMode(5)">5. Πάνω από 2η Διαγ. (i+j < 6)</div>
+            <div class="tab" onclick="setMode(6)">6. Κάτω από 2η Διαγ. (i+j > 6)</div>
+        </div>
+        
+        <div class="problem-info" id="problemInfo">
+            <span class="info-header">Πίνακας Π[5,5]</span>
+            <span id="descText">Επιλέξτε μια ιδιότητα για να δείτε τα κελιά.</span>
+        </div>
+
+        <div id="algoToggle" class="algo-toggle">
+            <div id="btnOpt" class="toggle-btn active-algo" onclick="setAlgo('opt')">Βέλτιστος</div>
+            <div id="btnBrute" class="toggle-btn" onclick="setAlgo('brute')">Με Έλεγχο (ΑΝ)</div>
+        </div>
+
+        <div class="panel-content">
+            <div id="overviewPanel" class="overview-buttons">
+                <button class="ov-btn" onclick="showOverview(1)">Κύρια Διαγώνιος <span class="ov-formula">i = j</span></button>
+                <button class="ov-btn" onclick="showOverview(2)">Δευτερεύουσα Διαγώνιος <span class="ov-formula">i+j = N+1</span></button>
+                <button class="ov-btn" onclick="showOverview(3)">Κάτω Τρίγωνο <span class="ov-formula">i > j</span></button>
+                <button class="ov-btn" onclick="showOverview(4)">Άνω Τρίγωνο <span class="ov-formula">i < j</span></button>
+                <button class="ov-btn" onclick="showOverview(5)">Πάνω από 2η Διαγώνιο <span class="ov-formula">i+j < N+1</span></button>
+                <button class="ov-btn" onclick="showOverview(6)">Κάτω από 2η Διαγώνιο <span class="ov-formula">i+j > N+1</span></button>
+            </div>
+
+            <div id="codeContainer" class="code-content" style="display:none;"></div>
+        </div>
+    </div>
+
+    <div class="col-viz">
+        <div class="narrative" id="narrativeBox">Επιλέξτε λειτουργία...</div>
+        
+        <div class="formula-box" id="formulaBox">-</div>
+
+        <div class="scene-wrapper">
+            <div class="grid-container" id="gridContainer">
+                <svg id="svgOverlay">
+                    <line id="diagLine" class="diag-line" x1="0" y1="0" x2="0" y2="0" style="display:none;" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-output">
+        <div class="output-header">📺 Οθόνη Εξόδου</div>
+        <div class="output-log" id="outputLog"></div>
+    </div>
+
+</div>
+
+<script>
+    // --- State ---
+    let currentMode = 0; // 0 = Overview
+    let algoType = 'opt'; // 'opt' = Optimized, 'brute' = Check All with IF
+    const N = 5;
+    let steps = [];
+    let stepIdx = -1;
+    let timer = null;
+    let isPlaying = false;
+    let speed = 800;
+
+    // --- Helpers ---
+    function kw(t) { return `<span class="kw">${t}</span>`; }
+    function sym(t) { return `<span class="sym">${t}</span>`; }
+    function v(t) { return `<span class="var">${t}</span>`; }
+    function n(t) { return `<span class="num">${t}</span>`; }
+    function str(t) { return `<span class="str">${t}</span>`; }
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+    // --- Codes ---
+    function getCodes() {
+        // We use algoType to decide which code to return for modes 1-4
+        if (algoType === 'opt') {
+            return {
+                1: [
+                    `${kw("Για")} ${v("i")} ${kw("από")} ${n("1")} ${kw("μέχρι")} ${n("5")}`,
+                    `  ${kw("Διάβασε")} ${v("Π")}${sym("[")}${v("i")}${sym(",")}${v("i")}${sym("]")}`,
+                    `${kw("Τέλος_επανάληψης")}`
+                ],
+                2: [
+                    `${kw("Για")} ${v("i")} ${kw("από")} ${n("1")} ${kw("μέχρι")} ${n("5")}`,
+                    `  ${v("j")} ${sym("<-")} ${n("6")} ${sym("-")} ${v("i")}`,
+                    `  ${kw("Διάβασε")} ${v("Π")}${sym("[")}${v("i")}${sym(",")}${v("j")}${sym("]")}`,
+                    `${kw("Τέλος_επανάληψης")}`
+                ],
+                3: [
+                    `${kw("Για")} ${v("i")} ${kw("από")} ${n("2")} ${kw("μέχρι")} ${n("5")}`,
+                    `  ${kw("Για")} ${v("j")} ${kw("από")} ${n("1")} ${kw("μέχρι")} ${v("i")}${sym("-")}${n("1")}`,
+                    `    ${kw("Διάβασε")} ${v("Π")}${sym("[")}${v("i")}${sym(",")}${v("j")}${sym("]")}`,
+                    `  ${kw("Τέλος_επανάληψης")}`,
+                    `${kw("Τέλος_επανάληψης")}`
+                ],
+                4: [
+                    `${kw("Για")} ${v("i")} ${kw("από")} ${n("1")} ${kw("μέχρι")} ${n("4")}`,
+                    `  ${kw("Για")} ${v("j")} ${kw("από")} ${v("i")}${sym("+")}${n("1")} ${kw("μέχρι")} ${n("5")}`,
+                    `    ${kw("Διάβασε")} ${v("Π")}${sym("[")}${v("i")}${sym(",")}${v("j")}${sym("]")}`,
+                    `  ${kw("Τέλος_επανάληψης")}`,
+                    `${kw("Τέλος_επανάληψης")}`
+                ]
+            };
+        } else {
+            // BRUTE FORCE CODES
+            return {
+                1: [
+                    `${kw("Για")} ${v("i")} ${kw("από")} ${n("1")} ${kw("μέχρι")} ${n("5")}`,
+                    `  ${kw("Για")} ${v("j")} ${kw("από")} ${n("1")} ${kw("μέχρι")} ${n("5")}`,
+                    `    ${kw("Αν")} ${v("i")}${sym("=")}${v("j")} ${kw("τότε")}`,
+                    `      ${kw("Διάβασε")} ${v("Π")}${sym("[")}${v("i")}${sym(",")}${v("j")}${sym("]")}`,
+                    `    ${kw("Τέλος_αν")}`,
+                    `  ${kw("Τέλος_επανάληψης")}`,
+                    `${kw("Τέλος_επανάληψης")}`
+                ],
+                2: [
+                    `${kw("Για")} ${v("i")} ${kw("από")} ${n("1")} ${kw("μέχρι")} ${n("5")}`,
+                    `  ${kw("Για")} ${v("j")} ${kw("από")} ${n("1")} ${kw("μέχρι")} ${n("5")}`,
+                    `    ${kw("Αν")} ${v("i")}${sym("+")}${v("j")}${sym("=")}${n("5")}${sym("+")}${n("1")} ${kw("τότε")}`,
+                    `      ${kw("Διάβασε")} ${v("Π")}${sym("[")}${v("i")}${sym(",")}${v("j")}${sym("]")}`,
+                    `    ${kw("Τέλος_αν")}`,
+                    `  ${kw("Τέλος_επανάληψης")}`,
+                    `${kw("Τέλος_επανάληψης")}`
+                ],
+                3: [
+                    `${kw("Για")} ${v("i")} ${kw("από")} ${n("1")} ${kw("μέχρι")} ${n("5")}`,
+                    `  ${kw("Για")} ${v("j")} ${kw("από")} ${n("1")} ${kw("μέχρι")} ${n("5")}`,
+                    `    ${kw("Αν")} ${v("i")}${sym(">")}${v("j")} ${kw("τότε")}`,
+                    `      ${kw("Διάβασε")} ${v("Π")}${sym("[")}${v("i")}${sym(",")}${v("j")}${sym("]")}`,
+                    `    ${kw("Τέλος_αν")}`,
+                    `  ${kw("Τέλος_επανάληψης")}`,
+                    `${kw("Τέλος_επανάληψης")}`
+                ],
+                4: [
+                    `${kw("Για")} ${v("i")} ${kw("από")} ${n("1")} ${kw("μέχρι")} ${n("5")}`,
+                    `  ${kw("Για")} ${v("j")} ${kw("από")} ${n("1")} ${kw("μέχρι")} ${n("5")}`,
+                    `    ${kw("Αν")} ${v("i")}${sym("<")}${v("j")} ${kw("τότε")}`,
+                    `      ${kw("Διάβασε")} ${v("Π")}${sym("[")}${v("i")}${sym(",")}${v("j")}${sym("]")}`,
+                    `    ${kw("Τέλος_αν")}`,
+                    `  ${kw("Τέλος_επανάληψης")}`,
+                    `${kw("Τέλος_επανάληψης")}`
+                ]
+            };
+        }
+    }
+    
+    // Always brute force / check mode logic for 5 & 6 (as requested previously)
+    function getCodes56() {
+        return {
+            5: [
+                `${kw("Για")} ${v("i")} ${kw("από")} ${n("1")} ${kw("μέχρι")} ${n("5")}`,
+                `  ${kw("Για")} ${v("j")} ${kw("από")} ${n("1")} ${kw("μέχρι")} ${n("5")}`,
+                `    ${kw("Αν")} ${v("i")} ${sym("+")} ${v("j")} ${sym("<")} ${n("6")} ${kw("Τότε")}`,
+                `      ${kw("Διάβασε")} ${v("Π")}${sym("[")}${v("i")}${sym(",")}${v("j")}${sym("]")}`,
+                `    ${kw("Τέλος_αν")}`,
+                `  ${kw("Τέλος_επανάληψης")}`,
+                `${kw("Τέλος_επανάληψης")}`
+            ],
+            6: [
+                `${kw("Για")} ${v("i")} ${kw("από")} ${n("1")} ${kw("μέχρι")} ${n("5")}`,
+                `  ${kw("Για")} ${v("j")} ${kw("από")} ${n("1")} ${kw("μέχρι")} ${n("5")}`,
+                `    ${kw("Αν")} ${v("i")} ${sym("+")} ${v("j")} ${sym(">")} ${n("6")} ${kw("Τότε")}`,
+                `      ${kw("Διάβασε")} ${v("Π")}${sym("[")}${v("i")}${sym(",")}${v("j")}${sym("]")}`,
+                `    ${kw("Τέλος_αν")}`,
+                `  ${kw("Τέλος_επανάληψης")}`,
+                `${kw("Τέλος_επανάληψης")}`
+            ]
+        };
+    }
+
+    // --- Init ---
+    function init() {
+        renderGrid();
+        
+        isPlaying = false;
+        clearTimeout(timer);
+        stepIdx = -1;
+        document.getElementById('outputLog').innerHTML = '';
+        
+        if (currentMode === 0) {
+            clearAllStyles();
+            document.getElementById('formulaBox').innerText = "-";
+            document.getElementById('narrativeBox').innerText = "Πατήστε ένα κουμπί για προβολή της ιδιότητας.";
+        } else {
+            renderCode();
+            document.getElementById('narrativeBox').innerText = "Πατήστε εκτέλεση...";
+            document.getElementById('btnPlay').innerText = "▶️ Εκτέλεση";
+            updateFormula();
+            calcSteps();
+        }
+    }
+
+    function setMode(m) {
+        currentMode = m;
+        // Default to optimized when switching tabs, unless user toggles
+        algoType = 'opt';
+        updateAlgoButtons();
+
+        document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === m));
+        
+        const desc = document.getElementById('descText');
+        const ovPanel = document.getElementById('overviewPanel');
+        const codeContainer = document.getElementById('codeContainer');
+        const simControls = document.getElementById('simControls');
+        const algoToggle = document.getElementById('algoToggle');
+
+        clearAllStyles();
+        document.getElementById('outputLog').innerHTML = '';
+
+        if(m === 0) {
+            // Overview
+            desc.innerText = "Επιλέξτε μια ιδιότητα για να δείτε τα κελιά και τον τύπο.";
+            ovPanel.style.display = 'grid'; 
+            codeContainer.style.display = 'none';
+            simControls.style.display = 'none';
+            algoToggle.style.display = 'none';
+            document.getElementById('narrativeBox').innerText = "Επισκόπηση ιδιοτήτων.";
+            document.getElementById('formulaBox').innerText = "Επισκόπηση";
+        } else {
+            // Sim
+            ovPanel.style.display = 'none';
+            codeContainer.style.display = 'block';
+            simControls.style.display = 'flex';
+            
+            // Show Algo Toggle only for 1-4
+            if (m >= 1 && m <= 4) {
+                algoToggle.style.display = 'flex';
+            } else {
+                algoToggle.style.display = 'none';
+            }
+            
+            if(m===1) desc.innerText = "Προσομοίωση: Κύρια Διαγώνιος";
+            else if(m===2) desc.innerText = "Προσομοίωση: Δευτερεύουσα Διαγώνιος";
+            else if(m===3) desc.innerText = "Προσομοίωση: Κάτω Τρίγωνο";
+            else if(m===4) desc.innerText = "Προσομοίωση: Άνω Τρίγωνο";
+            else if(m===5) desc.innerText = "Προσομοίωση: Πάνω από τη 2η Διαγώνιο";
+            else if(m===6) desc.innerText = "Προσομοίωση: Κάτω από τη 2η Διαγώνιο";
+            
+            init();
+        }
+    }
+
+    function setAlgo(type) {
+        algoType = type;
+        updateAlgoButtons();
+        init();
+    }
+
+    function updateAlgoButtons() {
+        document.getElementById('btnOpt').className = algoType === 'opt' ? 'toggle-btn active-algo' : 'toggle-btn';
+        document.getElementById('btnBrute').className = algoType === 'brute' ? 'toggle-btn active-algo' : 'toggle-btn';
+    }
+
+    function updateFormula(text = null) {
+        const f = document.getElementById('formulaBox');
+        if (text) {
+            f.innerText = text;
+            return;
+        }
+        if(currentMode===1) f.innerText = "i = j";
+        else if(currentMode===2) f.innerText = "i + j = 6";
+        else if(currentMode===3) f.innerText = "i > j";
+        else if(currentMode===4) f.innerText = "i < j";
+        else if(currentMode===5) f.innerText = "i + j < 6";
+        else if(currentMode===6) f.innerText = "i + j > 6";
+    }
+
+    // --- OVERVIEW FUNCTION ---
+    function showOverview(type) {
+        clearAllStyles();
+        document.querySelectorAll('.ov-btn').forEach((b, i) => b.classList.toggle('active-btn', i === type-1));
+
+        let formula = "";
+        if(type === 1) formula = "i = j";
+        else if(type === 2) formula = "i + j = 6";
+        else if(type === 3) formula = "i > j";
+        else if(type === 4) formula = "i < j";
+        else if(type === 5) formula = "i + j < 6";
+        else if(type === 6) formula = "i + j > 6";
+        
+        updateFormula(formula);
+        document.getElementById('narrativeBox').innerText = `Προβολή: ${formula}`;
+
+        for(let i=1; i<=N; i++) {
+            for(let j=1; j<=N; j++) {
+                let match = false;
+                if(type === 1 && i === j) match = true;
+                if(type === 2 && i + j === 6) match = true;
+                if(type === 3 && i > j) match = true;
+                if(type === 4 && i < j) match = true;
+                if(type === 5 && i + j < 6) match = true;
+                if(type === 6 && i + j > 6) match = true;
+
+                if(match) {
+                    const cell = document.getElementById(`cell-${i}-${j}`);
+                    cell.classList.add('selected');
+                }
+            }
+        }
+
+        if (type === 1) drawLine(1);
+        if (type === 2) drawLine(2);
+    }
+
+    function drawLine(type) {
+        const line = document.getElementById('diagLine');
+        let startCell, endCell;
+
+        if (type === 1) { // Main
+            startCell = document.getElementById('cell-1-1');
+            endCell = document.getElementById('cell-5-5');
+        } else { // Sec
+            startCell = document.getElementById('cell-1-5');
+            endCell = document.getElementById('cell-5-1');
+        }
+
+        const x1 = startCell.offsetLeft + (startCell.offsetWidth / 2);
+        const y1 = startCell.offsetTop + (startCell.offsetHeight / 2);
+        const x2 = endCell.offsetLeft + (endCell.offsetWidth / 2);
+        const y2 = endCell.offsetTop + (endCell.offsetHeight / 2);
+
+        line.setAttribute('x1', x1);
+        line.setAttribute('y1', y1);
+        line.setAttribute('x2', x2);
+        line.setAttribute('y2', y2);
+        line.style.display = 'block';
+    }
+
+    function clearAllStyles() {
+        document.querySelectorAll('.cell').forEach(c => {
+            c.classList.remove('selected', 'selected-sim', 'scanning');
+        });
+        document.getElementById('diagLine').style.display = 'none';
+        document.querySelectorAll('.ov-btn').forEach(b => b.classList.remove('active-btn'));
+    }
+
+    function toggleCode() {
+        const p = document.querySelector('.col-code');
+        p.classList.toggle('hidden');
+        const btn = document.getElementById('btnCode');
+        btn.innerText = p.classList.contains('hidden') ? "👁️ Εμφάνιση Κώδικα" : "👁️ Απόκρυψη Κώδικα";
+    }
+
+    function renderCode() {
+        if(currentMode === 0) return;
+        let codeObj = (currentMode >= 5) ? getCodes56() : getCodes();
+        let lines = codeObj[currentMode];
+        const html = lines.map((l, i) => `<div class="code-line" id="line-${i}">${l}</div>`).join('');
+        document.getElementById('codeContainer').innerHTML = html;
+    }
+
+    function renderGrid() {
+        const container = document.getElementById('gridContainer');
+        const svg = document.getElementById('svgOverlay');
+        container.innerHTML = '';
+        container.appendChild(svg);
+        
+        for(let i=1; i<=N; i++) {
+            for(let j=1; j<=N; j++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.id = `cell-${i}-${j}`;
+                cell.innerHTML = `<span class="cell-coords">(${i},${j})</span>`;
+                container.appendChild(cell);
+            }
+        }
+    }
+
+    // --- Logic (Sim) ---
+    function calcSteps() {
+        steps = [];
+        
+        if (currentMode === 1) { // MAIN DIAG
+            if (algoType === 'opt') {
+                for(let i=1; i<=N; i++) {
+                    steps.push({ line: 0, type: 'scan', r: i, c: i, msg: `Έλεγχος: i=${i}` });
+                    steps.push({ line: 1, type: 'found', r: i, c: i, msg: `  Επιλογή (${i},${i})` });
+                    steps.push({ line: 2, type: 'loop_end', msg: `Τέλος Επανάληψης` });
+                }
+            } else { // Brute
+                for(let i=1; i<=N; i++) {
+                    for(let j=1; j<=N; j++) {
+                        steps.push({ line: 2, type: 'scan', r: i, c: j, msg: `Έλεγχος (${i},${j}): i=j ?` });
+                        if(i===j) {
+                            steps.push({ line: 3, type: 'found', r: i, c: j, msg: `  ΝΑΙ (${i}=${j})` });
+                            steps.push({ line: 4, msg: `  Τέλος_Αν` });
+                        } else {
+                            steps.push({ line: 4, msg: `  ΟΧΙ` });
+                        }
+                    }
+                }
+            }
+        } 
+        else if (currentMode === 2) { // SEC DIAG
+            if (algoType === 'opt') {
+                for(let i=1; i<=N; i++) {
+                    let j = 6 - i;
+                    steps.push({ line: 0, type: 'scan', r: i, c: j, msg: `Έλεγχος: i=${i}` });
+                    steps.push({ line: 1, msg: `  j <- 6 - ${i} = ${j}` });
+                    steps.push({ line: 2, type: 'found', r: i, c: j, msg: `  Επιλογή (${i},${j})` });
+                    steps.push({ line: 3, type: 'loop_end', msg: `Τέλος Επανάληψης` });
+                }
+            } else { // Brute
+                for(let i=1; i<=N; i++) {
+                    for(let j=1; j<=N; j++) {
+                        steps.push({ line: 2, type: 'scan', r: i, c: j, msg: `Έλεγχος (${i},${j}): i+j=6 ?` });
+                        if(i+j===6) {
+                            steps.push({ line: 3, type: 'found', r: i, c: j, msg: `  ΝΑΙ (${i}+${j}=6)` });
+                            steps.push({ line: 4, msg: `  Τέλος_Αν` });
+                        } else {
+                            steps.push({ line: 4, msg: `  ΟΧΙ` });
+                        }
+                    }
+                }
+            }
+        }
+        else if (currentMode === 3) { // LOWER
+            if (algoType === 'opt') {
+                for(let i=2; i<=N; i++) {
+                    steps.push({ line: 0, msg: `Για i = ${i}` });
+                    for(let j=1; j<i; j++) {
+                        steps.push({ line: 1, type: 'scan', r: i, c: j, msg: `  Για j = ${j}` });
+                        steps.push({ line: 2, type: 'found', r: i, c: j, msg: `    Επιλογή (${i},${j})` });
+                        steps.push({ line: 3, type: 'loop_end', msg: `  Τέλος εσωτερικής` });
+                    }
+                    steps.push({ line: 4, type: 'loop_end', msg: `Τέλος εξωτερικής` });
+                }
+            } else { // Brute
+                for(let i=1; i<=N; i++) {
+                    for(let j=1; j<=N; j++) {
+                        steps.push({ line: 2, type: 'scan', r: i, c: j, msg: `Έλεγχος (${i},${j}): i>j ?` });
+                        if(i>j) {
+                            steps.push({ line: 3, type: 'found', r: i, c: j, msg: `  ΝΑΙ (${i}>${j})` });
+                            steps.push({ line: 4, msg: `  Τέλος_Αν` });
+                        } else {
+                            steps.push({ line: 4, msg: `  ΟΧΙ` });
+                        }
+                    }
+                }
+            }
+        }
+        else if (currentMode === 4) { // UPPER
+            if (algoType === 'opt') {
+                for(let i=1; i<N; i++) {
+                    steps.push({ line: 0, msg: `Για i = ${i}` });
+                    for(let j=i+1; j<=N; j++) {
+                        steps.push({ line: 1, type: 'scan', r: i, c: j, msg: `  Για j = ${j}` });
+                        steps.push({ line: 2, type: 'found', r: i, c: j, msg: `    Επιλογή (${i},${j})` });
+                        steps.push({ line: 3, type: 'loop_end', msg: `  Τέλος εσωτερικής` });
+                    }
+                    steps.push({ line: 4, type: 'loop_end', msg: `Τέλος εξωτερικής` });
+                }
+            } else { // Brute
+                for(let i=1; i<=N; i++) {
+                    for(let j=1; j<=N; j++) {
+                        steps.push({ line: 2, type: 'scan', r: i, c: j, msg: `Έλεγχος (${i},${j}): i<j ?` });
+                        if(i<j) {
+                            steps.push({ line: 3, type: 'found', r: i, c: j, msg: `  ΝΑΙ (${i}<${j})` });
+                            steps.push({ line: 4, msg: `  Τέλος_Αν` });
+                        } else {
+                            steps.push({ line: 4, msg: `  ΟΧΙ` });
+                        }
+                    }
+                }
+            }
+        }
+        else if (currentMode === 5) { // Above Sec
+            for(let i=1; i<=N; i++) {
+                steps.push({ line: 0, msg: `Για i = ${i}` });
+                for(let j=1; j<=N; j++) {
+                    steps.push({ line: 1, type: 'scan', r: i, c: j, msg: `  Για j = ${j}` });
+                    steps.push({ line: 2, msg: `    Έλεγχος: i+j < 6` });
+                    if(i+j < 6) {
+                        steps.push({ line: 3, type: 'found', r: i, c: j, msg: `      ΝΑΙ` });
+                        steps.push({ line: 4, type: 'loop_end', msg: `    Τέλος_Αν` });
+                    } else {
+                        steps.push({ line: 4, msg: `      ΟΧΙ` });
+                    }
+                }
+                steps.push({ line: 6, type: 'loop_end', msg: `Τέλος εξωτερικής` });
+            }
+        }
+        else if (currentMode === 6) { // Below Sec
+            for(let i=1; i<=N; i++) {
+                steps.push({ line: 0, msg: `Για i = ${i}` });
+                for(let j=1; j<=N; j++) {
+                    steps.push({ line: 1, type: 'scan', r: i, c: j, msg: `  Για j = ${j}` });
+                    steps.push({ line: 2, msg: `    Έλεγχος: i+j > 6` });
+                    if(i+j > 6) {
+                        steps.push({ line: 3, type: 'found', r: i, c: j, msg: `      ΝΑΙ` });
+                        steps.push({ line: 4, type: 'loop_end', msg: `    Τέλος_Αν` });
+                    } else {
+                        steps.push({ line: 4, msg: `      ΟΧΙ` });
+                    }
+                }
+                steps.push({ line: 6, type: 'loop_end', msg: `Τέλος εξωτερικής` });
+            }
+        }
+    }
+
+    // --- Visuals ---
+    function highlightLine(idx) {
+        document.querySelectorAll('.code-line').forEach(l => l.classList.remove('active'));
+        const el = document.getElementById(`line-${idx}`);
+        if(el) el.classList.add('active');
+    }
+
+    function markScanning(r, c) {
+        document.querySelectorAll('.scanning').forEach(e => e.classList.remove('scanning'));
+        const cell = document.getElementById(`cell-${r}-${c}`);
+        if(cell) cell.classList.add('scanning');
+    }
+
+    function markFound(r, c) {
+        const cell = document.getElementById(`cell-${r}-${c}`);
+        if(cell) {
+            cell.classList.remove('scanning');
+            cell.classList.add('selected-sim');
+        }
+        const log = document.getElementById('outputLog');
+        log.innerHTML += `<div class="log-item">Επιλογή: (${r},${c})</div>`;
+        log.scrollTop = log.scrollHeight;
+    }
+
+    function narrate(msg) {
+        document.getElementById('narrativeBox').innerText = msg;
+    }
+
+    // --- Execution ---
+    function step() {
+        if (currentMode === 0) return;
+        if (stepIdx === -1 && steps.length === 0) calcSteps();
+        if (stepIdx >= steps.length - 1) {
+            isPlaying = false;
+            document.getElementById('btnPlay').innerText = "▶️ Εκτέλεση";
+            document.querySelectorAll('.scanning').forEach(e => e.classList.remove('scanning'));
+            return;
+        }
+        stepIdx++;
+        runStep(steps[stepIdx]);
+    }
+
+    function runStep(s) {
+        highlightLine(s.line);
+        narrate(s.msg);
+
+        if(s.type === 'scan') {
+            markScanning(s.r, s.c);
+        }
+        else if(s.type === 'found') {
+            markFound(s.r, s.c);
+        }
+
+        if (isPlaying) timer = setTimeout(step, speed);
+    }
+
+    function play() {
+        if (currentMode === 0) return;
+        if (!isPlaying) {
+            isPlaying = true;
+            document.getElementById('btnPlay').innerText = "⏸ Παύση";
+            if(stepIdx === -1) calcSteps();
+            step();
+        } else {
+            isPlaying = false;
+            clearTimeout(timer);
+            document.getElementById('btnPlay').innerText = "▶️ Εκτέλεση";
+        }
+    }
+
+    function updateSpeed() {
+        speed = 2200 - document.getElementById('speedSlider').value;
+    }
+
+    init();
+
+</script>
+</body>
+</html>
