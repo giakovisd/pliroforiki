@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ψηφιακός Οδηγός Πολίτη</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Exo+2:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #1a73e8;
+    --blue-dark: #1557b0;
+    --blue-light: #e8f0fe;
+    --purple: #7c3aed;
+    --purple-dark: #5b21b6;
+    --purple-light: #ede9fe;
+    --green: #10b981;
+    --orange: #f59e0b;
+    --red: #ef4444;
+    --bg: #f0f4ff;
+    --card-bg: #ffffff;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    --shadow: 0 4px 24px rgba(0,0,0,0.10);
+    --shadow-hover: 0 12px 40px rgba(0,0,0,0.18);
+    --radius: 18px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ===== HEADER ===== */
+  header {
+    background: linear-gradient(135deg, #1a73e8 0%, #7c3aed 100%);
+    padding: 32px 24px 28px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='10'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+  header .badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  header h1 {
+    font-family: 'Exo 2', sans-serif;
+    font-size: clamp(22px, 5vw, 38px);
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+  header p {
+    color: rgba(255,255,255,0.82);
+    font-size: 15px;
+    font-weight: 600;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  /* ===== MAIN ===== */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 20px 60px;
+  }
+
+  /* ===== BACK BUTTON ===== */
+  #back-btn {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: var(--card-bg);
+    border: 2px solid #e2e8f0;
+    border-radius: 40px;
+    padding: 9px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    cursor: pointer;
+    margin-bottom: 28px;
+    transition: all 0.2s;
+    width: fit-content;
+  }
+  #back-btn:hover { border-color: var(--blue); color: var(--blue); transform: translateX(-4px); }
+
+  /* ===== PORTAL GRID ===== */
+  #portals-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 28px;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .portal-card {
+    background: var(--card-bg);
+    border-radius: 24px;
+    padding: 44px 32px 36px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    border: 2px solid transparent;
+    transition: all 0.25s cubic-bezier(.4,0,.2,1);
+    position: relative;
+    overflow: hidden;
+  }
+  .portal-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+  .portal-card.blue::before { background: linear-gradient(135deg, #e8f0fe, #f0f7ff); }
+  .portal-card.purple::before { background: linear-gradient(135deg, #ede9fe, #faf5ff); }
+  .portal-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-6px); }
+  .portal-card.blue:hover { border-color: var(--blue); }
+  .portal-card.blue:hover::before { opacity: 1; }
+  .portal-card.purple:hover { border-color: var(--purple); }
+  .portal-card.purple:hover::before { opacity: 1; }
+
+  .portal-icon-wrap {
+    width: 88px; height: 88px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 40px;
+    position: relative;
+    z-index: 1;
+  }
+  .portal-card.blue .portal-icon-wrap { background: linear-gradient(135deg, #1a73e8, #1557b0); }
+  .portal-card.purple .portal-icon-wrap { background: linear-gradient(135deg, #7c3aed, #5b21b6); }
+
+  .portal-card h2 {
+    font-family: 'Exo 2', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 10px;
+    position: relative; z-index: 1;
+  }
+  .portal-card.blue h2 { color: var(--blue-dark); }
+  .portal-card.purple h2 { color: var(--purple-dark); }
+
+  .portal-card p {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    position: relative; z-index: 1;
+  }
+  .portal-count {
+    display: inline-block;
+    margin-top: 18px;
+    padding: 5px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    position: relative; z-index: 1;
+  }
+  .portal-card.blue .portal-count { background: var(--blue-light); color: var(--blue); }
+  .portal-card.purple .portal-count { background: var(--purple-light); color: var(--purple); }
+
+  /* ===== TOOLS VIEW ===== */
+  #tools-view { display: none; }
+
+  .section-header {
+    margin-bottom: 28px;
+  }
+  .section-header h2 {
+    font-family: 'Exo 2', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+  .section-header p { color: var(--text-muted); font-size: 14px; }
+
+  /* Category tabs */
+  .cat-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+  .cat-tab {
+    padding: 7px 16px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    border: 2px solid #e2e8f0;
+    background: var(--card-bg);
+    color: var(--text-muted);
+    transition: all 0.2s;
+  }
+  .cat-tab:hover, .cat-tab.active {
+    border-color: currentColor;
+    color: var(--active-color, var(--blue));
+    background: var(--active-bg, var(--blue-light));
+  }
+
+  /* Tools grid */
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  .tool-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 22px 18px 18px;
+    text-align: center;
+    text-decoration: none;
+    color: var(--text);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    border: 2px solid transparent;
+    transition: all 0.22s cubic-bezier(.4,0,.2,1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .tool-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-hover);
+  }
+
+  .tool-icon {
+    width: 58px; height: 58px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .tool-icon img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+    border-radius: 10px;
+  }
+  .tool-icon .emoji-fallback {
+    font-size: 28px;
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: inherit;
+    border-radius: 14px;
+  }
+
+  .tool-name {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.2;
+  }
+  .tool-desc {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    line-height: 1.45;
+    text-align: center;
+  }
+  .tool-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 20px;
+    margin-top: 2px;
+  }
+  .badge-free { background: #dcfce7; color: #15803d; }
+  .badge-partial { background: #fef9c3; color: #a16207; }
+
+  /* color theming per portal */
+  body.portal-tools .tool-card:hover { border-color: var(--blue); }
+  body.portal-ai .tool-card:hover { border-color: var(--purple); }
+
+  /* ===== FADE ANIM ===== */
+  .fade-in { animation: fadeIn 0.35s ease both; }
+  .fade-in-up { animation: fadeInUp 0.4s ease both; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  .tool-card { animation: fadeInUp 0.35s ease both; }
+  .tool-card:nth-child(1) { animation-delay: 0.02s; }
+  .tool-card:nth-child(2) { animation-delay: 0.06s; }
+  .tool-card:nth-child(3) { animation-delay: 0.10s; }
+  .tool-card:nth-child(4) { animation-delay: 0.14s; }
+  .tool-card:nth-child(5) { animation-delay: 0.18s; }
+  .tool-card:nth-child(6) { animation-delay: 0.22s; }
+  .tool-card:nth-child(7) { animation-delay: 0.26s; }
+  .tool-card:nth-child(8) { animation-delay: 0.30s; }
+  .tool-card:nth-child(9) { animation-delay: 0.34s; }
+  .tool-card:nth-child(10) { animation-delay: 0.38s; }
+
+  /* footer */
+  footer {
+    text-align: center;
+    padding: 24px;
+    color: var(--text-muted);
+    font-size: 12px;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  @media (max-width: 500px) {
+    .tools-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+    .tool-card { padding: 16px 12px 14px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">🎓 Β' Λυκείου · Ενεργός Πολίτης</div>
+  <h1>🌐 Ψηφιακός Οδηγός Πολίτη</h1>
+  <p>Χρήσιμα εργαλεία για αρχάριους χρήστες και AI βοηθοί για καθημερινές ανάγκες</p>
+</header>
+
+<main>
+  <button id="back-btn" onclick="showPortals()">
+    ← Επιστροφή στις Πύλες
+  </button>
+
+  <!-- PORTALS -->
+  <div id="portals-view">
+    <div class="portal-card blue" onclick="showTools('tools')">
+      <div class="portal-icon-wrap">🛠️</div>
+      <h2>Εργαλεία για Αρχάριους</h2>
+      <p>Χρήσιμα online εργαλεία για αρχεία, εικόνες, PDF και ψηφιακές υπηρεσίες πολίτη</p>
+      <span class="portal-count">20 εργαλεία & υπηρεσίες</span>
+    </div>
+    <div class="portal-card purple" onclick="showTools('ai')">
+      <div class="portal-icon-wrap">🤖</div>
+      <h2>Εργαλεία AI</h2>
+      <p>Τεχνητή νοημοσύνη για κείμενο, εικόνα, βίντεο, ήχο και παρουσιάσεις</p>
+      <span class="portal-count">18 AI εργαλεία</span>
+    </div>
+  </div>
+
+  <!-- TOOLS VIEW -->
+  <div id="tools-view">
+    <div class="section-header">
+      <h2 id="section-title"></h2>
+      <p id="section-subtitle"></p>
+    </div>
+    <div class="cat-tabs" id="cat-tabs"></div>
+    <div class="tools-grid" id="tools-grid"></div>
+  </div>
+</main>
+
+<footer>
+  Δημιουργήθηκε από μαθητές Β' Λυκείου &bull; Ενεργός Πολίτης &bull; 2025-26
+</footer>
+
+<script>
+const DATA = {
+  tools: {
+    title: '🛠️ Εργαλεία για Αρχάριους',
+    subtitle: 'Κάνε κλικ σε οποιοδήποτε εργαλείο για να το ανοίξεις',
+    categories: ['Όλα', 'PDF & Αρχεία', 'Εικόνες', 'OCR', 'Ψηφιακές Υπηρεσίες'],
+    items: [
+      { name: 'CloudConvert', cat: 'PDF & Αρχεία', emoji: '🔄', color: '#e8f0fe', url: 'https://cloudconvert.com', desc: 'Μετατροπή αρχείων (DOCX, PDF, PNG, JPG κτλ.)', free: 'Ναι', favicon: 'https://cloudconvert.com/favicon.ico' },
+      { name: 'PDF24 Tools', cat: 'PDF & Αρχεία', emoji: '📄', color: '#fee2e2', url: 'https://tools.pdf24.org/el/', desc: 'Συγχώνευση, διαχωρισμός, συμπίεση PDF', free: 'Ναι', favicon: 'https://tools.pdf24.org/favicon.ico' },
+      { name: 'TinyWow', cat: 'PDF & Αρχεία', emoji: '✨', color: '#fef9c3', url: 'https://tinywow.com', desc: 'Εργαλεία για PDF, εικόνες και βίντεο', free: 'Ναι', favicon: 'https://tinywow.com/favicon.ico' },
+      { name: 'iLovePDF', cat: 'PDF & Αρχεία', emoji: '❤️', color: '#ffe4e6', url: 'https://www.ilovepdf.com/el', desc: 'Συγχώνευση, διαχωρισμός, μετατροπή PDF', free: 'Ναι', favicon: 'https://www.ilovepdf.com/img/ilovepdf.svg' },
+      { name: 'iLoveIMG', cat: 'Εικόνες', emoji: '🖼️', color: '#dbeafe', url: 'https://www.iloveimg.com/el', desc: 'Συμπίεση, αλλαγή μεγέθους, μετατροπή εικόνων', free: 'Ναι', favicon: 'https://www.iloveimg.com/img/iloveimg.svg' },
+      { name: 'remove.bg', cat: 'Εικόνες', emoji: '🪄', color: '#dcfce7', url: 'https://www.remove.bg/el', desc: 'Αφαιρεί αυτόματα το φόντο από εικόνες', free: 'Ναι', favicon: 'https://www.remove.bg/favicon.ico' },
+      { name: 'Squoosh', cat: 'Εικόνες', emoji: '🗜️', color: '#e0e7ff', url: 'https://squoosh.app', desc: 'Συμπίεση εικόνων απ\'ευθείας στον browser', free: 'Ναι', favicon: 'https://squoosh.app/c/favicon-32x32.png' },
+      { name: 'Photopea', cat: 'Εικόνες', emoji: '🎨', color: '#fce7f3', url: 'https://www.photopea.com', desc: 'Online επεξεργαστής εικόνας (σαν Photoshop)', free: 'Ναι', favicon: 'https://www.photopea.com/promo/icon512.png' },
+      { name: 'Canva QR Code', cat: 'Εικόνες', emoji: '📱', color: '#fef3c7', url: 'https://www.canva.com/features/qr-code-generator/', desc: 'Δημιουργία QR codes για αφίσες & παρουσιάσεις', free: 'Ναι', favicon: 'https://static.canva.com/web/images/8439b51bb7a19f6e65ce1064bc37c197.svg' },
+      { name: 'OnlineOCR', cat: 'OCR', emoji: '🔍', color: '#e0f2fe', url: 'https://www.onlineocr.net', desc: 'Μετατροπή εικόνας/PDF σε επεξεργάσιμο κείμενο', free: 'Ναι', favicon: 'https://www.onlineocr.net/favicon.ico' },
+      { name: 'OnlineOCR.org', cat: 'OCR', emoji: '📝', color: '#f0fdf4', url: 'https://onlineocr.org', desc: 'Εξαγωγή κειμένου από JPG, PNG, HEIC, PDF', free: 'Ναι', favicon: '' },
+      { name: 'NewOCR', cat: 'OCR', emoji: '🖨️', color: '#fdf2f8', url: 'https://www.newocr.com', desc: 'Δωρεάν OCR χωρίς εγγραφή', free: 'Ναι', favicon: '' },
+      { name: 'gov.gr', cat: 'Ψηφιακές Υπηρεσίες', emoji: '🏛️', color: '#e0f2fe', url: 'https://www.gov.gr', desc: 'Ενιαία Ψηφιακή Πύλη Δημοσίου', free: 'Ναι', favicon: 'https://www.gov.gr/assets/favicon.ico' },
+      { name: 'support.gov.gr', cat: 'Ψηφιακές Υπηρεσίες', emoji: '🆘', color: '#dbeafe', url: 'https://support.gov.gr', desc: 'Υποστήριξη πολιτών για υπηρεσίες gov.gr', free: 'Ναι', favicon: '' },
+      { name: 'howto.gov.gr', cat: 'Ψηφιακές Υπηρεσίες', emoji: '📚', color: '#f0f9ff', url: 'https://howto.gov.gr', desc: 'Οδηγοί εκμάθησης ψηφιακών υπηρεσιών', free: 'Ναι', favicon: '' },
+      { name: 'Gov.gr Wallet', cat: 'Ψηφιακές Υπηρεσίες', emoji: '👜', color: '#ecfdf5', url: 'https://wallet.gov.gr', desc: 'Ψηφιακή ταυτότητα, άδεια οδήγησης, θυρίδα', free: 'Ναι', favicon: '' },
+      { name: 'e-ΕΦΚΑ', cat: 'Ψηφιακές Υπηρεσίες', emoji: '🏥', color: '#fff7ed', url: 'https://www.efka.gov.gr', desc: 'Ασφαλιστικές υπηρεσίες ηλεκτρονικά', free: 'Ναι', favicon: 'https://www.efka.gov.gr/sites/default/files/favicon.ico' },
+      { name: 'myAADE / gsis.gr', cat: 'Ψηφιακές Υπηρεσίες', emoji: '💼', color: '#f5f3ff', url: 'https://www.aade.gr/polites', desc: 'Φορολογικές υπηρεσίες & TAXISnet', free: 'Ναι', favicon: 'https://www.aade.gr/themes/custom/aade/logo.png' },
+      { name: 'ΔΥΠΑ', cat: 'Ψηφιακές Υπηρεσίες', emoji: '💼', color: '#fef9c3', url: 'https://www.dypa.gov.gr', desc: 'Υπηρεσίες για ανέργους & εργασία', free: 'Ναι', favicon: 'https://www.dypa.gov.gr/sites/default/files/dypa_favicon.ico' },
+      { name: 'Ελληνικό Κτηματολόγιο', cat: 'Ψηφιακές Υπηρεσίες', emoji: '🗺️', color: '#ecfdf5', url: 'https://www.ktimatologio.gr', desc: 'Κτηματολογικές υπηρεσίες για πολίτες', free: 'Ναι', favicon: 'https://www.ktimatologio.gr/favicon.ico' },
+    ]
+  },
+  ai: {
+    title: '🤖 Εργαλεία Τεχνητής Νοημοσύνης',
+    subtitle: 'Κάνε κλικ σε οποιοδήποτε εργαλείο για να το ανοίξεις',
+    categories: ['Όλα', 'Κείμενο', 'Εικόνα', 'Βίντεο', 'Ήχος / Φωνή', 'Παρουσιάσεις'],
+    items: [
+      { name: 'ChatGPT', cat: 'Κείμενο', emoji: '💬', color: '#e0f2fe', url: 'https://chat.openai.com', desc: 'Ιδέες, περίληψη, αναδιατύπωση, μετάφραση', free: 'Ναι', favicon: 'https://chat.openai.com/favicon.ico' },
+      { name: 'Canva Magic Write', cat: 'Κείμενο', emoji: '✍️', color: '#fef3c7', url: 'https://www.canva.com/magic-write/', desc: 'Δημιουργεί & βελτιώνει κείμενα από prompt', free: 'Μερικώς', favicon: 'https://static.canva.com/web/images/8439b51bb7a19f6e65ce1064bc37c197.svg' },
+      { name: 'Perplexity', cat: 'Κείμενο', emoji: '🔭', color: '#f0fdf4', url: 'https://www.perplexity.ai', desc: 'AI αναζήτηση με αναφορές & πηγές', free: 'Ναι', favicon: 'https://www.perplexity.ai/favicon.ico' },
+      { name: 'Grammarly', cat: 'Κείμενο', emoji: '✅', color: '#ecfdf5', url: 'https://www.grammarly.com', desc: 'Βελτίωση γραφής, σαφήνειας & ύφους', free: 'Ναι', favicon: 'https://www.grammarly.com/favicon.ico' },
+      { name: 'Canva AI Image', cat: 'Εικόνα', emoji: '🖌️', color: '#fce7f3', url: 'https://www.canva.com/features/ai-image-generator/', desc: 'Δημιουργεί εικόνες από περιγραφή κειμένου', free: 'Ναι', favicon: 'https://static.canva.com/web/images/8439b51bb7a19f6e65ce1064bc37c197.svg' },
+      { name: 'Adobe Firefly', cat: 'Εικόνα', emoji: '🔥', color: '#fff7ed', url: 'https://firefly.adobe.com', desc: 'Δημιουργία & επεξεργασία εικόνων με AI', free: 'Μερικώς', favicon: 'https://firefly.adobe.com/favicon.ico' },
+      { name: 'remove.bg', cat: 'Εικόνα', emoji: '🪄', color: '#dcfce7', url: 'https://www.remove.bg/el', desc: 'Αφαίρεση φόντου από εικόνες αυτόματα', free: 'Ναι', favicon: 'https://www.remove.bg/favicon.ico' },
+      { name: 'Canva Magic Edit', cat: 'Εικόνα', emoji: '✏️', color: '#e0e7ff', url: 'https://www.canva.com/magic-edit/', desc: 'Τροποποίηση τμημάτων φωτογραφίας με prompt', free: 'Ναι', favicon: 'https://static.canva.com/web/images/8439b51bb7a19f6e65ce1064bc37c197.svg' },
+      { name: 'Runway', cat: 'Βίντεο', emoji: '🎬', color: '#fdf2f8', url: 'https://runwayml.com', desc: 'Δημιουργία & επεξεργασία AI βίντεο υψηλής ποιότητας', free: 'Μερικώς', favicon: 'https://runwayml.com/favicon.ico' },
+      { name: 'CapCut AI', cat: 'Βίντεο', emoji: '🎞️', color: '#e0f2fe', url: 'https://www.capcut.com', desc: 'AI επεξεργαστής βίντεο με templates', free: 'Ναι', favicon: 'https://lf16-web-buz.capcut.com/obj/capcut-web-buz-us/capcut_website/new_logo/fav.ico' },
+      { name: 'HeyGen', cat: 'Βίντεο', emoji: '🧑‍💻', color: '#fef9c3', url: 'https://www.heygen.com', desc: 'Βίντεο με AI avatars από κείμενο ή εικόνα', free: 'Μερικώς', favicon: 'https://www.heygen.com/favicon.ico' },
+      { name: 'Descript', cat: 'Βίντεο', emoji: '📋', color: '#f0fdf4', url: 'https://www.descript.com', desc: 'Επεξεργασία βίντεο & podcast σαν κείμενο', free: 'Ναι', favicon: 'https://www.descript.com/favicon.ico' },
+      { name: 'ElevenLabs', cat: 'Ήχος / Φωνή', emoji: '🎙️', color: '#fdf4ff', url: 'https://elevenlabs.io', desc: 'Κείμενο σε φυσική φωνή, δεκάδες γλώσσες', free: 'Μερικώς', favicon: 'https://elevenlabs.io/favicon.ico' },
+      { name: 'OpenAI Whisper', cat: 'Ήχος / Φωνή', emoji: '🎤', color: '#f1f5f9', url: 'https://openai.com/research/whisper', desc: 'Μεταγραφή ομιλίας σε κείμενο (speech-to-text)', free: 'API', favicon: 'https://openai.com/favicon.ico' },
+      { name: 'Otter.ai', cat: 'Ήχος / Φωνή', emoji: '🦦', color: '#e0f2fe', url: 'https://otter.ai', desc: 'Απομαγνητοφώνηση & σύνοψη συναντήσεων', free: 'Ναι', favicon: 'https://otter.ai/favicon.ico' },
+      { name: 'Gamma', cat: 'Παρουσιάσεις', emoji: '📊', color: '#ecfdf5', url: 'https://gamma.app', desc: 'Παρουσιάσεις από κείμενο χωρίς design', free: 'Ναι', favicon: 'https://gamma.app/favicon.ico' },
+      { name: 'Canva Magic Design', cat: 'Παρουσιάσεις', emoji: '🎴', color: '#fff1f2', url: 'https://www.canva.com/magic-design/', desc: 'Αυτόματα templates & παρουσιάσεις από prompt', free: 'Ναι', favicon: 'https://static.canva.com/web/images/8439b51bb7a19f6e65ce1064bc37c197.svg' },
+      { name: 'Canva AI Assistant', cat: 'Παρουσιάσεις', emoji: '🌟', color: '#fef3c7', url: 'https://www.canva.com', desc: 'AI βοηθός για κείμενο, εικόνα & design', free: 'Ναι', favicon: 'https://static.canva.com/web/images/8439b51bb7a19f6e65ce1064bc37c197.svg' },
+    ]
+  }
+};
+
+let currentPortal = null;
+let currentCat = 'Όλα';
+
+function showPortals() {
+  document.getElementById('portals-view').style.display = 'grid';
+  document.getElementById('tools-view').style.display = 'none';
+  document.getElementById('back-btn').style.display = 'none';
+  document.body.className = '';
+  currentPortal = null;
+}
+
+function showTools(portal) {
+  currentPortal = portal;
+  currentCat = 'Όλα';
+  const data = DATA[portal];
+
+  document.getElementById('portals-view').style.display = 'none';
+  document.getElementById('tools-view').style.display = 'block';
+  document.getElementById('back-btn').style.display = 'flex';
+  document.getElementById('section-title').textContent = data.title;
+  document.getElementById('section-subtitle').textContent = data.subtitle;
+  document.body.className = 'portal-' + portal;
+
+  // Color for active tabs
+  const activeColor = portal === 'ai' ? '#7c3aed' : '#1a73e8';
+  const activeBg = portal === 'ai' ? '#ede9fe' : '#e8f0fe';
+  document.documentElement.style.setProperty('--active-color', activeColor);
+  document.documentElement.style.setProperty('--active-bg', activeBg);
+
+  // Render tabs
+  const tabsEl = document.getElementById('cat-tabs');
+  tabsEl.innerHTML = '';
+  data.categories.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-tab' + (cat === 'Όλα' ? ' active' : '');
+    btn.textContent = cat;
+    btn.onclick = () => { currentCat = cat; renderCards(); setActiveTab(btn); };
+    tabsEl.appendChild(btn);
+  });
+
+  renderCards();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function setActiveTab(el) {
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function renderCards() {
+  const data = DATA[currentPortal];
+  const grid = document.getElementById('tools-grid');
+  grid.innerHTML = '';
+
+  const items = currentCat === 'Όλα'
+    ? data.items
+    : data.items.filter(i => i.cat === currentCat);
+
+  items.forEach((item, idx) => {
+    const card = document.createElement('a');
+    card.href = item.url;
+    card.target = '_blank';
+    card.rel = 'noopener noreferrer';
+    card.className = 'tool-card';
+    card.style.animationDelay = (idx * 0.045) + 's';
+
+    const badgeClass = item.free === 'Ναι' ? 'badge-free' : item.free === 'Μερικώς' ? 'badge-partial' : 'badge-partial';
+    const badgeText = item.free === 'Ναι' ? '✓ Δωρεάν' : item.free === 'Μερικώς' ? '◑ Μερικώς' : '🔑 API';
+
+    card.innerHTML = `
+      <div class="tool-icon" style="background:${item.color}">
+        ${item.favicon
+          ? `<img src="${item.favicon}" alt="${item.name}" onerror="this.parentElement.innerHTML='<span class=\\'emoji-fallback\\' style=\\'background:${item.color}\\'>${item.emoji}</span>'">`
+          : `<span class="emoji-fallback" style="background:${item.color}">${item.emoji}</span>`
+        }
+      </div>
+      <div class="tool-name">${item.name}</div>
+      <div class="tool-desc">${item.desc}</div>
+      <span class="tool-badge ${badgeClass}">${badgeText}</span>
+    `;
+    grid.appendChild(card);
+  });
+}
+</script>
+</body>
+</html>
