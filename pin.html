@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Έλεγχος PIN Κινητού - Εκπαιδευτικό Εργαλείο</title>
+    <style>
+        :root {
+            --primary: #2563eb; --primary-hover: #1d4ed8;
+            --text-dark: #0f172a; --text-light: #64748b;
+            --bg-color: #f1f5f9; --panel-bg: #ffffff;
+            --border-color: #cbd5e1;
+            --success: #16a34a; --warning: #f59e0b; --danger: #ef4444;
+            --highlight: #fef08a; --code-bg: #f8fafc;
+            --screen-bg: #ffffff; --screen-text: #000000;
+        }
+
+        body.dark-mode {
+            --bg-color: #020617; --panel-bg: #1e293b;
+            --text-dark: #f8fafc; --text-light: #94a3b8;
+            --border-color: #334155; --code-bg: #0f172a;
+            --screen-bg: #e2e8f0; --screen-text: #000000;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, sans-serif; 
+            background-color: var(--bg-color); color: var(--text-dark); 
+            height: 100vh; display: flex; flex-direction: column; overflow: hidden; transition: 0.3s;
+        }
+
+        /* --- TOOLBAR --- */
+        .toolbar { 
+            background: var(--panel-bg); border-bottom: 1px solid var(--border-color); 
+            padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 100;
+        }
+        .toolbar-title { font-weight: 800; font-size: 1.1rem; color: var(--primary); display: flex; align-items: center; gap: 8px;}
+        .controls-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;}
+
+        .tool-btn { 
+            padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);
+            background: var(--panel-bg); color: var(--text-dark); cursor: pointer; font-weight: bold;
+            display: flex; align-items: center; gap: 5px; font-size: 0.85rem; transition: 0.2s;
+        }
+        .tool-btn:hover:not(:disabled) { background: var(--border-color); }
+        .tool-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .btn-solution { background: var(--success); color: white; border: none; }
+        .btn-execute { background: var(--warning); color: black; border: none; }
+        .btn-bonus { background: #8b5cf6; color: white; border: none; }
+        .btn-run { background: var(--primary); color: white; border: none; }
+        .btn-step { background: var(--primary); color: white; border: none; }
+
+        .speed-control { display: flex; align-items: center; gap: 5px; font-size: 0.85rem; font-weight: bold; margin-right: 10px;}
+        .speed-control input { cursor: pointer; width: 60px;}
+
+        /* --- MAIN LAYOUT --- */
+        .main-container { display: flex; flex: 1; padding: 15px; gap: 15px; overflow: hidden; }
+        .col { 
+            background: var(--panel-bg); border-radius: 12px; border: 1px solid var(--border-color); 
+            display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .col-left { flex: 0 0 320px; padding: 20px; overflow-y: auto; line-height: 1.5;}
+        .theory-title { font-size: 1.05rem; font-weight: bold; margin-bottom: 12px; color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 5px; }
+        .theory-text { font-size: 0.9rem; margin-bottom: 20px; text-align: justify; }
+
+        /* MID COLUMN: Split left-right */
+        .col-mid { flex: 1; display: flex; flex-direction: row; gap: 15px; background: transparent; border: none; box-shadow: none;} 
+        
+        .code-area { 
+            flex: 1; padding: 20px; background: var(--code-bg); border: 1px solid var(--border-color); border-radius: 12px;
+            font-family: 'Consolas', monospace; font-size: 0.82rem; line-height: 1.8; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .code-line { padding: 2px 8px; border-radius: 4px; transition: 0.2s; }
+        .code-line.active { background: var(--highlight); color: black; font-weight: bold; }
+        
+        /* Πιο μικρά κουτάκια για τους τελεστές */
+        .code-blank {
+            padding: 1px 2px; font-family: monospace; font-size: 0.85rem;
+            border: 2px dashed var(--primary); border-radius: 4px; text-align: center;
+            background: rgba(255, 255, 255, 0.9); color: #000; font-weight: bold; outline: none; width: 32px;
+        }
+       .code-blank.locked { border: 1px solid transparent; background: transparent; color: var(--primary); border-bottom: 2px solid var(--primary); border-radius: 0; text-align: center; width: 36px; }
+
+        /* --- MODERN SMARTPHONE AREA --- */
+        .phone-area {
+            flex: 0 0 280px; display: flex; justify-content: center; align-items: center; 
+            background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            padding: 10px;
+        }
+        
+        .smartphone {
+            width: 240px; height: 460px; background: #000; border-radius: 36px; border: 4px solid #475569; 
+            display: flex; flex-direction: column; position: relative; overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3), inset 0 0 0 4px #000; transition: all 0.3s;
+        }
+
+        /* H Εγκοπή / Notch */
+        .notch {
+            width: 90px; height: 25px; background: #000; border-bottom-left-radius: 14px; border-bottom-right-radius: 14px;
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%); z-index: 20;
+        }
+
+        .phone-display-area {
+            flex: 1; display: flex; flex-direction: column; background: linear-gradient(135deg, #1e293b, #0f172a);
+            z-index: 10; position: relative; transition: background 0.4s; padding-top: 35px;
+        }
+
+        .phone-screen {
+            flex: 0 0 110px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; 
+            color: white; text-align: center; padding: 10px; background: transparent;
+        }
+        
+        .phone-status { font-size: 0.75rem; color: #cbd5e1; font-weight: 600; text-transform: uppercase; margin-bottom: 5px;}
+        .phone-display { font-size: 2rem; font-weight: 400; letter-spacing: 6px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; min-height: 40px; color: white;}
+        .phone-msg { font-size: 0.8rem; font-weight: 600; color: #f87171; min-height: 20px; margin-top: 5px;}
+
+        /* Modern Numpad (Glassmorphism) */
+        .phone-numpad {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; align-items: center; justify-items: center;
+            padding: 10px 20px 25px 20px; margin-top: auto;
+        }
+        
+        .numpad-btn {
+            width: 50px; height: 50px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.05); 
+            border-radius: 50%; color: white; font-size: 1.3rem; font-weight: 300;
+            cursor: pointer; display: flex; justify-content: center; align-items: center; 
+            transition: 0.15s; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; backdrop-filter: blur(4px);
+        }
+        .numpad-btn:active:not(:disabled) { transform: scale(0.9); background: rgba(255,255,255,0.25); }
+        .numpad-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        
+        .btn-c { background: rgba(239,68,68,0.2); color: #fca5a5; font-size: 1.1rem; font-weight: 500;}
+        .btn-ok { background: rgba(16,185,129,0.2); color: #6ee7b7; font-size: 1rem; font-weight: 600;}
+
+        /* Εφέ αναβοσβήματος όταν περιμένει είσοδο */
+        @keyframes pulsePhone {
+            0% { box-shadow: 0 15px 35px rgba(0,0,0,0.3), inset 0 0 0 4px #000, 0 0 0 0 rgba(239, 68, 68, 0.4); border-color: #475569; }
+            50% { box-shadow: 0 15px 35px rgba(0,0,0,0.3), inset 0 0 0 4px #000, 0 0 0 10px rgba(239, 68, 68, 0); border-color: #ef4444; }
+            100% { box-shadow: 0 15px 35px rgba(0,0,0,0.3), inset 0 0 0 4px #000, 0 0 0 0 rgba(239, 68, 68, 0); border-color: #475569; }
+        }
+        .waiting-input { animation: pulsePhone 1.5s infinite; border-color: #ef4444 !important; }
+
+        /* RIGHT COLUMN */
+        .col-right { flex: 0 0 320px; display: flex; flex-direction: column; }
+        .ram-section { padding: 15px; flex: 1; border-bottom: 1px solid var(--border-color); overflow-y: auto; }
+        .ram-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; text-align: center; }
+        .ram-table th { background: var(--bg-color); padding: 8px 2px; border: 1px solid var(--border-color); position: sticky; top: 0; }
+        .ram-table td { padding: 6px 2px; border: 1px solid var(--border-color); font-family: monospace; }
+        
+        .screen-section { padding: 15px; height: 330px; display: flex; flex-direction: column; }
+        .screen-display { 
+            flex: 1; background: var(--screen-bg); color: var(--screen-text); border: 2px solid var(--border-color);
+            padding: 12px; border-radius: 6px; font-family: 'Consolas', monospace; font-size: 0.85rem; overflow-y: auto; line-height: 1.4;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <div class="toolbar-title">📱 Έλεγχος PIN Κινητού</div>
+    <div class="controls-group">
+        <div class="speed-control">
+            🐢 <input type="range" id="speedSlider" min="200" max="1500" value="600" dir="rtl"> 🐇
+        </div>
+        <button class="tool-btn" onclick="toggleTheme()">🌙</button>
+        <button class="tool-btn btn-solution" id="btnSolution" onclick="fillSolution()">💡 Λύση</button>
+        <button class="tool-btn btn-execute" id="btnExecute" onclick="prepareExecution()" disabled>🚀 Εκτέλεση</button>
+        <button class="tool-btn btn-step" id="btnStep" onclick="manualStep()" style="display:none;">👣 Βήμα</button>
+        <button class="tool-btn btn-run" id="btnAuto" onclick="toggleAuto()" style="display:none;">▶️ Αυτόματα</button>
+        
+        <button class="tool-btn" onclick="resetApp()">🔄 Αρχή</button>
+    </div>
+</div>
+
+<div class="main-container">
+    <div class="col col-left">
+        <div class="theory-title">Η Θεωρία</div>
+        <div class="theory-text" id="theoryText">
+            Σε αυτή την εφαρμογή δεν έχουμε μόνο <strong>έλεγχο εγκυρότητας</strong>, αλλά και <strong>προστασία του συστήματος</strong>. 
+            <br><br>
+            Όταν βάζεις το PIN στο κινητό σου (έστω <strong>1234</strong>), η συσκευή σε βάζει σε μια επανάληψη <strong>Μέχρις_ότου</strong>. 
+            Η επανάληψη αυτή θα τερματίσει για <strong>δύο λόγους</strong>:<br>
+            είτε επειδή έδωσες το σωστό PIN,<br>
+            είτε επειδή εξάντλησες τις προσπάθειές σου (π.χ. έκανες 3 λάθη).
+            <br><br>
+            Αν κάνεις 3 λάθη, το πρόγραμμα βγαίνει από την επανάληψη, καταλαβαίνει ότι απέτυχες και σου ζητάει <strong>PUK</strong>!
+        </div>
+        <div class="instructions" id="instructionBox">
+            <strong>Οδηγίες:</strong> Συμπλήρωσε τους τελεστές ( =, &lt;&gt;, Ή, κτλ ) στα κενά. Πρόσεξε καλά τη συνθήκη εξόδου της Μέχρις_ότου!
+        </div>
+    </div>
+
+    <div class="col col-mid">
+        <div class="code-area">
+            <div class="code-line" style="color:var(--primary); font-weight:bold;">Αλγόριθμος PIN_Κινητού</div>
+            <div class="code-line" id="L1">προσπάθειες &lt;- 0</div>
+            <div class="code-line" id="L2">Αρχή_επανάληψης</div>
+            <div class="code-line" id="L3">&nbsp;&nbsp;Εμφάνισε "Εισάγετε PIN (3 προσπάθειες):"</div>
+            <div class="code-line" id="L4" style="color: #e11d48; font-weight: bold;">&nbsp;&nbsp;Διάβασε απάντηση</div>
+            <div class="code-line" id="L5">&nbsp;&nbsp;προσπάθειες &lt;- προσπάθειες + 1</div>
+            <div class="code-line" id="L6">&nbsp;&nbsp;Αν απάντηση <input type="text" class="code-blank" id="b1" oninput="checkBlanks()"> 1234 τότε</div>
+            <div class="code-line" id="L7">&nbsp;&nbsp;&nbsp;&nbsp;Εμφάνισε "Λάθος PIN!"</div>
+            <div class="code-line" id="L8">&nbsp;&nbsp;Τέλος_αν</div>
+            <div class="code-line" id="L9">Μέχρις_ότου (απάντηση <input type="text" class="code-blank" id="b2" oninput="checkBlanks()"> 1234) <input type="text" class="code-blank" id="b3" oninput="checkBlanks()"> (προσπάθειες <input type="text" class="code-blank" id="b4" oninput="checkBlanks()"> 3)</div>
+            <div class="code-line" id="L10">Αν απάντηση = 1234 τότε</div>
+            <div class="code-line" id="L11">&nbsp;&nbsp;Εμφάνισε "ΞΕΚΛΕΙΔΩΣΕ!"</div>
+            <div class="code-line" id="L12">Αλλιώς</div>
+            <div class="code-line" id="L13">&nbsp;&nbsp;Εμφάνισε "Συσκευή Κλειδωμένη - Δώσε PUK:"</div>
+            <div class="code-line" id="L14">Τέλος_αν</div>
+            <div class="code-line" style="color:var(--primary); font-weight:bold;">Τέλος PIN_Κινητού</div>
+        </div>
+
+        <div class="phone-area">
+            <div class="smartphone" id="smartphone">
+                <div class="notch"></div>
+                <div class="phone-display-area" id="phoneDisplayArea">
+                    <div class="phone-screen" id="phoneScreen">
+                        <div class="phone-status" id="phoneStatus">ΑΝΑΜΟΝΗ</div>
+                        <div class="phone-display" id="phoneDisplay"></div>
+                        <div class="phone-msg" id="phoneMsg"></div>
+                    </div>
+                    <div class="phone-numpad">
+                        <button class="numpad-btn" onclick="phoneInput('1')" disabled>1</button>
+                        <button class="numpad-btn" onclick="phoneInput('2')" disabled>2</button>
+                        <button class="numpad-btn" onclick="phoneInput('3')" disabled>3</button>
+                        <button class="numpad-btn" onclick="phoneInput('4')" disabled>4</button>
+                        <button class="numpad-btn" onclick="phoneInput('5')" disabled>5</button>
+                        <button class="numpad-btn" onclick="phoneInput('6')" disabled>6</button>
+                        <button class="numpad-btn" onclick="phoneInput('7')" disabled>7</button>
+                        <button class="numpad-btn" onclick="phoneInput('8')" disabled>8</button>
+                        <button class="numpad-btn" onclick="phoneInput('9')" disabled>9</button>
+                        <button class="numpad-btn btn-c" onclick="phoneClear()" disabled>C</button>
+                        <button class="numpad-btn" onclick="phoneInput('0')" disabled>0</button>
+                        <button class="numpad-btn btn-ok" onclick="phoneSubmit()" disabled>OK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col col-right">
+        <div class="ram-section">
+            <div class="theory-title" style="border:none;">🧠 Μνήμη (RAM)</div>
+            <table class="ram-table">
+                <thead><tr><th>προσπάθειες</th><th>απάντηση</th><th>ΜΕΧΡΙΣ_ΟΤΟΥ</th></tr></thead>
+                <tbody id="ramBody"></tbody>
+            </table>
+        </div>
+        <div class="screen-section">
+            <div class="theory-title" style="border:none;">🖥️ Οθόνη Κονσόλας</div>
+            <div class="screen-display" id="screen"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let state = { ans: "", attempts: 0, pc: 0, isPlaying: false, isFinished: false, timer: null, waitingInput: false, bonus: false };
+    let userVals = {};
+
+    function normalize(s) { 
+        return s.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); 
+    }
+
+    function checkBlanks() {
+        let all = true;
+        for(let i=1; i<=4; i++) if(document.getElementById('b'+i).value.trim()==='') all=false;
+        document.getElementById('btnExecute').disabled = !all;
+    }
+
+    function fillSolution() {
+        const sol = state.bonus ? ["<>","=","και","="] : ["<>","=","η","="];
+        for(let i=1; i<=4; i++) document.getElementById('b'+i).value = sol[i-1];
+        checkBlanks();
+    }
+
+    // --- ΛΕΙΤΟΥΡΓΙΕΣ ΚΙΝΗΤΟΥ ---
+    function setPhoneActive(active) {
+        let btns = document.querySelectorAll('.numpad-btn');
+        btns.forEach(b => b.disabled = !active);
+        if(active) {
+            document.getElementById('smartphone').classList.add('waiting-input');
+            document.getElementById('phoneStatus').innerText = `ΠΡΟΣΠΑΘΕΙΑ ${state.attempts + 1}/3`;
+            document.getElementById('phoneMsg').innerText = "Εισάγετε κωδικό";
+            document.getElementById('phoneDisplay').innerText = "";
+            state.ans = "";
+        } else {
+            document.getElementById('smartphone').classList.remove('waiting-input');
+        }
+    }
+
+    function phoneInput(num) {
+        if(state.ans.length < 4) {
+            state.ans += num;
+            let disp = "";
+            // Βάζουμε τις σύγχρονες τελείες (●) για τα προηγούμενα ψηφία
+            for(let i=0; i<state.ans.length-1; i++) disp += "●";
+            disp += num; // Αφήνουμε το τελευταίο να φαίνεται για λίγο (όπως στα αληθινά κινητά)
+            document.getElementById('phoneDisplay').innerText = disp;
+        }
+    }
+
+    function phoneClear() {
+        state.ans = "";
+        document.getElementById('phoneDisplay').innerText = "";
+    }
+
+    function phoneSubmit() {
+        if(state.ans.length === 0) return;
+        setPhoneActive(false);
+        
+        // Μετατροπή του τελευταίου ψηφίου σε τελεία και αυτό
+        let finalDisp = "";
+        for(let i=0; i<state.ans.length; i++) finalDisp += "●";
+        document.getElementById('phoneDisplay').innerText = finalDisp;
+        
+        printScreen(`> Ο χρήστης πληκτρολόγησε PIN...`, "var(--text-light)");
+        state.waitingInput = false;
+        state.pc = 5;
+        
+        if(state.isPlaying) runLoop(); else step(); 
+    }
+
+    // --- ΕΚΤΕΛΕΣΗ ΚΩΔΙΚΑ ---
+    function prepareExecution() {
+        for(let i=1; i<=4; i++) userVals['p'+i] = document.getElementById('b'+i).value;
+        for(let i=1; i<=4; i++) { let el=document.getElementById('b'+i); el.classList.add('locked'); el.disabled=true; }
+        
+        document.getElementById('btnSolution').style.display='none';
+        document.getElementById('btnExecute').style.display='none';
+        document.getElementById('btnStep').style.display='flex';
+        document.getElementById('btnAuto').style.display='flex';
+        
+        document.getElementById('screen').innerHTML = "";
+        document.getElementById('ramBody').innerHTML = "";
+        
+        // Reset Phone visuals
+        document.getElementById('phoneDisplayArea').style.background = "linear-gradient(135deg, #1e293b, #0f172a)";
+        document.getElementById('phoneStatus').innerText = "ΑΝΑΜΟΝΗ";
+        document.getElementById('phoneDisplay').innerText = "";
+        document.getElementById('phoneMsg').innerText = "";
+        document.getElementById('phoneMsg').style.color = "#f87171";
+        
+        state.pc = 1; state.attempts = 0; state.isFinished = false; state.waitingInput = false;
+        
+        state.isPlaying = true;
+        document.getElementById('btnAuto').innerText = "⏸️ Παύση";
+        document.getElementById('btnAuto').style.background = "var(--warning)";
+        document.getElementById('btnAuto').style.color = "black";
+        
+        runLoop();
+    }
+
+    function toggleAuto() {
+        if (state.isPlaying) { stopAuto(); } 
+        else {
+            state.isPlaying = true;
+            document.getElementById('btnAuto').innerText = "⏸️ Παύση";
+            document.getElementById('btnAuto').style.background = "var(--warning)";
+            document.getElementById('btnAuto').style.color = "black";
+            runLoop();
+        }
+    }
+
+    function stopAuto() {
+        state.isPlaying = false;
+        clearTimeout(state.timer);
+        document.getElementById('btnAuto').innerText = "▶️ Αυτόματα";
+        document.getElementById('btnAuto').style.background = "var(--primary)";
+        document.getElementById('btnAuto').style.color = "white";
+    }
+
+    function runLoop() {
+        if (!state.isPlaying || state.isFinished) return;
+        step();
+        if(!state.waitingInput && state.isPlaying && !state.isFinished) {
+            state.timer = setTimeout(runLoop, parseInt(document.getElementById('speedSlider').value));
+        }
+    }
+
+    function manualStep() {
+        if (state.isFinished) return;
+        stopAuto(); 
+        step();
+    }
+
+    function printScreen(txt, color="inherit") {
+        let scrDiv = document.getElementById('screen');
+        scrDiv.innerHTML += `<span style="color:${color};">${txt}</span><br>`;
+        scrDiv.scrollTop = scrDiv.scrollHeight;
+    }
+
+    function step() {
+        highlightLine(state.pc);
+        switch(state.pc) {
+            case 1: state.attempts = 0; state.pc=2; break;
+            case 2: state.pc=3; break;
+            case 3: 
+                printScreen("Εμφάνισε: Εισάγετε PIN (3 προσπάθειες):");
+                state.pc=4; break;
+            case 4: 
+                state.waitingInput = true;
+                setPhoneActive(true);
+                break;
+            case 5: 
+                state.attempts++;
+                state.pc=6; break;
+            case 6: 
+                let ansVal = parseInt(state.ans);
+                let condIf = evalPart(ansVal, normalize(userVals.p1), 1234);
+                
+                // Προσθήκη γραμμής στη RAM με κενό το τρίτο πεδίο αρχικά
+                addRamRow(state.attempts, ansVal, "");
+                
+                if(condIf) state.pc=7; else state.pc=8;
+                break;
+            case 7: 
+                printScreen("Λάθος PIN!", "#ef4444");
+                document.getElementById('phoneMsg').innerText = "ΛΑΘΟΣ ΚΩΔΙΚΟΣ";
+                state.pc=8; break;
+            case 8: state.pc=9; break;
+            case 9: 
+                let aVal = parseInt(state.ans);
+                let r1 = evalPart(aVal, normalize(userVals.p2), 1234);
+                let r2 = evalPart(state.attempts, normalize(userVals.p4), 3);
+                let conn = normalize(userVals.p3);
+                
+                let condUntil = (conn === "και" || conn === "and") ? (r1 && r2) : (r1 || r2);
+                updateLastRam(condUntil ? "Αληθής" : "Ψευδής");
+                
+                if(condUntil) { state.pc=10; } else { state.pc=2; }
+                break;
+            case 10:
+                if(parseInt(state.ans) === 1234) state.pc=11; else state.pc=12;
+                break;
+            case 11:
+                printScreen("ΞΕΚΛΕΙΔΩΣΕ!", "#16a34a");
+                document.getElementById('phoneDisplayArea').style.background = "linear-gradient(135deg, #064e3b, #0f172a)";
+                document.getElementById('phoneStatus').innerText = "ΑΠΟΔΕΚΤΟ";
+                document.getElementById('phoneMsg').innerText = "ΞΕΚΛΕΙΔΩΣΕ";
+                document.getElementById('phoneMsg').style.color = "#6ee7b7";
+                state.pc=14; break;
+            case 12: state.pc=13; break;
+            case 13:
+                printScreen("Συσκευή Κλειδωμένη - Δώσε PUK:", "#ef4444");
+                document.getElementById('phoneDisplayArea').style.background = "linear-gradient(135deg, #7f1d1d, #0f172a)";
+                document.getElementById('phoneStatus').innerText = "ΚΛΕΙΔΩΜΑ ΑΣΦΑΛΕΙΑΣ";
+                document.getElementById('phoneMsg').innerText = "ΑΠΑΙΤΕΙΤΑΙ PUK";
+                document.getElementById('phoneMsg').style.color = "white";
+                state.pc=14; break;
+            case 14:
+                state.isFinished=true; finishSim();
+                break;
+        }
+    }
+
+    function evalPart(val, op, target) {
+        if(op === "=") return val === target;
+        if(op === "<>") return val !== target;
+        return false;
+    }
+
+    function finishSim() {
+        highlightLine(0);
+        
+        let correctSol = state.bonus ? ["<>","=","και","="] : ["<>","=","η","="];
+        let userCorrect = true;
+        for(let i=1; i<=4; i++) {
+            if(normalize(userVals['p'+i]) !== correctSol[i-1]) userCorrect = false;
+        }
+
+        if(!userCorrect && !state.bonus) {
+            printScreen("<br><strong>Παρατήρηση:</strong> Η λογική σου δεν είναι η βέλτιστη. Έλεγξε τους τελεστές σου.", "#b45309");
+        } else if(userCorrect) {
+            printScreen("<br><strong>✅ Συγχαρητήρια!</strong> Ο έλεγχος εγκυρότητας και προστασίας ολοκληρώθηκε σωστά.", "#16a34a");
+            
+        }
+
+        unlockInputs();
+    }
+
+    function startBonusChallenge() {
+        state.bonus = true;
+        
+        document.getElementById('theoryText').innerHTML = "<strong>⭐ Bonus Πρόκληση:</strong> Αντιστρέψαμε το Ή σε ΚΑΙ!<br><br>Τρέξε τώρα τον κώδικα και βάλε το <strong>σωστό PIN (1234) με την 1η προσπάθεια</strong>. Θα δεις ότι το κινητό... δεν ξεκλειδώνει! Παρακολούθησε τον Αναλυτή της RAM για να δεις γιατί η λούπα σε κρατάει παγιδευμένο!";
+        resetApp();
+    }
+
+    function addRamRow(att, ans, condUntil) {
+        const body = document.getElementById('ramBody');
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${att}</td><td>${ans}</td><td>${condUntil}</td>`;
+        body.appendChild(row);
+        body.parentElement.scrollTop = body.parentElement.scrollHeight;
+    }
+
+    function updateLastRam(txt) {
+        let rows = document.getElementById('ramBody').rows;
+        if(rows.length > 0) rows[rows.length-1].cells[2].innerText = txt;
+    }
+
+    function highlightLine(id) {
+        document.querySelectorAll('.code-line').forEach(l => l.classList.remove('active'));
+        if(id > 0) {
+            let el = document.getElementById('L' + id);
+            if(el) el.classList.add('active');
+        }
+    }
+
+    function unlockInputs() {
+        for(let i=1; i<=4; i++) { let el=document.getElementById('b'+i); el.classList.remove('locked'); el.disabled=false; }
+        document.getElementById('btnSolution').style.display='flex';
+        document.getElementById('btnExecute').style.display='flex';
+    }
+
+    function resetApp() {
+        stopAuto();
+        state = { ans: "", attempts: 0, pc: 0, isPlaying: false, isFinished: false, timer: null, waitingInput: false, bonus: state.bonus };
+        
+        if(!state.bonus) {
+            for(let i=1; i<=4; i++) document.getElementById('b'+i).value = '';
+            
+        }
+        
+        setPhoneActive(false);
+        document.getElementById('phoneDisplayArea').style.background = "linear-gradient(135deg, #1e293b, #0f172a)";
+        document.getElementById('phoneStatus').innerText = "ΑΝΑΜΟΝΗ";
+        document.getElementById('phoneDisplay').innerText = "";
+        document.getElementById('phoneMsg').innerText = "";
+        document.getElementById('phoneMsg').style.color = "#f87171";
+        
+        document.getElementById('screen').innerHTML = "";
+        document.getElementById('ramBody').innerHTML = "";
+        
+        document.getElementById('btnSolution').style.display='flex';
+        document.getElementById('btnExecute').style.display='flex';
+        document.getElementById('btnExecute').disabled=true;
+        document.getElementById('btnStep').style.display='none';
+        document.getElementById('btnAuto').style.display='none';
+        
+        unlockInputs();
+        highlightLine(0);
+        checkBlanks();
+    }
+
+    function toggleTheme() { document.body.classList.toggle('dark-mode'); }
+    checkBlanks();
+</script>
+
+</body>
+</html>

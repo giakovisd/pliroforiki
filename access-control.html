@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Έλεγχος Εγκυρότητας - Εκπαιδευτικό Εργαλείο</title>
+    <style>
+        :root {
+            --primary: #2563eb; --primary-hover: #1d4ed8;
+            --text-dark: #0f172a; --text-light: #64748b;
+            --bg-color: #f1f5f9; --panel-bg: #ffffff;
+            --border-color: #cbd5e1;
+            --success: #16a34a; --warning: #f59e0b; --danger: #ef4444;
+            --highlight: #fef08a; --code-bg: #f8fafc;
+            --screen-bg: #ffffff; --screen-text: #000000;
+            --terminal-bg: #ffffff; --terminal-text: #0f172a;
+        }
+
+        body.dark-mode {
+            --bg-color: #020617; --panel-bg: #1e293b;
+            --text-dark: #f8fafc; --text-light: #94a3b8;
+            --border-color: #334155; --code-bg: #0f172a;
+            --screen-bg: #e2e8f0; --screen-text: #000000;
+            --terminal-bg: #e2e8f0; --terminal-text: #0f172a;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, sans-serif; 
+            background-color: var(--bg-color); color: var(--text-dark); 
+            height: 100vh; display: flex; flex-direction: column; overflow: hidden; transition: 0.3s;
+        }
+
+        /* --- TOOLBAR --- */
+        .toolbar { 
+            background: var(--panel-bg); border-bottom: 1px solid var(--border-color); 
+            padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 100;
+        }
+        .toolbar-title { font-weight: 800; font-size: 1.1rem; color: var(--primary); display: flex; align-items: center; gap: 8px;}
+        .controls-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;}
+
+        .tool-btn { 
+            padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);
+            background: var(--panel-bg); color: var(--text-dark); cursor: pointer; font-weight: bold;
+            display: flex; align-items: center; gap: 5px; font-size: 0.85rem; transition: 0.2s;
+        }
+        .tool-btn:hover:not(:disabled) { background: var(--border-color); }
+        .tool-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .btn-solution { background: var(--success); color: white; border: none; }
+        .btn-execute { background: var(--warning); color: black; border: none; }
+        .btn-bonus { background: #8b5cf6; color: white; border: none; }
+        .btn-run { background: var(--primary); color: white; border: none; }
+        .btn-step { background: var(--primary); color: white; border: none; }
+
+        .speed-control { display: flex; align-items: center; gap: 5px; font-size: 0.85rem; font-weight: bold; margin-right: 10px;}
+        .speed-control input { cursor: pointer; width: 60px;}
+
+        /* --- MAIN LAYOUT --- */
+        .main-container { display: flex; flex: 1; padding: 15px; gap: 15px; overflow: hidden; }
+        .col { 
+            background: var(--panel-bg); border-radius: 12px; border: 1px solid var(--border-color); 
+            display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .col-left { flex: 0 0 370px; padding: 20px; overflow-y: auto; line-height: 1.5;}
+        .theory-title { font-size: 1.05rem; font-weight: bold; margin-bottom: 12px; color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 5px; }
+        .theory-text { font-size: 0.9rem; margin-bottom: 20px; text-align: justify; }
+
+        .col-mid { flex: 1; display: flex; flex-direction: column; gap: 10px; background: transparent; border: none;} 
+        
+        .code-area { 
+            flex: 1; padding: 20px; background: var(--code-bg); border: 1px solid var(--border-color); border-radius: 12px;
+            font-family: 'Consolas', monospace; font-size: 0.85rem; line-height: 1.8; overflow-y: auto;
+        }
+        .code-line { padding: 2px 8px; border-radius: 4px; transition: 0.2s; }
+        .code-line.active { background: var(--highlight); color: black; font-weight: bold; }
+        
+        .code-blank {
+            padding: 1px 3px; font-family: monospace; font-size: 0.85rem;
+            border: 2px dashed var(--primary); border-radius: 4px; text-align: center;
+            background: rgba(255, 255, 255, 0.9); color: #000; font-weight: bold; outline: none; width: 45px;
+        }
+        .code-blank.locked { border: 1px solid transparent; background: transparent; color: var(--primary); border-bottom: 2px solid var(--primary); border-radius: 0; text-align: center; width: auto; min-width: 30px;}
+
+        /* Terminal Area (ΝΕΑ ΕΜΦΑΝΙΣΗ) */
+        .terminal-area {
+            height: 220px; background: var(--terminal-bg); color: var(--terminal-text);
+            padding: 15px; border-radius: 12px; font-family: 'Consolas', monospace;
+            display: flex; flex-direction: column; gap: 5px; border: 2px solid var(--border-color); transition: all 0.3s;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .terminal-header { font-size: 0.85rem; font-weight: bold; color: var(--primary); border-bottom: 2px solid var(--border-color); padding-bottom: 5px; margin-bottom: 5px;}
+        
+        .terminal-output {
+            flex: 1; overflow-y: auto; display: flex; flex-direction: column; font-size: 0.9rem; line-height: 1.4;
+        }
+        
+        .terminal-input-row { display: flex; align-items: center; gap: 10px; margin-top: 5px; padding-top: 5px; border-top: 1px dashed var(--border-color); }
+        .terminal-input-row input { 
+            background: var(--code-bg); border: 1px solid var(--border-color); color: var(--text-dark); padding: 5px 10px; 
+            border-radius: 4px; outline: none; width: 80px; font-family: inherit; font-size: 1rem; font-weight: bold; text-align: center;
+        }
+        .terminal-input-row input:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        /* Εφέ αναβοσβήματος όταν περιμένει είσοδο */
+        @keyframes pulseTerminal {
+            0% { box-shadow: inset 0 0 0 0 rgba(239, 68, 68, 0.2); border-color: var(--border-color); }
+            50% { box-shadow: inset 0 0 0 4px rgba(239, 68, 68, 0); border-color: #ef4444; }
+            100% { box-shadow: inset 0 0 0 0 rgba(239, 68, 68, 0); border-color: var(--border-color); }
+        }
+        .waiting-input {
+            animation: pulseTerminal 1.5s infinite;
+            border-color: #ef4444 !important;
+        }
+
+        .col-right { flex: 0 0 320px; display: flex; flex-direction: column; }
+        .ram-section { padding: 15px; flex: 1; border-bottom: 1px solid var(--border-color); overflow-y: auto; }
+        .ram-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; text-align: center; }
+        .ram-table th { background: var(--bg-color); padding: 8px 2px; border: 1px solid var(--border-color); position: sticky; top: 0; }
+        .ram-table td { padding: 6px 2px; border: 1px solid var(--border-color); font-family: monospace; }
+        
+        .screen-section { padding: 15px; height: 173px; display: flex; flex-direction: column; }
+        .screen-display { 
+            flex: 1; background: var(--screen-bg); color: var(--screen-text); border: 2px solid var(--border-color);
+            padding: 12px; border-radius: 6px; font-family: 'Consolas', monospace; font-size: 0.9rem; overflow-y: auto;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <div class="toolbar-title">✅ Έλεγχος Εγκυρότητας</div>
+    <div class="controls-group">
+        <div class="speed-control">
+            🐢 <input type="range" id="speedSlider" min="200" max="1500" value="600" dir="rtl"> 🐇
+        </div>
+        <button class="tool-btn" onclick="toggleTheme()">🌙</button>
+        <button class="tool-btn btn-solution" id="btnSolution" onclick="fillSolution()">💡 Λύση</button>
+        <button class="tool-btn btn-execute" id="btnExecute" onclick="prepareExecution()" disabled>🚀 Εκτέλεση</button>
+        <button class="tool-btn btn-step" id="btnStep" onclick="manualStep()" style="display:none;">👣 Βήμα</button>
+        <button class="tool-btn btn-run" id="btnAuto" onclick="toggleAuto()" style="display:none;">▶️ Αυτόματα</button>
+        <button class="tool-btn btn-bonus" id="btnBonus" onclick="startBonusChallenge()" style="display:none;">⭐ Bonus Πρόκληση</button>
+        <button class="tool-btn" onclick="resetApp()">🔄 Αρχή</button>
+    </div>
+</div>
+
+<div class="main-container">
+    <div class="col col-left">
+        <div class="theory-title">Η Θεωρία</div>
+        <div class="theory-text" id="theoryText">
+            Ο <strong>Έλεγχος Εγκυρότητας</strong> εξασφαλίζει ότι το πρόγραμμα δέχεται μόνο αποδεκτές τιμές. 
+            <br><br>
+            Στο παράδειγμα, δίνεται η εξής ερώτηση:<br>
+            <em>«Επιλέξτε μία σωστή απάντηση:<br>
+            Στην ευθύγραμμη ομαλά επιταχυνόμενη κίνηση διατηρούνται σταθερά τα διανύσματα:<br>
+            1) της μετατόπισης<br>
+            2) της ταχύτητας<br>
+            3) της επιτάχυνσης<br>
+            Για να προχωρήσετε στην παρακάτω ερώτηση πρέπει να επιλέξετε ένα από τα 1, 2 ή 3.»</em>
+            <br><br>
+            Ο χρήστης πρέπει να δώσει υποχρεωτικά <strong>1, 2 ή 3</strong>. Αν δώσει οτιδήποτε άλλο, το πρόγραμμα πρέπει να εμφανίζει μήνυμα λάθους και να ζητάει ξανά την απάντηση.
+        </div>
+        <div class="instructions" id="instructionBox">
+            <strong>Οδηγίες:</strong> Συμπλήρωσε τους τελεστές στα κενά. Προσοχή στη διαφορά μεταξύ της συνθήκης στην <strong>ΑΝ</strong> (πότε έχουμε λάθος) και στη <strong>ΜΕΧΡΙΣ_ΟΤΟΥ</strong> (πότε βγαίνουμε).
+        </div>
+    </div>
+
+    <div class="col col-mid">
+        <div class="code-area">
+            <div class="code-line" style="color:var(--primary); font-weight:bold;">Αλγόριθμος Κουίζ_Φυσικής</div>
+            <div class="code-line" id="L1">Αρχή_επανάληψης</div>
+            <div class="code-line" id="L2">&nbsp;&nbsp;Εμφάνισε "Στην ευθ. ομαλά επιταχ. κίνηση διατηρούνται σταθερά:"</div>
+            <div class="code-line" id="L2b">&nbsp;&nbsp;Εμφάνισε "1) Μετατόπισης, 2) Ταχύτητας, 3) Επιτάχυνσης"</div>
+            <div class="code-line" id="L3" style="color: #e11d48; font-weight: bold;">&nbsp;&nbsp;Διάβασε απάντηση</div>
+            <div class="code-line" id="L4">&nbsp;&nbsp;Αν απάντηση <input type="text" class="code-blank" id="b1" oninput="checkBlanks()"> 1 <input type="text" class="code-blank" id="b2" oninput="checkBlanks()"> απάντηση <input type="text" class="code-blank" id="b3" oninput="checkBlanks()"> 2 <input type="text" class="code-blank" id="b4" oninput="checkBlanks()"> απάντηση <input type="text" class="code-blank" id="b5" oninput="checkBlanks()"> 3 τότε</div>
+            <div class="code-line" id="L5">&nbsp;&nbsp;&nbsp;&nbsp;Εμφάνισε "Λάθος καταχώρηση!"</div>
+            <div class="code-line" id="L6">&nbsp;&nbsp;Τέλος_αν</div>
+            <div class="code-line" id="L7">Μέχρις_ότου απάντηση <input type="text" class="code-blank" id="b6" oninput="checkBlanks()"> 1 <input type="text" class="code-blank" id="b7" oninput="checkBlanks()"> απάντηση <input type="text" class="code-blank" id="b8" oninput="checkBlanks()"> 2 <input type="text" class="code-blank" id="b9" oninput="checkBlanks()"> απάντηση <input type="text" class="code-blank" id="b10" oninput="checkBlanks()"> 3</div>
+            <div class="code-line" style="color:var(--primary); font-weight:bold;">Τέλος Κουίζ_Φυσικής</div>
+        </div>
+
+        <div class="terminal-area" id="terminalArea">
+            <div class="terminal-header">🖥️ CONSOLE TERMINAL</div>
+            <div class="terminal-output" id="terminalOutput">Περιμένοντας εκτέλεση...</div>
+            
+            <div class="terminal-input-row" id="inputContainer" style="display:none;">
+                <span style="color:#ef4444; font-weight:bold;">> Είσοδος χρήστη:</span>
+                <input type="text" id="termInput" oninput="this.value = this.value.replace(/[^0-9]/g, '');" onkeydown="if(event.key==='Enter') submitInput()">
+                <button class="tool-btn" style="padding: 4px 12px; background:var(--primary); color:white;" onclick="submitInput()">Enter</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col col-right">
+        <div class="ram-section">
+            <div class="theory-title" style="border:none;">🧠 Μνήμη (RAM)</div>
+            <table class="ram-table">
+                <thead><tr><th>απάντηση</th><th>Συνθήκη ΑΝ</th><th>Συνθήκη ΜΕΧΡΙ</th></tr></thead>
+                <tbody id="ramBody"></tbody>
+            </table>
+        </div>
+        <div class="screen-section">
+            <div class="theory-title" style="border:none;">🖥️ Οθόνη</div>
+            <div class="screen-display" id="screen"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let state = { ans: null, pc: 0, isPlaying: false, isFinished: false, timer: null, waitingInput: false, bonus: false };
+    let userVals = {};
+    
+    // Οι πιθανές απαντήσεις
+    let physicsOptions = ["της μετατόπισης", "της ταχύτητας", "της επιτάχυνσης"];
+    let correctAnswerIndex = 3; // Αρχική θέση (1-based)
+
+    // Αφαιρεί τόνους και κάνει τα πάντα πεζά για να μην υπάρχουν προβλήματα με το ΚΑΙ, και, Ή, η κλπ.
+    function normalize(s) { 
+        return s.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); 
+    }
+
+    function checkBlanks() {
+        let all = true;
+        for(let i=1; i<=10; i++) if(document.getElementById('b'+i).value.trim()==='') all=false;
+        document.getElementById('btnExecute').disabled = !all;
+    }
+
+    function fillSolution() {
+        const sol = state.bonus ? ["<>","η","<>","η","<>","=","και","=","και","="] : ["<>","και","<>","και","<>","=","η","=","η","="];
+        for(let i=1; i<=10; i++) document.getElementById('b'+i).value = sol[i-1];
+        checkBlanks();
+    }
+
+    // Τυχαιοποίηση Πίνακα
+    function shuffleOptions() {
+        // Κρατάμε τις επιλογές σε αρχικό πίνακα
+        let opts = ["της μετατόπισης", "της ταχύτητας", "της επιτάχυνσης"];
+        
+        // Fisher-Yates Shuffle
+        for (let i = opts.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [opts[i], opts[j]] = [opts[j], opts[i]];
+        }
+        
+        physicsOptions = opts;
+        // Βρίσκουμε σε ποια θέση (1, 2, 3) πήγε η σωστή απάντηση ("της επιτάχυνσης")
+        correctAnswerIndex = physicsOptions.indexOf("της επιτάχυνσης") + 1;
+        
+        // Ενημερώνουμε το DOM για τον κώδικα (γραμμή 3)
+        let displayStr = `1) ${physicsOptions[0]}, 2) ${physicsOptions[1]}, 3) ${physicsOptions[2]}`;
+        document.getElementById('L2b').innerHTML = `&nbsp;&nbsp;Εμφάνισε "${displayStr}"`;
+        
+        return displayStr;
+    }
+
+    function prepareExecution() {
+        for(let i=1; i<=10; i++) userVals['p'+i] = document.getElementById('b'+i).value;
+        for(let i=1; i<=10; i++) { let el=document.getElementById('b'+i); el.classList.add('locked'); el.disabled=true; }
+        
+        document.getElementById('btnSolution').style.display='none';
+        document.getElementById('btnExecute').style.display='none';
+        document.getElementById('btnStep').style.display='flex';
+        document.getElementById('btnAuto').style.display='flex';
+        
+        document.getElementById('terminalOutput').innerHTML = "";
+        document.getElementById('screen').innerHTML = "";
+        document.getElementById('ramBody').innerHTML = "";
+        document.getElementById('terminalArea').classList.remove('waiting-input');
+        
+        // Κάθε φορά που πατάμε εκτέλεση, ανακατεύουμε τις απαντήσεις!
+        shuffleOptions();
+        
+        state.pc = 1; state.isFinished = false; state.ans = null; state.waitingInput = false;
+        
+        // Ξεκινάει σε λειτουργία "Αυτόματα"
+        state.isPlaying = true;
+        document.getElementById('btnAuto').innerText = "⏸️ Παύση";
+        document.getElementById('btnAuto').style.background = "var(--warning)";
+        document.getElementById('btnAuto').style.color = "black";
+        
+        runLoop();
+    }
+
+    function toggleAuto() {
+        if (state.isPlaying) { stopAuto(); } 
+        else {
+            state.isPlaying = true;
+            document.getElementById('btnAuto').innerText = "⏸️ Παύση";
+            document.getElementById('btnAuto').style.background = "var(--warning)";
+            document.getElementById('btnAuto').style.color = "black";
+            runLoop();
+        }
+    }
+
+    function stopAuto() {
+        state.isPlaying = false;
+        clearTimeout(state.timer);
+        document.getElementById('btnAuto').innerText = "▶️ Αυτόματα";
+        document.getElementById('btnAuto').style.background = "var(--primary)";
+        document.getElementById('btnAuto').style.color = "white";
+    }
+
+    function runLoop() {
+        if (!state.isPlaying || state.isFinished) return;
+        step();
+        if(!state.waitingInput && state.isPlaying && !state.isFinished) {
+            state.timer = setTimeout(runLoop, parseInt(document.getElementById('speedSlider').value));
+        }
+    }
+
+    function manualStep() {
+        if (state.isFinished) return;
+        stopAuto(); 
+        step();
+    }
+
+    // Τυπώνει ΤΑΥΤΟΧΡΟΝΑ και στην Κονσόλα (scrolling) και στην Οθόνη
+    function printConsoleAndScreen(txt, color="inherit") {
+        // Terminal Append
+        let termDiv = document.getElementById('terminalOutput');
+        termDiv.innerHTML += `<div style="color:${color}; margin-bottom:2px;">${txt}</div>`;
+        termDiv.scrollTop = termDiv.scrollHeight;
+        
+        // Screen Append
+        let scrDiv = document.getElementById('screen');
+        scrDiv.innerHTML += `<span style="color:${color};">${txt}</span><br>`;
+        scrDiv.scrollTop = scrDiv.scrollHeight;
+    }
+
+    function step() {
+        highlightLine(state.pc);
+        switch(state.pc) {
+            case 1: state.pc=2; break;
+            case 2: 
+                printConsoleAndScreen("Στην ευθ. ομαλά επιταχ. κίνηση διατηρούνται σταθερά:", "var(--text-dark)");
+                state.pc=2.5; break;
+            case 2.5:
+                highlightLine('2b');
+                let displayStr = `1) ${physicsOptions[0]}, 2) ${physicsOptions[1]}, 3) ${physicsOptions[2]}`;
+                printConsoleAndScreen(displayStr, "var(--primary)");
+                state.pc=3; break;
+            case 3: 
+                state.waitingInput = true;
+                document.getElementById('terminalArea').classList.add('waiting-input');
+                document.getElementById('inputContainer').style.display = 'flex';
+                document.getElementById('termInput').focus();
+                
+                /*printConsoleAndScreen("[Το πρόγραμμα σταμάτησε και περιμένει απάντηση...]", "#ef4444");*/
+                break;
+            case 4: 
+                let condIf = evaluateLogic(userVals.p1, userVals.p2, userVals.p3, userVals.p4, userVals.p5);
+                addRamRow(state.ans, condIf ? "Αληθής" : "Ψευδής", "");
+                if(condIf) state.pc=5; else state.pc=6;
+                break;
+            case 5: 
+                printConsoleAndScreen("Λάθος καταχώρηση!", "#ef4444");
+                state.pc=6; break;
+            case 6: state.pc=7; break;
+            case 7: 
+                let condUntil = evaluateLogic(userVals.p6, userVals.p7, userVals.p8, userVals.p9, userVals.p10);
+                updateLastRam(condUntil ? "Αληθής" : "Ψευδής");
+                if(condUntil) { state.isFinished=true; finishSim(); } else { state.pc=1; }
+                break;
+        }
+    }
+
+    function submitInput() {
+        let val = document.getElementById('termInput').value;
+        if(val==="") return;
+        state.ans = parseInt(val);
+        
+        document.getElementById('terminalArea').classList.remove('waiting-input');
+        // Τυπώνουμε τι έβαλε ο χρήστης στην κονσόλα
+        printConsoleAndScreen(`> Εισήχθη η τιμή: <strong>${state.ans}</strong>`, "#16a34a");
+        
+        document.getElementById('termInput').value = "";
+        document.getElementById('inputContainer').style.display = 'none';
+        
+        state.waitingInput = false;
+        state.pc = 4;
+        
+        if(state.isPlaying) {
+            runLoop();
+        } else {
+            step(); 
+        }
+    }
+
+    function evaluateLogic(op1, conn1, op2, conn2, op3) {
+        let r1 = evalPart(state.ans, normalize(op1), 1);
+        let r2 = evalPart(state.ans, normalize(op2), 2);
+        let r3 = evalPart(state.ans, normalize(op3), 3);
+        
+        let c1 = normalize(conn1);
+        let c2 = normalize(conn2);
+        
+        let firstPart = (c1 === "και" || c1 === "and") ? (r1 && r2) : (r1 || r2);
+        return (c2 === "και" || c2 === "and") ? (firstPart && r3) : (firstPart || r3);
+    }
+
+    function evalPart(val, op, target) {
+        if(op === "=") return val === target;
+        if(op === "<>") return val !== target;
+        return false;
+    }
+
+    function finishSim() {
+        highlightLine(0);
+        
+        let correctSol = state.bonus ? 
+            ["<>","η","<>","η","<>","=","και","=","και","="] : 
+            ["<>","και","<>","και","<>","=","η","=","η","="];
+            
+        let userCorrect = true;
+        for(let i=1; i<=10; i++) {
+            if(normalize(userVals['p'+i]) !== correctSol[i-1]) userCorrect = false;
+        }
+
+        if(!userCorrect && !state.bonus) {
+            printConsoleAndScreen("<br><strong>Παρατήρηση:</strong> Ο έλεγχος δουλεύει, αλλά η λογική σου δεν είναι η βέλτιστη. Δες πώς οι τελεστές επηρεάζουν το αποτέλεσμα.", "#b45309");
+        } else if(userCorrect) {
+            printConsoleAndScreen("<br><strong>✅ Συγχαρητήρια!</strong> Ο έλεγχος εγκυρότητας ολοκληρώθηκε σωστά.", "#16a34a");
+            if(!state.bonus) document.getElementById('btnBonus').style.display = 'flex';
+        }
+        
+        // Έλεγχος της φυσικής απάντησης με βάση τον ΔΥΝΑΜΙΚΟ σωστό αριθμό
+        if(state.ans === correctAnswerIndex) {
+            printConsoleAndScreen("<strong>Άριστα! Σωστή απάντηση και στη Φυσική!</strong>", "#16a34a");
+        } else {
+            printConsoleAndScreen("Αποδεκτή τιμή (το πρόγραμμα δεν 'κράσαρε'), αλλά <strong>λάθος απάντηση</strong> στη Φυσική.", "#b45309");
+        }
+
+        unlockInputs();
+    }
+
+    function startBonusChallenge() {
+        state.bonus = true;
+        document.getElementById('btnBonus').style.display = 'none';
+        document.getElementById('theoryText').innerHTML = "<strong>⭐ Bonus Πρόκληση:</strong> Αντιστρέψαμε τα ΚΑΙ με τα Ή (Νόμοι του De Morgan!).<br><br>Τρέξε τώρα τον κώδικα, βάλε το σωστό (3) ή κάτι λάθος (9) στο Τερματικό, και δες στον Αναλυτή της RAM γιατί το πρόγραμμα <strong>κόλλησε για πάντα</strong> ή <strong>περνάει τα πάντα</strong>!";
+        resetApp();
+    }
+
+    function addRamRow(ans, condIf, condUntil) {
+        const body = document.getElementById('ramBody');
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${ans}</td><td>${condIf}</td><td>${condUntil}</td>`;
+        body.appendChild(row);
+        body.parentElement.scrollTop = body.parentElement.scrollHeight;
+    }
+
+    function updateLastRam(txt) {
+        let rows = document.getElementById('ramBody').rows;
+        if(rows.length > 0) rows[rows.length-1].cells[2].innerText = txt;
+    }
+
+    function highlightLine(id) {
+        document.querySelectorAll('.code-line').forEach(l => l.classList.remove('active'));
+        if(id > 0) {
+            let el = document.getElementById('L' + id);
+            if(el) el.classList.add('active');
+        }
+    }
+
+    function unlockInputs() {
+        for(let i=1; i<=10; i++) { let el=document.getElementById('b'+i); el.classList.remove('locked'); el.disabled=false; }
+        document.getElementById('btnSolution').style.display='flex';
+        document.getElementById('btnExecute').style.display='flex';
+    }
+
+    function resetApp() {
+        stopAuto();
+        state = { ans: null, pc: 0, isPlaying: false, isFinished: false, timer: null, waitingInput: false, bonus: state.bonus };
+        
+        if(!state.bonus) {
+            for(let i=1; i<=10; i++) document.getElementById('b'+i).value = '';
+            document.getElementById('btnBonus').style.display = 'none';
+        }
+        
+        document.getElementById('terminalArea').classList.remove('waiting-input');
+        document.getElementById('inputContainer').style.display = 'none';
+        document.getElementById('terminalOutput').innerHTML = "Περιμένοντας εκτέλεση...";
+        document.getElementById('screen').innerHTML = "";
+        document.getElementById('ramBody').innerHTML = "";
+        
+        document.getElementById('btnSolution').style.display='flex';
+        document.getElementById('btnExecute').style.display='flex';
+        document.getElementById('btnExecute').disabled=true;
+        document.getElementById('btnStep').style.display='none';
+        document.getElementById('btnAuto').style.display='none';
+        
+        // Επαναφορά της κλασικής σειράς εμφάνισης για αρχή
+        document.getElementById('L2b').innerHTML = `&nbsp;&nbsp;Εμφάνισε "1) Μετατόπισης, 2) Ταχύτητας, 3) Επιτάχυνσης"`;
+        
+        unlockInputs();
+        highlightLine(0);
+        checkBlanks();
+    }
+
+    function toggleTheme() { document.body.classList.toggle('dark-mode'); }
+    checkBlanks();
+</script>
+
+</body>
+</html>
